@@ -2,12 +2,14 @@
     "name": "next",
     "version": "0.1.0",
     "private": true,
+    "type": "module",
     "scripts": {
         "dev": "next dev --turbopack",
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "seed": "ts-node ./prisma/seed.ts"
+        "seed": "ts-node ./prisma/seed.ts",
+        "seed:18": "node --loader ts-node/esm ./prisma/seed.ts"
     },
     "dependencies": {
         "@prisma/client": "^6.12.0",
