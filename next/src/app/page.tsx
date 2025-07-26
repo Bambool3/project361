@@ -1,9 +1,9 @@
 // MyPage.tsx
-import LoginPage from './login/page';
-import React from 'react';
+import LoginPage from "./login/page";
+import React from "react";
 
 const MyPage = () => {
-  return <LoginPage />;
+    return <LoginPage />;
 };
 
 export default MyPage;
