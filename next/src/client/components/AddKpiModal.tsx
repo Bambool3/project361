@@ -199,7 +199,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                 {/* กรณีไม่มี sub-KPI ให้แสดงข้อความ */}
                 {subkpis.length === 0 && (
                   <div className="text-gray-500 text-sm mb-2">
-                    No sub-KPIs yet.
+                    ยังไม่ได้เลือก sub kpi
                   </div>
                 )}
 
