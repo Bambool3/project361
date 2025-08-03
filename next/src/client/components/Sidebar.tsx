@@ -1,20 +1,24 @@
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LayoutGrid, Database, Monitor, FileText, PieChart, Users, X, Settings } from "lucide-react";
 
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
-    activeNavItem: string; // Add prop for active item
-    onNavItemClick: (itemName: string) => void; // Add prop for click handler
+
 }
 
-const Sidebar = ({ isOpen, onClose, activeNavItem, onNavItemClick }: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+
+    const pathname = usePathname()
+
     const navItems = [
-        { name: 'KPIs', icon: LayoutGrid },
-        { name: 'Data', icon: Database },
-        { name: 'Dashboards',icon: Monitor },
-        { name: 'Reports', icon: FileText },
-        { name: 'Analytics', icon: PieChart },
-        { name: 'Users', icon: Users },
+        { name: 'KPIs', icon: LayoutGrid, path: '/dashboard' },
+        { name: 'Data', icon: Database, path: '/data' },
+        { name: 'Dashboards',icon: Monitor, path: '' },
+        { name: 'Reports', icon: FileText, path: '' },
+        { name: 'Analytics', icon: PieChart, path: '' },
+        { name: 'Users', icon: Users, path: '' },
     ];
 
 
@@ -23,7 +27,7 @@ const Sidebar = ({ isOpen, onClose, activeNavItem, onNavItemClick }: SidebarProp
             {/* Mobile overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+                    className="fixed inset-0 z-40 bg-black/50 bg-opacity-75 lg:hidden"
                     onClick={onClose}
                 />
             )}
@@ -38,7 +42,7 @@ const Sidebar = ({ isOpen, onClose, activeNavItem, onNavItemClick }: SidebarProp
                     <div className="flex items-center justify-between p-4 lg:hidden">
                         <div className="flex items-center space-x-3">
                             {/* You might want a better icon here for the title */}
-                            <h1 className="text-lg font-bold text-white">SimpleKPI</h1>
+                            <h1 className="text-lg font-bold text-white">CMUPA</h1>
                         </div>
                         <button
                             onClick={onClose}
@@ -55,19 +59,19 @@ const Sidebar = ({ isOpen, onClose, activeNavItem, onNavItemClick }: SidebarProp
                                 {/* Main navigation links */}
                                 <div className="flex flex-col lg:flex-row lg:items-center space-y-1 lg:space-y-0 lg:space-x-2">
                                     {navItems.map(item => (
-                                        <a
+                                        <Link
                                             key={item.name}
-                                            href="#"
+                                            href={item.path}
                                             className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                                                activeNavItem === item.name // Check against passed-in active state
+                                                pathname === item.path // Check against passed-in active state
                                                 ? 'bg-white text-purple-700 shadow-sm'
                                                 : 'text-purple-100 hover:bg-purple-600 hover:text-white'
                                             }`}
-                                            onClick={() => onNavItemClick(item.name)} // Call the click handler
+                                            onClick={onClose} // Call the click handler
                                         >
                                             <item.icon className="w-5 h-5 flex-shrink-0" />
                                             <span>{item.name}</span>
-                                        </a>
+                                        </Link>
                                     ))}
                                 </div>
 

@@ -8,6 +8,7 @@ interface AddKpiModalProps {
 
 type SubKpi = {
   name:string;
+  target:string;
 }
   
 const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
@@ -22,7 +23,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
   })
   // เพิ่มข้อมูล subkpis
   function addSubKpi() {
-    setSubKpis([...subkpis, {name:""}])
+    setSubKpis([...subkpis, {name:"", target:""}])
 
     console.log("เพิ่ม sub kpi ปล่าวแล้ว")
   }
@@ -73,7 +74,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
         {/* Modal Panel */}
         <div 
-          className="bg-white rounded-xl shadow-2xl w-full max-w-lg m-4 transform transition-all duration-300 ease-out"
+          className="bg-white rounded-xl shadow-2xl w-full max-w-xl m-4 transform transition-all duration-300 ease-out"
           onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
         >
           <form onSubmit={handleSubmit}>
@@ -115,14 +116,17 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                   {/* Target KPI Input */}
                   <div>
                     <label htmlFor="kpi-target" className="block text-sm font-medium text-gray-700 mb-1">Does the KPI have a target?</label>
-                    <input
-                      type="text"
-                      id="kpi-target"
-                      placeholder="Target KPI"
-                      className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                      value={mainKpi.target}
-                      onChange={(e) => handleMainKpiChange("target", e.target.value)}
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        id="kpi-target"
+                        placeholder="Target KPI"
+                        className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                        value={mainKpi.target}
+                        onChange={(e) => handleMainKpiChange("target", e.target.value)}
+                      />
+                      <HelpCircle className="text-gray-400 hover:text-gray-600 cursor-pointer w-5 h-5"/>
+                    </div>
                   </div>
 
                   {/* format KPI input */}
@@ -210,9 +214,18 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                       <input
                         type='text'
                         placeholder='Sub-KPI Name'
-                        className='w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition'
+                        className='w-[60%] px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition'
                         value={sub.name}
                         onChange={(e) => updateSubKpi(idx, "name", e.target.value)}
+                        required
+                      >
+                      </input>
+                      <input 
+                        type="text"
+                        placeholder='Sub-KPI Target'
+                        className='w-[35%] px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition'
+                        value={sub.target}
+                        onChange={(e) => updateSubKpi(idx, "target", e.target.value)}
                         required
                       >
                       </input>
@@ -227,9 +240,9 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                     </div>
 
                   ))}
-
-
                 </div>
+
+
                 
                 {/* Accordions */}
                 <div className="space-y-3">
