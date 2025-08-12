@@ -30,7 +30,6 @@ export default function KpiTopicDetails() {
                     isMobileMenuOpen={isMobileMenuOpen}
                 />
                 <Sidebar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
-                <SubNavBar />
                 <KpiTopic/>
                 {/* <MainContent /> */}
             </div>

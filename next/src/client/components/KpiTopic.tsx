@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from 'react';
 
 // ตัวอย่างข้อมูลกลุ่ม KPI/หมวดใหญ่
@@ -14,6 +15,7 @@ const mockCategories: Category[] = [
 ];
 
 const KpiTopic = () => {
+  const r = useRouter();
   const [categories, setCategories] = useState<Category[]>(mockCategories);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCat, setNewCat] = useState({ name: "", description: "" });
@@ -28,6 +30,7 @@ const KpiTopic = () => {
   // สมมติว่ามีการไปหน้ารายการ KPI ย่อยของหมวดใหญ่
   function openCategory(id: string) {
     // เช่น ใช้ router.push(`/kpi/category/${id}`)
+    r.push("/dashboard");
     alert("ไปหน้าคุมกลุ่มหัวข้อใหญ่ id = " + id);
   }
 
