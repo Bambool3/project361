@@ -1,290 +1,250 @@
-import { Crosshair, HelpCircle, ChevronDown, ExternalLink, Plus, Trash2} from 'lucide-react';
+import { Crosshair, HelpCircle, ChevronDown, ChevronUp, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface AddKpiModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
-
 type SubKpi = {
-  name:string;
-  target:string;
-}
-  
-const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
-  const [subkpis, setSubKpis] = useState<SubKpi[]>([])
+  id: string;
+  name: string;
+  target: string;
+};
 
+const kpiFormats = ["1,234", "$1,234.56", "15%"];
+const kpiYears = ["รายวัน", "รายสัปดาห์", "รายเดือน", "รายไตรมาส", "รายปีปฏิทิน"];
+const departments = ["ฝ่ายที่ 1", "ฝ่ายที่ 2", "ฝ่ายที่ 3"];
+
+const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
+  const [subkpis, setSubKpis] = useState<SubKpi[]>([]);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [mainKpi, setMainKpi] = useState({
     name: "",
     target: "",
-    format: "1,234",
-    year: "",
-    department: "",
-  })
-  // เพิ่มข้อมูล subkpis
+    format: kpiFormats[0],
+    year: kpiYears[0],
+    department: departments[0],
+  });
+
   function addSubKpi() {
-    setSubKpis([...subkpis, {name:"", target:""}])
-
-    console.log("เพิ่ม sub kpi ปล่าวแล้ว")
+    setSubKpis([...subkpis, { id: crypto.randomUUID(), name: "", target: "" }]);
+    setExpandedIndex(subkpis.length);
   }
-  // ลบข้อมูล subkpis
   function removeSubKpi(idx: number) {
-    setSubKpis(subkpis.filter((x,i) => i != idx))
-
-    console.log("ลบ sub kpi แล้ว")
+    setSubKpis(subkpis.filter((_, i) => i !== idx));
+    if (expandedIndex === idx) setExpandedIndex(null);
   }
-  // เปลียนค่า subKpis
-  function updateSubKpi(idx:number, key: keyof SubKpi, value: string) {
-    const newsub = [...subkpis]
-    newsub[idx][key] = value
-    setSubKpis(newsub)
-
-    console.log("รายการ sub kpi ใหม่ =",newsub)
+  function updateSubKpi(idx: number, key: keyof SubKpi, value: string) {
+    const newsub = [...subkpis];
+    newsub[idx][key] = value;
+    setSubKpis(newsub);
   }
-  // ฟังก์ชันปรับค่าฟิลด์ใน main KPI
-  function handleMainKpiChange(key: string, value: string) {
+  function handleMainKpiChange(key: keyof typeof mainKpi, value: string) {
     setMainKpi((prev) => ({ ...prev, [key]: value }));
-    
-    console.log("ค่าใน main เปลี่ยนเป็น",mainKpi)
   }
-
-
-    // ฟังก์ชันเมื่อ submit ฟอร์ม (ส่งข้อมูล)
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // แสดงตัวอย่างข้อมูลที่จะส่ง API (สามารถเปลี่ยนเป็น fetch/axios ได้)
     alert(JSON.stringify({ ...mainKpi, subkpis }, null, 2));
-    // Reset state และปิด modal
     setMainKpi({
       name: "",
       target: "",
-      format: "",
-      year: "",
-      department: "department 1",
+      format: kpiFormats[0],
+      year: kpiYears[0],
+      department: departments[0],
     });
     setSubKpis([]);
+    setExpandedIndex(null);
     onClose();
   }
 
+  if (!isOpen) return null;
 
-    if (!isOpen) return null;
-  
-    return (
-      // Backdrop
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-        {/* Modal Panel */}
-        <div 
-          className="bg-white rounded-xl shadow-2xl w-full max-w-xl m-4 transform transition-all duration-300 ease-out"
-          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-        >
-          <form onSubmit={handleSubmit}>
-            <div className="p-6 sm:p-8">
-              
-              {/* Header */}
-              <div className="flex justify-between items-start mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Add a KPI</h2>
-                <a href="#" className="text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1">
-                  Learn more
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 transition-all duration-300 ease-out"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 sm:p-8">
+
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">เพิ่มตัวชี้วัด (KPI)</h2>
+              <a href="#" className="text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1">
+                ศึกษาวิธีใช้งาน
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+
+            {/* Main KPI (HORIZONTAL WRAP, NO SCROLL) */}
+            <div className="flex flex-row flex-wrap gap-4 mb-8">
+              <div className="flex flex-col flex-1 min-w-[180px] max-w-[240px]">
+                <label htmlFor="kpi-name" className="block text-sm font-medium text-gray-700 mb-1">ชื่อตัวชี้วัด</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="kpi-name"
+                    placeholder="กรอกชื่อตัวชี้วัด"
+                    className="pl-4 pr-12 py-2 border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                    value={mainKpi.name}
+                    onChange={(e) => handleMainKpiChange("name", e.target.value)}
+                    required
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                    <Crosshair className="w-5 h-5" />
+                  </div>
+                </div>
               </div>
-    
-              {/* Form */}
-              <div className="space-y-5">
-                {/* KPI Name Input */}
-                <div>
-                  <label htmlFor="kpi-name" className="sr-only">Give your KPI a name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="kpi-name"
-                      placeholder="Give your KPI a name"
-                      className="w-full pl-4 pr-12 py-3 border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                      value={mainKpi.name}
-                      onChange={(e) => handleMainKpiChange("name", e.target.value)}
-                      required
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                      <Crosshair className="w-6 h-6" />
-                    </div>
-                  </div>
-                </div>
-    
-                {/* Selects */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
+                <label htmlFor="kpi-target" className="block text-sm font-medium text-gray-700 mb-1">เป้าหมาย</label>
+                <input
+                  type="text"
+                  id="kpi-target"
+                  placeholder="ระบุเป้าหมาย"
+                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                  value={mainKpi.target}
+                  onChange={(e) => handleMainKpiChange("target", e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
+                <label htmlFor="kpi-format" className="block text-sm font-medium text-gray-700 mb-1">รูปแบบข้อมูล</label>
+                <select
+                  id="kpi-format"
+                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                  value={mainKpi.format}
+                  onChange={(e) => handleMainKpiChange("format", e.target.value)}
+                >
+                  {kpiFormats.map(fmt => <option key={fmt}>{fmt}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
+                <label htmlFor="kpi-year" className="block text-sm font-medium text-gray-700 mb-1">รอบการรายงาน</label>
+                <select
+                  id="kpi-year"
+                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                  value={mainKpi.year}
+                  onChange={(e) => handleMainKpiChange("year", e.target.value)}
+                >
+                  {kpiYears.map(year => <option key={year}>{year}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col flex-1 min-w-[140px] max-w-[200px]">
+                <label htmlFor="kpi-department" className="block text-sm font-medium text-gray-700 mb-1">ฝ่ายที่รับผิดชอบ</label>
+                <select
+                  id="kpi-department"
+                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                  value={mainKpi.department}
+                  onChange={(e) => handleMainKpiChange("department", e.target.value)}
+                >
+                  {departments.map(dep => <option key={dep}>{dep}</option>)}
+                </select>
+              </div>
+            </div>
 
-                  {/* Target KPI Input */}
-                  <div>
-                    <label htmlFor="kpi-target" className="block text-sm font-medium text-gray-700 mb-1">Does the KPI have a target?</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        id="kpi-target"
-                        placeholder="Target KPI"
-                        className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
-                        value={mainKpi.target}
-                        onChange={(e) => handleMainKpiChange("target", e.target.value)}
-                      />
-                      <HelpCircle className="text-gray-400 hover:text-gray-600 cursor-pointer w-5 h-5"/>
-                    </div>
-                  </div>
-
-                  {/* format KPI input */}
-                  <div>
-                    <label htmlFor="kpi-format" className="block text-sm font-medium text-gray-700 mb-1">What is the Format?</label>
-                    <div className="flex items-center gap-2">
-                      <select 
-                        id="kpi-format" 
-                        className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition appearance-none bg-white"
-                        value={mainKpi.format}
-                        onChange={(e) => handleMainKpiChange("format",e.target.value)}
-                      >
-                        <option>1,234</option>
-                        <option>$1,234.56</option>
-                        <option>15%</option>
-                      </select>
-                      <HelpCircle className="text-gray-400 hover:text-gray-600 cursor-pointer w-5 h-5"/>
-                    </div>
-                  </div>
-                  
-                  {/* KPI year input */}
-                  <div>
-                    <label htmlFor="kpi-year" className="block text-sm font-medium text-gray-700 mb-1">When will this KPI be entered?</label>
-                    <div className="flex items-center gap-2">
-                      <select 
-                        id="kpi-year" 
-                        className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition appearance-none bg-white"
-                        value={mainKpi.year}
-                        onChange={(e) => handleMainKpiChange("year",e.target.value)}
-                      >
-                        <option>Daily</option>
-                        <option>Weekly</option>
-                        <option>Monthly</option>
-                        <option>Quarterly</option>
-                        <option>Calendar year</option>
-                      </select>
-                      <HelpCircle className="text-gray-400 hover:text-gray-600 cursor-pointer w-5 h-5"/>
-                    </div>
-                  </div>
-
-                  {/* department KPI input */}
-                  <div>
-                    <label htmlFor="kpi-department" className="block text-sm font-medium text-gray-700 mb-1">Which department will enter this KPI?</label>
-                    <div className="flex items-center gap-2">
-                      <select 
-                        id="kpi-department" 
-                        className="w-full px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition appearance-none bg-white"
-                        value={mainKpi.department}
-                        onChange={(e) => handleMainKpiChange("department",e.target.value)}
-                      >
-                        <option>department 1</option>
-                        <option>department 2</option>
-                        <option>department 3</option>
-                      </select>
-                      <HelpCircle className="text-gray-400 hover:text-gray-600 cursor-pointer w-5 h-5"/>
-                    </div>
-                  </div>                
-                </div>
-
-                {/* subkpi */}
-                <div>
-                  <div className='flex justify-between items-center mb-2'>
-                    <label className='font-medium text-gray-800'>Sub-KPIs</label>
-                    <button 
-                      type="button"
-                      className='flex items-center gap-1 text-sm text-purple-700 font-medium hover:underline'
-                      onClick={addSubKpi}
-                    >
-                      <Plus className="w-4 h-4" /> Add Sub-KPI
-                    </button>
-                  </div>
-                </div>
-
-                {/* กรณีไม่มี sub-KPI ให้แสดงข้อความ */}
-                {subkpis.length === 0 && (
-                  <div className="text-gray-500 text-sm mb-2">
-                    ยังไม่ได้เลือก sub kpi
-                  </div>
-                )}
-
-                {/* ตรงกลางของ sub KPI */}
-                <div className='space-y-2'>
+            {/* Sub-KPI Section */}
+            <div className="mt-4">
+              <button
+                type="button"
+                className="flex items-center gap-1 text-sm text-purple-700 font-bold mb-2"
+                onClick={addSubKpi}
+              >
+                <Plus className="w-4 h-4" /> เพิ่ม Sub-KPI
+              </button>
+              {subkpis.length === 0 ? (
+                <div className="text-gray-500 text-sm mb-2">ยังไม่มี Sub-KPI</div>
+              ) : (
+                <div className="space-y-1">
                   {subkpis.map((sub, idx) => (
-                    <div key={idx} className='flex gap-2 items-center'>
-                      <input
-                        type='text'
-                        placeholder='Sub-KPI Name'
-                        className='w-[60%] px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition'
-                        value={sub.name}
-                        onChange={(e) => updateSubKpi(idx, "name", e.target.value)}
-                        required
-                      >
-                      </input>
-                      <input 
-                        type="text"
-                        placeholder='Sub-KPI Target'
-                        className='w-[35%] px-4 py-3 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition'
-                        value={sub.target}
-                        onChange={(e) => updateSubKpi(idx, "target", e.target.value)}
-                        required
-                      >
-                      </input>
-                      <button
-                        type='button'
-                        aria-label='Remove sub-KPI'
-                        onClick={() => removeSubKpi(idx)}
-                        className='text-red-500 hover:text-red-700'
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                    <div key={sub.id} className="mb-2">
+                      <div className="flex items-center">
+                        <button
+                          type="button"
+                          className="mr-2"
+                          aria-label="expand"
+                          onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
+                        >
+                          {expandedIndex === idx
+                            ? <ChevronUp className="w-5 h-5" />
+                            : <ChevronDown className="w-5 h-5" />}
+                        </button>
+                        <span className="font-semibold text-gray-900">
+                          {sub.name ? sub.name : "ชื่อ Sub-KPI"}
+                        </span>
+                        <button
+                          type="button"
+                          className="ml-auto text-red-500"
+                          onClick={() => removeSubKpi(idx)}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                      {/* Expanded: inputs inline and wrap */}
+                      {expandedIndex === idx && (
+                        <div className="flex flex-row flex-wrap items-end bg-gray-100 border-l-4 border-purple-400 p-4 mt-2 rounded-lg gap-4">
+                          <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
+                            <label className="text-xs font-medium text-gray-700 mb-1">ชื่อ Sub-KPI</label>
+                            <input
+                              type="text"
+                              placeholder="ชื่อ Sub-KPI"
+                              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                              value={sub.name}
+                              onChange={(e) => updateSubKpi(idx, "name", e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
+                            <label className="text-xs font-medium text-gray-700 mb-1">เป้าหมาย Sub-KPI</label>
+                            <input
+                              type="text"
+                              placeholder="เป้าหมาย Sub-KPI"
+                              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                              value={sub.target}
+                              onChange={(e) => updateSubKpi(idx, "target", e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
-
                   ))}
                 </div>
-
-
-                
-                {/* Accordions */}
-                <div className="space-y-3">
-                    <details className="bg-gray-50 p-4 rounded-lg cursor-pointer group">
-                        <summary className="flex justify-between items-center font-medium text-gray-700 list-none">
-                            More Options
-                            <ChevronDown className="w-5 h-5 group-open:rotate-180 transition-transform"/>
-                        </summary>
-                        <p className="text-gray-600 mt-3">More configuration options can be placed here, like setting deadlines or assigning owners.</p>
-                    </details>
-                    <details className="bg-gray-50 p-4 rounded-lg cursor-pointer group">
-                        <summary className="flex justify-between items-center font-medium text-gray-700 list-none">
-                            Create a formula
-                            <ChevronDown className="w-5 h-5 group-open:rotate-180 transition-transform"/>
-                        </summary>
-                        <p className="text-gray-600 mt-3">A formula builder or advanced calculation settings could be included in this section.</p>
-                    </details>
-                </div>
-              </div>
+              )}
             </div>
-    
-            {/* Footer */}
-            <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex flex-col sm:flex-row-reverse sm:items-center gap-3">
-              <button className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-2.5 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
-                Save
-              </button>
-              <button 
-                onClick={onClose}
-                className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-2.5 border border-gray-300 text-base font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+
+            {/* Submit/Cancel */}
+            <div className="flex gap-2 mt-6">
+              <button
+                type="submit"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md font-semibold"
               >
-                Cancel
+                บันทึกตัวชี้วัด
+              </button>
+              <button
+                type="button"
+                className="border border-gray-400 px-6 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                onClick={() => {
+                  setMainKpi({
+                    name: "",
+                    target: "",
+                    format: kpiFormats[0],
+                    year: kpiYears[0],
+                    department: departments[0],
+                  });
+                  setSubKpis([]);
+                  setExpandedIndex(null);
+                  onClose();
+                }}
+              >
+                ยกเลิก
               </button>
             </div>
-            
-          </form>
-        </div>
+
+          </div>
+        </form>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
-  export default AddKpiModal;
-
-
-
-
+export default AddKpiModal;
