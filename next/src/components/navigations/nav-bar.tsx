@@ -38,7 +38,7 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
     };
 
     const navItems = [
-        { name: "หน้าหลัก", icon: LayoutGrid, path: "/dashboard" },
+        { name: "หน้าหลัก", icon: LayoutGrid, path: "/topic" },
         { name: "ตัวชี้วัด", icon: Database, path: "/kpis" },
         // { name: "Dashboards", icon: Monitor, path: "" },
         { name: "รายงาน", icon: FileText, path: "" },
