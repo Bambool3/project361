@@ -2,20 +2,58 @@ import { ChevronDown, MoreHorizontal, Search, LayoutGrid, Plus, ArrowUpDown } fr
 import { useState } from 'react';
 import AddKpiModal from '../../client/components/AddKpiModal';
 
+// 1. กำหนด Type (TypeScript)
+type KpiKey = "id" | "name" | "type" | "assign" | "frequency" | "format" | "direction" | "target";
+type Kpi = Record<KpiKey, string | number>;
+
+// 2. Header ของ Table
+const tableHeaders: { key: KpiKey, label: string }[] = [
+    { key: 'id', label: 'ID'},
+    { key: 'name', label: 'Name' },
+    { key: 'type', label: 'Type' },
+    { key: 'assign', label: 'Assign' },
+    { key: 'frequency', label: 'Frequency'},
+    { key: 'format', label: 'Format' },
+    { key: 'direction', label: 'Direction'},
+    { key: 'target', label: 'Target' }
+];
+
+// 3. ข้อมูลตัวอย่าง (Sample Data)
+const sampleData: Kpi[] = [
+    {
+        id: 1,
+        name: "ยอดขายประจำเดือน",
+        type: "การเงิน",
+        assign: "ฝ่ายขาย",
+        frequency: "รายเดือน",
+        format: "บาท",
+        direction: "Up",
+        target: "1,000,000"
+    },
+    {
+        id: 2,
+        name: "จำนวนข้อร้องเรียน",
+        type: "ลูกค้า",
+        assign: "ลูกค้าสัมพันธ์",
+        frequency: "รายเดือน",
+        format: "รายการ",
+        direction: "Down",
+        target: "ไม่เกิน 20"
+    },
+    {
+        id: 3,
+        name: "คะแนนความพึงพอใจ",
+        type: "บริการ",
+        assign: "ฝ่ายบริการ",
+        frequency: "รายไตรมาส",
+        format: "คะแนน (เต็ม 5)",
+        direction: "Up",
+        target: "มากกว่า 4.5"
+    }
+];
+
 const MainContent = () => {
     const [isModalOpen, setModalOpen] = useState(false);
-
-    const tableHeaders = [
-        { key: 'id', label: 'ID'},
-        { key: 'name', label: 'Name' },
-        { key: 'type', label: 'Type' },
-        { key: 'assign', label: 'Assign' },
-        { key: 'frequency', label: 'Frequency'},
-        { key: 'format', label: 'Format' },
-        { key: 'direction', label: 'Direction'},
-        { key: 'target', label: 'Target' },
-        { key: 'entries', label: 'Entries'}
-    ];
 
     return (
         <>
@@ -97,22 +135,38 @@ const MainContent = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {/* Empty State */}
-                                    <tr>
-                                        <td colSpan={tableHeaders.length + 1}>
-                                            <div className="text-center py-16 px-6">
-                                                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                                                    <LayoutGrid className="w-8 h-8 text-gray-400" />
+                                    {sampleData.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={tableHeaders.length + 1}>
+                                                <div className="text-center py-16 px-6">
+                                                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                                                        <LayoutGrid className="w-8 h-8 text-gray-400" />
+                                                    </div>
+                                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No KPIs in this category</h3>
+                                                    <p className="text-gray-500 mb-6">Start tracking your performance by adding a KPI.</p>
+                                                    <button onClick={() => setModalOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white shadow-sm text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
+                                                        <Plus className="w-4 h-4" />
+                                                        Add a KPI to this category
+                                                    </button>
                                                 </div>
-                                                <h3 className="text-lg font-medium text-gray-900 mb-2">No KPIs in this category</h3>
-                                                <p className="text-gray-500 mb-6">Start tracking your performance by adding a KPI.</p>
-                                                <button onClick={() => setModalOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white shadow-sm text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
-                                                    <Plus className="w-4 h-4" />
-                                                    Add a KPI to this category
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        sampleData.map((row) => (
+                                            <tr key={row.id}>
+                                                {tableHeaders.map(header => (
+                                                    <td key={header.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {row[header.key]}
+                                                    </td>
+                                                ))}
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button className="text-gray-400 hover:text-gray-600">
+                                                        <MoreHorizontal />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>

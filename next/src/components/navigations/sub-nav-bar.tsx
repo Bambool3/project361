@@ -1,7 +1,9 @@
 import { Plus } from "lucide-react";
 import { Box, Container, Button } from "@mui/material";
-
+import { useState } from 'react';
+import AddKpiModal from '../../client/components/AddKpiModal';
 export default function SubNavBar() {
+    const [isModalOpen, setModalOpen] = useState(false);
     return (
         <Box
             sx={{
@@ -104,5 +106,7 @@ export default function SubNavBar() {
                 </Box>
             </Container>
         </Box>
+        
+        
     );
 }
