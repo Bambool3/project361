@@ -39,7 +39,7 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
 
     const navItems = [
         { name: "หน้าหลัก", icon: LayoutGrid, path: "/topic" },
-        { name: "ตัวชี้วัด", icon: Database, path: "/kpis" },
+        { name: "ตัวชี้วัด", icon: Database, path: "/kpi" },
         // { name: "Dashboards", icon: Monitor, path: "" },
         { name: "รายงาน", icon: FileText, path: "" },
         { name: "สถิติ", icon: PieChart, path: "/analytics" },
