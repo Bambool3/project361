@@ -8,27 +8,69 @@ datasource db {
 }
 
 model User {
-  id            String     @id
+  id            String         @id 
   first_name    String
   last_name     String
-  email         String     @unique
+  email         String         @unique
   password      String
 
-  role          Role       @relation(fields: [role_id], references: [id])
+  role          Role           @relation(fields: [role_id], references: [id])
   role_id       String
 
-  department    Department @relation(fields: [department_id], references: [id])
+  department    Department     @relation(fields: [department_id], references: [id])
   department_id String
+
+  indicators    Indicator[] 
 }
 
 model Department {
-  id              String @id
-  department_name String @unique
+  id              String                @id 
+  department_name String                @unique
   users           User[]
+  indicators      IndicatorDepartment[] 
 }
 
 model Role {
-  id        String @id
-  role_name String @unique
+  id        String   @id 
+  role_name String   @unique
   users     User[]
+}
+
+model Category {
+  id          String      @id 
+  name        String
+  description String
+  indicators  Indicator[]
+}
+
+model Indicator {
+  id                  String                @id 
+  name                String
+  unit                String
+  target_value        Int
+
+  // --- Corrected Self-Relation ---
+  main_indicator_id   String 
+  main_indicator      Indicator            @relation("MainSubIndicators", fields: [main_indicator_id], references: [id])
+  sub_indicators      Indicator[]           @relation("MainSubIndicators")
+
+  // --- Corrected User Relation ---
+  responsible_user_id String
+  responsible_user    User                  @relation(fields: [responsible_user_id], references: [id])
+
+  // --- Corrected Category Relation ---
+  category_id         String
+  category            Category              @relation(fields: [category_id], references: [id])
+
+  // --- Relation to the join table ---
+  departments         IndicatorDepartment[]
+}
+
+model IndicatorDepartment {
+  indicator_id  String
+  indicator     Indicator  @relation(fields: [indicator_id], references: [id])
+  department_id String
+  department    Department @relation(fields: [department_id], references: [id])
+
+  @@id([indicator_id, department_id]) // Composite primary key
 }
