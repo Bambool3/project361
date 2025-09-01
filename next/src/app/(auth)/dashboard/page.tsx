@@ -2,7 +2,7 @@ import DashboardDetails from "@/components/pages/dashboard/DashboardDetails";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Topic | Chiang Mai University",
+    title: "หน้าหลัก | Chiang Mai University",
 };
 
 export default function Page() {

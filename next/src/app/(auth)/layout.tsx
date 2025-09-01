@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { Geist, Geist_Mono } from "next/font/google";
 import { redirect } from "next/navigation";
-// import "../global.css";
 import { authOptions } from "@/lib/auth";
 
 const geistSans = Geist({
@@ -26,7 +25,7 @@ export default async function RootLayout({
     }
 
     return (
-        <html lang="th">
+        <html>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >

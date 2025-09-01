@@ -2,7 +2,7 @@ import KpiTopicDetails from "@/components/pages/kpi/KpiDetails";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Dashboard | Chiang Mai University",
+    title: "ตัวชี้วัด | Chiang Mai University",
 };
 
 export default function Page() {
