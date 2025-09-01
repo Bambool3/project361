@@ -1,5 +1,6 @@
-import { Menu, X, HelpCircle, UserCircle, NotepadText } from "lucide-react";
+import { Menu } from "lucide-react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import {
     AppBar,
     Toolbar,
@@ -9,23 +10,27 @@ import {
     Container,
     useMediaQuery,
     useTheme,
+    Chip,
 } from "@mui/material";
 
 interface HeaderProps {
     onMenuToggle: () => void;
-    isMobileMenuOpen: boolean;
 }
 
-export default function Header({
-    onMenuToggle,
-    isMobileMenuOpen,
-}: HeaderProps) {
+export default function Header({ onMenuToggle }: HeaderProps) {
     const theme = useTheme();
-    const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
+    const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+    const { data: session } = useSession();
+
+    const userRole = session?.user?.role || "User";
+
+    // const handleHelpClick = () => {
+    //     alert("Help clicked! Add help functionality here.");
+    // };
 
     return (
         <AppBar
-            position="sticky"
+            position="static"
             sx={{
                 backgroundColor: "white",
                 borderBottom: "1px solid #e5e7eb",
@@ -37,7 +42,7 @@ export default function Header({
                 <Toolbar
                     sx={{ minHeight: "64px", px: { xs: 2, sm: 3, lg: 4 } }}
                 >
-                    {/* Left section: Logo and Title */}
+                    {/* Left side */}
                     <Box
                         sx={{
                             display: "flex",
@@ -45,7 +50,8 @@ export default function Header({
                             flexGrow: 1,
                         }}
                     >
-                        {!isLargeScreen && (
+                        {/* Show hamburger menu only on mobile */}
+                        {isMobile && (
                             <IconButton
                                 onClick={onMenuToggle}
                                 sx={{
@@ -55,20 +61,13 @@ export default function Header({
                                         color: "#6b7280",
                                         backgroundColor: "#f3f4f6",
                                     },
-                                    "&:focus": {
-                                        outline: "none",
-                                        boxShadow: `0 0 0 2px var(--color-purple)`,
-                                    },
                                 }}
                             >
-                                {isMobileMenuOpen ? (
-                                    <X size={24} />
-                                ) : (
-                                    <Menu size={24} />
-                                )}
+                                <Menu size={24} />
                             </IconButton>
                         )}
 
+                        {/* Logo, title, and role badge */}
                         <Box
                             sx={{
                                 display: "flex",
@@ -77,42 +76,55 @@ export default function Header({
                             }}
                         >
                             <Image
-                                src={"/cmu_logo.png"}
-                                alt="cmu_logo"
+                                src="/cmu_logo.png"
+                                alt="CMU Logo"
                                 width={50}
                                 height={50}
                             />
-                            <Typography
-                                variant="h6"
-                                component="h1"
+                            {!isMobile && (
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: "bold",
+                                        color: "#111827",
+                                        fontSize: "1.25rem",
+                                    }}
+                                >
+                                    CMUPA
+                                </Typography>
+                            )}
+                            <Chip
+                                label={userRole}
+                                size="small"
                                 sx={{
-                                    fontWeight: "bold",
-                                    color: "#111827",
-                                    fontSize: "1.25rem",
+                                    backgroundColor: "var(--color-purple)",
+                                    color: "white",
+                                    fontWeight: 600,
+                                    fontSize: "0.75rem",
+                                    height: "24px",
+                                    "& .MuiChip-label": {
+                                        px: 1.5,
+                                    },
                                 }}
-                            >
-                                CMUPA
-                            </Typography>
+                            />
                         </Box>
                     </Box>
 
-                    {/* Right section: Actions */}
-                    <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                    >
+                    {/* Right side */}
+                    {/* <Box sx={{ display: "flex", alignItems: "center" }}>
                         <IconButton
+                            onClick={handleHelpClick}
                             sx={{
                                 color: "#9ca3af",
                                 "&:hover": {
                                     color: "var(--color-purple)",
                                     backgroundColor: "#f3f4f6",
                                 },
-                                transition: "all 0.2s ease",
                             }}
                         >
                             <HelpCircle size={20} />
                         </IconButton>
-                    </Box>
+                    </Box> */}
                 </Toolbar>
             </Container>
         </AppBar>
