@@ -3,14 +3,12 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
     LayoutGrid,
-    Database,
-    Monitor,
-    FileText,
     PieChart,
     Users,
     X,
     Settings,
     LogOut,
+    Goal,
 } from "lucide-react";
 import {
     Drawer,
@@ -28,7 +26,14 @@ interface NavBarProps {
     onClose: () => void;
 }
 
-const NavBar = ({ isOpen, onClose }: NavBarProps) => {
+const navItems = [
+    { name: "หน้าหลัก", icon: LayoutGrid, path: "/dashboard" },
+    { name: "ตัวชี้วัด", icon: Goal, path: "/kpi" },
+    { name: "สถิติ", icon: PieChart, path: "/analytics" },
+    { name: "บุคลากร", icon: Users, path: "/users" },
+];
+
+export default function NavBar({ isOpen, onClose }: NavBarProps) {
     const pathname = usePathname();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
@@ -37,16 +42,12 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
         await signOut({ callbackUrl: "/" });
     };
 
-    const navItems = [
-        { name: "หน้าหลัก", icon: LayoutGrid, path: "/topic" },
-        { name: "ตัวชี้วัด", icon: Database, path: "/kpi" },
-        // { name: "Dashboards", icon: Monitor, path: "" },
-        { name: "รายงาน", icon: FileText, path: "" },
-        { name: "สถิติ", icon: PieChart, path: "/analytics" },
-        { name: "ผู้ใช้งาน", icon: Users, path: "/users" },
-    ];
+    const handleSettingsClick = () => {
+        alert("Settings clicked!");
+    };
 
-    const drawerContent = (
+    // Main navigation content
+    const navigationContent = (
         <Box
             sx={{
                 width: isMobile ? 256 : "auto",
@@ -54,10 +55,15 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                 display: "flex",
                 flexDirection: "column",
                 backgroundColor: "var(--color-purple)",
-                color: "white",
+                color: "#fff",
+                boxShadow: isMobile
+                    ? "0 4px 24px rgba(0,0,0,0.12)"
+                    : "0 2px 8px rgba(0,0,0,0.08)",
+                borderRadius: isMobile ? "0 16px 16px 0" : "0 0 16px 16px",
+                overflow: "hidden",
             }}
         >
-            {/* Mobile Header */}
+            {/* Mobile header with close button */}
             {isMobile && (
                 <Box
                     sx={{
@@ -65,35 +71,45 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        backgroundColor: "rgba(255,255,255,0.08)",
+                        borderBottom: "1px solid rgba(255,255,255,0.12)",
                     }}
                 >
                     <Typography
-                        variant="h6"
-                        component="h1"
-                        sx={{ fontWeight: "bold", color: "white" }}
+                        variant="h5"
+                        sx={{
+                            fontWeight: "bold",
+                            color: "#fff",
+                            letterSpacing: 1,
+                        }}
                     >
                         CMUPA
                     </Typography>
                     <IconButton
                         onClick={onClose}
                         sx={{
-                            color: "rgba(255, 255, 255, 0.7)",
+                            color: "#fff",
+                            backgroundColor: "rgba(255,255,255,0.12)",
+                            borderRadius: "50%",
+                            border: "1.5px solid rgba(255,255,255,0.22)",
+                            width: 40,
+                            height: 40,
                             "&:hover": {
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                                color: "white",
+                                backgroundColor: "rgba(255,255,255,0.22)",
+                                transform: "scale(1.08) rotate(-10deg)",
                             },
                         }}
                     >
-                        <X size={20} />
+                        <X size={24} />
                     </IconButton>
                 </Box>
             )}
 
-            {/* Navigation Content */}
+            {/* Navigation links */}
             <Box sx={{ flex: 1, p: isMobile ? 2 : 0 }}>
                 <Box
-                    sx={{
-                        ...(isMobile
+                    sx={
+                        isMobile
                             ? {}
                             : {
                                   maxWidth: "1280px",
@@ -102,17 +118,17 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "space-between",
-                                  height: 56,
-                              }),
-                    }}
+                                  height: 64,
+                              }
+                    }
                 >
-                    {/* Navigation Links */}
+                    {/* Menu items */}
                     <Box
                         sx={{
                             display: "flex",
                             flexDirection: isMobile ? "column" : "row",
                             alignItems: isMobile ? "stretch" : "center",
-                            gap: isMobile ? 1 : 2,
+                            gap: isMobile ? 1.5 : 3,
                         }}
                     >
                         {navItems.map((item) => {
@@ -125,11 +141,11 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                                     component={Link}
                                     href={item.path}
                                     onClick={onClose}
-                                    startIcon={<IconComponent size={20} />}
+                                    startIcon={<IconComponent size={22} />}
                                     sx={{
                                         color: isActive
-                                            ? "var(--color-purple)"
-                                            : "rgba(255, 255, 255, 0.8)",
+                                            ? "#2575fc"
+                                            : "rgba(255,255,255,0.92)",
                                         backgroundColor: isActive
                                             ? "white"
                                             : "transparent",
@@ -137,22 +153,21 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                                             ? "flex-start"
                                             : "center",
                                         textTransform: "none",
-                                        fontWeight: 500,
-                                        px: 2,
+                                        fontWeight: 600,
+                                        fontSize: isMobile
+                                            ? "1.08rem"
+                                            : "1.05rem",
+                                        px: 2.5,
                                         py: 1,
-                                        borderRadius: 2,
+                                        borderRadius: 3,
                                         "&:hover": {
                                             backgroundColor: isActive
                                                 ? "white"
-                                                : "rgba(255, 255, 255, 0.1)",
+                                                : "rgba(255,255,255,0.14)",
                                             color: isActive
-                                                ? "var(--color-purple)"
-                                                : "white",
+                                                ? "#2575fc"
+                                                : "#fff",
                                         },
-                                        ...(isActive && {
-                                            boxShadow:
-                                                "0 1px 3px rgba(0, 0, 0, 0.1)",
-                                        }),
                                     }}
                                 >
                                     {item.name}
@@ -161,40 +176,40 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                         })}
                     </Box>
 
-                    {/* Desktop Right Side Actions */}
+                    {/* Desktop actions */}
                     {!isMobile && (
                         <Box
                             sx={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 1,
+                                gap: 2,
                             }}
                         >
                             <IconButton
+                                onClick={handleSettingsClick}
                                 sx={{
-                                    color: "rgba(255, 255, 255, 0.7)",
+                                    color: "#fff",
                                     "&:hover": {
                                         backgroundColor:
-                                            "rgba(255, 255, 255, 0.1)",
-                                        color: "white",
+                                            "rgba(255,255,255,0.18)",
                                     },
                                 }}
                             >
-                                <Settings size={20} />
+                                <Settings size={22} />
                             </IconButton>
                             <Button
                                 onClick={handleLogout}
-                                startIcon={<LogOut size={16} />}
+                                startIcon={<LogOut size={18} />}
                                 sx={{
-                                    color: "rgba(255, 255, 255, 0.8)",
+                                    color: "#fff",
+                                    backgroundColor: "rgba(255,255,255,0.10)",
                                     textTransform: "none",
-                                    fontWeight: 600,
-                                    px: 2,
-                                    py: 1,
-                                    borderRadius: 2,
+                                    fontWeight: 700,
+                                    px: 2.5,
+                                    py: 1.2,
+                                    borderRadius: 3,
                                     "&:hover": {
-                                        backgroundColor: "#ef4444",
-                                        color: "white",
+                                        backgroundColor: "#dc2626",
                                     },
                                 }}
                             >
@@ -205,10 +220,10 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                 </Box>
             </Box>
 
-            {/* Mobile Bottom Section */}
+            {/* Mobile bottom actions */}
             {isMobile && (
                 <Box>
-                    <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.2)" }} />
+                    <Divider sx={{ borderColor: "rgba(255,255,255,0.18)" }} />
                     <Box
                         sx={{
                             p: 2,
@@ -219,48 +234,34 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
                     >
                         <Button
                             onClick={handleLogout}
-                            startIcon={<LogOut size={16} />}
+                            startIcon={<LogOut size={18} />}
                             sx={{
-                                color: "rgba(255, 255, 255, 0.8)",
+                                color: "#fff",
+                                backgroundColor: "#ef4444",
                                 textTransform: "none",
-                                fontWeight: 600,
-                                px: 2,
+                                fontWeight: 700,
+                                px: 2.5,
                                 py: 1,
-                                borderRadius: 2,
+                                borderRadius: 3,
                                 "&:hover": {
-                                    backgroundColor: "#ef4444",
-                                    color: "white",
+                                    backgroundColor: "#dc2626",
                                 },
                             }}
                         >
                             ออกจากระบบ
                         </Button>
-                        <Box
+                        <IconButton
+                            onClick={handleSettingsClick}
                             sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 2,
+                                color: "#fff",
+                                backgroundColor: "rgba(255,255,255,0.10)",
+                                "&:hover": {
+                                    backgroundColor: "rgba(255,255,255,0.18)",
+                                },
                             }}
                         >
-                            <IconButton
-                                sx={{
-                                    color: "rgba(255, 255, 255, 0.7)",
-                                    "&:hover": {
-                                        backgroundColor:
-                                            "rgba(255, 255, 255, 0.1)",
-                                        color: "white",
-                                    },
-                                }}
-                            >
-                                <Settings size={20} />
-                            </IconButton>
-                            {/* <Typography
-                                variant="body2"
-                                sx={{ color: "white", fontWeight: 500 }}
-                            >
-                                การตั้งค่า
-                            </Typography> */}
-                        </Box>
+                            <Settings size={22} />
+                        </IconButton>
                     </Box>
                 </Box>
             )}
@@ -269,37 +270,36 @@ const NavBar = ({ isOpen, onClose }: NavBarProps) => {
 
     return (
         <>
-            {/* Mobile Drawer */}
+            {/* Mobile menu drawer */}
             <Drawer
                 anchor="left"
                 open={isOpen && isMobile}
                 onClose={onClose}
-                ModalProps={{
-                    keepMounted: true,
-                }}
                 sx={{
                     display: { xs: "block", lg: "none" },
                     "& .MuiDrawer-paper": {
                         width: 256,
                         border: "none",
+                        backgroundColor: "var(--color-purple)",
+                        boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
                     },
                 }}
             >
-                {drawerContent}
+                {navigationContent}
             </Drawer>
 
-            {/* Desktop Navigation */}
+            {/* Desktop navigation bar */}
             <Box
                 component="nav"
                 sx={{
                     display: { xs: "none", lg: "block" },
                     backgroundColor: "var(--color-purple)",
                     width: "100%",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                 }}
             >
-                {drawerContent}
+                {navigationContent}
             </Box>
         </>
     );
-};
-export default NavBar;
+}
