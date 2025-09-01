@@ -1,13 +1,11 @@
 "use client";
-import MainContent from "@/client/components/MainContent";
 import Header from "@/components/header";
-import Sidebar from "@/components/navigations/nav-bar";
-import SubNavBar from "@/components/navigations/sub-nav-bar";
+import NavBar from "@/components/navigations/nav-bar";
 import { useState } from "react";
+import DashboardMain from "./DashboardMain";
 
 export default function DashboardDetails() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeNavItem, setActiveNavItem] = useState("KPIs");
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -17,21 +15,25 @@ export default function DashboardDetails() {
         setIsMobileMenuOpen(false);
     };
 
-    const handleNavItemClick = (itemName: string) => {
-        setActiveNavItem(itemName);
-        closeMobileMenu();
-    };
     return (
         <div className="min-h-screen bg-gray-100 font-sans antialiased">
             <div className="flex flex-col h-screen">
-                <Header
-                    onMenuToggle={toggleMobileMenu}
-                    isMobileMenuOpen={isMobileMenuOpen}
-                />
-                <Sidebar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
-                <SubNavBar />
+                <div
+                    style={{
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 1000,
+                    }}
+                >
+                    <Header onMenuToggle={toggleMobileMenu} />
+                    <NavBar
+                        isOpen={isMobileMenuOpen}
+                        onClose={closeMobileMenu}
+                    />
+                </div>
 
-                <MainContent />
+                {/* Main content */}
+                <DashboardMain />
             </div>
         </div>
     );
