@@ -80,7 +80,7 @@ export default function LoginForm() {
             showAlert(response.error);
             setIsLoading(false);
         } else {
-            r.push("/topic");
+            r.push("/dashboard");
         }
     }
 
