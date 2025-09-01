@@ -1,5 +1,6 @@
 "use client";
 
+import { Category } from "@/types/dashboard";
 import {
     Box,
     Card,
@@ -21,23 +22,6 @@ import {
 } from "@mui/material";
 import { Search, Plus, Edit, Trash2, Tags } from "lucide-react";
 import { useState } from "react";
-
-type Indicator = {
-    id: string;
-    name: string;
-    unit: string;
-    target_value: number;
-    main_indicator_id: string;
-    responsible_user_id: string;
-    category_id: string;
-};
-
-type Category = {
-    id: string;
-    name: string;
-    description: string;
-    indicators: Indicator[];
-};
 
 interface DashboardTableProps {
     categories: Category[];

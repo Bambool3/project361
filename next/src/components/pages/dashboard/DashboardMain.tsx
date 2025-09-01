@@ -4,23 +4,7 @@ import { Box } from "@mui/material";
 import { useState, useEffect } from "react";
 import DashboardStat from "./DashboardStat";
 import DashboardTable from "./DashboardTable";
-
-type Indicator = {
-    id: string;
-    name: string;
-    unit: string;
-    target_value: number;
-    main_indicator_id: string;
-    responsible_user_id: string;
-    category_id: string;
-};
-
-type Category = {
-    id: string;
-    name: string;
-    description: string;
-    indicators: Indicator[];
-};
+import { Category } from "@/types/dashboard";
 
 export default function DashboardMain() {
     const [categories, setCategories] = useState<Category[]>([]);
