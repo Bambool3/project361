@@ -1,6 +1,6 @@
 import { ChevronDown, MoreHorizontal, Search, LayoutGrid, Plus, ArrowUpDown } from "lucide-react";
 import { useState } from 'react';
-import AddKpiModal from '../../client/components/AddKpiModal';
+import AddKpiModal from "@/client/components/AddKpiModal";
 
 // 1. กำหนด Type (TypeScript)
 type KpiKey = "id" | "name" | "type" | "assign" | "frequency" | "format" | "direction" | "target";

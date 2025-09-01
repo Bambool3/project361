@@ -28,7 +28,7 @@ interface NavBarProps {
 
 const navItems = [
     { name: "หน้าหลัก", icon: LayoutGrid, path: "/dashboard" },
-    { name: "ตัวชี้วัด", icon: Goal, path: "/kpi" },
+    { name: "ตัวชี้วัด", icon: Goal, path: "/kpimanagement" },
     { name: "สถิติ", icon: PieChart, path: "/analytics" },
     { name: "บุคลากร", icon: Users, path: "/users" },
 ];

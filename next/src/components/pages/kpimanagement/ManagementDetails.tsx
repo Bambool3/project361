@@ -5,6 +5,8 @@ import SubNavBar from "@/components/navigations/sub-nav-bar";
 import { useState } from "react";
 
 import KpiTopic from "@/client/components/KpiTopic";
+import AddKpiModal from "@/client/components/AddKpiModal";
+import MainContent from "./ManagementMain";
 
 export default function KpiTopicDetails() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -27,10 +29,11 @@ export default function KpiTopicDetails() {
             <div className="flex flex-col h-screen">
                 <Header
                     onMenuToggle={toggleMobileMenu}
-                    isMobileMenuOpen={isMobileMenuOpen}
+                    
                 />
                 <Sidebar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
-                <KpiTopic/>
+                <SubNavBar/>
+                <MainContent/>
                 {/* <MainContent /> */}
             </div>
         </div>
