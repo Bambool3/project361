@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { Building, Lock, Mail } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import {
     TextField,
     Button,
@@ -14,7 +14,6 @@ import {
     Checkbox,
     FormControlLabel,
     Alert,
-    Collapse,
     Snackbar,
     CircularProgress,
 } from "@mui/material";
@@ -141,7 +140,7 @@ export default function LoginForm() {
                                 fontSize: { xs: "1.75rem", sm: "2.125rem" },
                             }}
                         >
-                            CMUPA
+                            KPI Tracking System
                         </Typography>
                         <Typography
                             variant="body1"
@@ -318,7 +317,11 @@ export default function LoginForm() {
                 <Alert
                     onClose={handleCloseAlert}
                     severity={alertSeverity}
-                    sx={{ width: "100%" }}
+                    sx={{
+                        width: { xs: "60%", sm: "100%" },
+                        minWidth: 200,
+                        mx: "auto",
+                    }}
                     variant="filled"
                 >
                     {alertMessage}
