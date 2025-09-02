@@ -4,9 +4,9 @@ import Sidebar from "@/components/navigations/nav-bar";
 import SubNavBar from "@/components/navigations/sub-nav-bar";
 import { useState } from "react";
 
-import KpiTopic from "@/client/components/KpiTopic";
-import AddKpiModal from "@/client/components/AddKpiModal";
-import MainContent from "./ManagementMain";
+import ManagementMain from "./ManagementMain";
+import { Box } from "@mui/material";
+
 
 export default function KpiTopicDetails() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -33,7 +33,9 @@ export default function KpiTopicDetails() {
                 />
                 <Sidebar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
                 <SubNavBar/>
-                <MainContent/>
+
+                <ManagementMain/>
+                
                 {/* <MainContent /> */}
             </div>
         </div>
