@@ -17,7 +17,7 @@ export default function DashboardDetails() {
 
     return (
         <div className="min-h-screen bg-gray-100 font-sans antialiased">
-            <div className="flex flex-col h-screen">
+            <div className="flex flex-col min-h-screen">
                 <div
                     style={{
                         position: "sticky",
@@ -32,8 +32,9 @@ export default function DashboardDetails() {
                     />
                 </div>
 
-                {/* Main content */}
-                <DashboardMain />
+                <div className="flex-1 bg-gray-100">
+                    <DashboardMain />
+                </div>
             </div>
         </div>
     );
