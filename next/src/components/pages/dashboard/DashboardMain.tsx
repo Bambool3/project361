@@ -56,7 +56,7 @@ export default function DashboardMain() {
                 px: "80px",
                 py: "25px",
                 backgroundColor: "#f8fafc",
-                minHeight: "100%", // Changed from 100vh to 100%
+                minHeight: "100%",
                 width: "100%",
             }}
         >

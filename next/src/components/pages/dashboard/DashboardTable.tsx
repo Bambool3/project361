@@ -62,7 +62,7 @@ export default function DashboardTable({
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
-        setPage(0); // Reset to first page when searching
+        setPage(0);
     };
 
     const handleChangePage = (event: unknown, newPage: number) => {
@@ -73,7 +73,7 @@ export default function DashboardTable({
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0); // Reset to first page when changing rows per page
+        setPage(0);
     };
 
     const handleAddTopic = () => {
