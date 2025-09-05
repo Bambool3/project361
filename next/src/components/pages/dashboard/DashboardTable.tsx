@@ -1,6 +1,9 @@
 "use client";
 
-import { Category } from "@/types/dashboard";
+import CustomModal from "@/components/ui/custom-modal";
+import ConfirmModal from "@/components/ui/confirm-modal";
+import { Category, CategoryFormData } from "@/types/dashboard";
+import { CategoryService } from "@/server/services/category/category-client-service";
 import {
     Box,
     Card,
@@ -20,9 +23,11 @@ import {
     Alert,
     CircularProgress,
     TablePagination,
+    Snackbar,
 } from "@mui/material";
 import { Search, Plus, Edit, Trash2, Tags } from "lucide-react";
 import { useState, useMemo } from "react";
+import DashboardAddCategory from "./DashboardAdd&EditCategory";
 
 interface DashboardTableProps {
     categories: Category[];
@@ -37,9 +42,47 @@ export default function DashboardTable({
     error,
     onRefresh,
 }: DashboardTableProps) {
+    // Search
     const [searchTerm, setSearchTerm] = useState<string>("");
+    // Pagination
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+    // Modal
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+        null
+    );
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+        null
+    );
+    // Snackbar
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
+    const [alertSeverity, setAlertSeverity] = useState<
+        "error" | "success" | "warning" | "info"
+    >("success");
+
+    // Alert helper functions
+    const showAlert = (
+        message: string,
+        severity: "error" | "success" | "warning" | "info" = "success"
+    ) => {
+        setAlertMessage(message);
+        setAlertSeverity(severity);
+        setAlertOpen(true);
+    };
+
+    const handleCloseAlert = (
+        event?: React.SyntheticEvent | Event,
+        reason?: string
+    ) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        setAlertOpen(false);
+    };
 
     // Filter categories based on search term
     const filteredCategories = useMemo(() => {
@@ -76,38 +119,141 @@ export default function DashboardTable({
         setPage(0);
     };
 
-    const handleAddTopic = () => {
-        alert("เพิ่มหมวดหมู่ใหม่");
-        // TODO:
+    const handleAddCategory = () => {
+        setIsAddModalOpen(true);
     };
 
-    const handleEdit = (id: string) => {
-        alert(`แก้ไขหมวดหมู่ ID: ${id}`);
-        // TODO:
-    };
+    const handleAddCategorySubmit = async (formData: CategoryFormData) => {
+        try {
+            const statusCode = await CategoryService.createCategoryWithStatus(
+                formData
+            );
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm("คุณแน่ใจหรือไม่ที่จะลบหมวดหมู่นี้?")) {
-            // TODO:
-            alert(`ลบหมวดหมู่ ID: ${id}`);
-            //
-            if (onRefresh) {
-                onRefresh();
+            if (statusCode === 201) {
+                setIsAddModalOpen(false);
+                showAlert("เพิ่มหมวดหมู่สำเร็จ!", "success");
+                if (onRefresh) {
+                    onRefresh();
+                }
+            } else if (statusCode === 400) {
+                showAlert(
+                    "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
+                    "error"
+                );
+            } else if (statusCode === 409) {
+                showAlert(
+                    "ชื่อหมวดหมู่นี้มีอยู่ในระบบแล้ว กรุณาเปลี่ยนชื่อหมวดหมู่",
+                    "warning"
+                );
+            } else if (statusCode === 500) {
+                showAlert(
+                    "เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง",
+                    "error"
+                );
+            } else {
+                showAlert("เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่", "error");
             }
+        } catch (error) {
+            console.error("Error creating category:", error);
+            showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
         }
     };
 
-    // colors
-    const categoryColors = [
-        "#8b5cf6",
-        "#10b981",
-        "#f59e0b",
-        "#ef4444",
-        "#3b82f6",
-        "#f97316",
-        "#06b6d4",
-        "#84cc16",
-    ];
+    const handleEditCategory = (id: string) => {
+        const category = categories.find((cat) => cat.id === id);
+        if (category) {
+            setSelectedCategory(category);
+            setIsEditModalOpen(true);
+        }
+    };
+
+    const handleEditCategorySubmit = async (formData: CategoryFormData) => {
+        if (!selectedCategory) return;
+
+        try {
+            const statusCode = await CategoryService.updateCategoryWithStatus(
+                selectedCategory.id,
+                formData
+            );
+
+            if (statusCode === 200) {
+                setIsEditModalOpen(false);
+                setSelectedCategory(null);
+                showAlert("แก้ไขหมวดหมู่สำเร็จ!", "success");
+                if (onRefresh) {
+                    onRefresh();
+                }
+            } else if (statusCode === 400) {
+                showAlert(
+                    "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
+                    "error"
+                );
+            } else if (statusCode === 404) {
+                showAlert("ไม่พบหมวดหมู่ที่ต้องการแก้ไข", "error");
+            } else if (statusCode === 409) {
+                showAlert(
+                    "ชื่อหมวดหมู่นี้มีอยู่ในระบบแล้ว กรุณาเปลี่ยนชื่อหมวดหมู่",
+                    "warning"
+                );
+            } else if (statusCode === 500) {
+                showAlert(
+                    "เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง",
+                    "error"
+                );
+            } else {
+                showAlert("เกิดข้อผิดพลาดในการแก้ไขหมวดหมู่", "error");
+            }
+        } catch (error) {
+            console.error("Error updating category:", error);
+            showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+        }
+    };
+
+    const handleDeleteCategory = (id: string) => {
+        const category = categories.find((cat) => cat.id === id);
+        if (category) {
+            setCategoryToDelete(category);
+            setIsDeleteModalOpen(true);
+        }
+    };
+
+    const handleDeleteCategoryConfirm = async () => {
+        if (!categoryToDelete) return;
+
+        try {
+            const response = await fetch(
+                `/api/category/${categoryToDelete.id}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                setIsDeleteModalOpen(false);
+                setCategoryToDelete(null);
+                showAlert("ลบหมวดหมู่สำเร็จ!", "success");
+                if (onRefresh) {
+                    onRefresh();
+                }
+            } else if (response.status === 400) {
+                const data = await response.json();
+                showAlert(
+                    data.error || "ไม่สามารถลบหมวดหมู่ที่มี'ตัวชี้วัด'อยู่ได้",
+                    "warning"
+                );
+            } else if (response.status === 404) {
+                showAlert("ไม่พบหมวดหมู่ที่ต้องการลบ", "error");
+            } else {
+                showAlert("เกิดข้อผิดพลาดในการลบหมวดหมู่", "error");
+            }
+        } catch (error) {
+            console.error("Error deleting category:", error);
+            showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+        }
+    };
 
     if (loading) {
         return (
@@ -228,7 +374,7 @@ export default function DashboardTable({
                             }}
                         />
                         <Button
-                            onClick={handleAddTopic}
+                            onClick={handleAddCategory}
                             startIcon={<Plus size={18} />}
                             sx={{
                                 backgroundColor: "#8b5cf6",
@@ -282,7 +428,7 @@ export default function DashboardTable({
                                         textAlign: "center",
                                     }}
                                 >
-                                    จำนวน KPIs
+                                    จำนวนตัวชี้วัด
                                 </TableCell>
                                 <TableCell
                                     sx={{
@@ -313,7 +459,6 @@ export default function DashboardTable({
                                 </TableRow>
                             ) : (
                                 paginatedCategories.map((category, index) => {
-                                    // Calculate the actual index for color consistency
                                     const actualIndex =
                                         page * rowsPerPage + index;
                                     return (
@@ -339,16 +484,23 @@ export default function DashboardTable({
                                                 >
                                                     <Box
                                                         sx={{
-                                                            width: 12,
-                                                            height: 12,
+                                                            width: 24,
+                                                            height: 24,
                                                             borderRadius: "50%",
                                                             backgroundColor:
-                                                                categoryColors[
-                                                                    actualIndex %
-                                                                        categoryColors.length
-                                                                ],
+                                                                "#8b5cf6",
+                                                            color: "white",
+                                                            display: "flex",
+                                                            alignItems:
+                                                                "center",
+                                                            justifyContent:
+                                                                "center",
+                                                            fontSize: "0.75rem",
+                                                            fontWeight: "600",
                                                         }}
-                                                    />
+                                                    >
+                                                        {actualIndex + 1}
+                                                    </Box>
                                                     <Typography
                                                         sx={{
                                                             fontWeight: "600",
@@ -382,7 +534,7 @@ export default function DashboardTable({
                                                     label={`${
                                                         category.indicators
                                                             ?.length || 0
-                                                    } KPIs`}
+                                                    } ตัวชี้วัด`}
                                                     size="small"
                                                     sx={{
                                                         backgroundColor:
@@ -409,7 +561,7 @@ export default function DashboardTable({
                                                 >
                                                     <IconButton
                                                         onClick={() =>
-                                                            handleEdit(
+                                                            handleEditCategory(
                                                                 category.id
                                                             )
                                                         }
@@ -427,7 +579,7 @@ export default function DashboardTable({
                                                     </IconButton>
                                                     <IconButton
                                                         onClick={() =>
-                                                            handleDelete(
+                                                            handleDeleteCategory(
                                                                 category.id
                                                             )
                                                         }
@@ -496,7 +648,128 @@ export default function DashboardTable({
                         }}
                     />
                 )}
+
+                {/* Add Modal */}
+                <CustomModal
+                    open={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}
+                    title="เพิ่มหมวดหมู่ใหม่"
+                    maxWidth="md"
+                    showActions={false} // Handle actions in the form component
+                >
+                    <DashboardAddCategory
+                        onSubmit={handleAddCategorySubmit}
+                        onCancel={() => setIsAddModalOpen(false)}
+                    />
+                </CustomModal>
+
+                {/* Edit Modal */}
+                <CustomModal
+                    open={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedCategory(null);
+                    }}
+                    title="แก้ไขหมวดหมู่"
+                    maxWidth="md"
+                    showActions={false}
+                >
+                    <DashboardAddCategory
+                        initialData={
+                            selectedCategory
+                                ? {
+                                      name: selectedCategory.name,
+                                      description: selectedCategory.description,
+                                  }
+                                : undefined
+                        }
+                        onSubmit={handleEditCategorySubmit}
+                        onCancel={() => {
+                            setIsEditModalOpen(false);
+                            setSelectedCategory(null);
+                        }}
+                    />
+                </CustomModal>
+
+                {/* Delete Confirmation Modal */}
+                <ConfirmModal
+                    open={isDeleteModalOpen}
+                    onClose={() => {
+                        setIsDeleteModalOpen(false);
+                        setCategoryToDelete(null);
+                    }}
+                    onConfirm={handleDeleteCategoryConfirm}
+                    title="ยืนยันการลบหมวดหมู่"
+                    message="คุณต้องการลบหมวดหมู่นี้หรือไม่? การดำเนินการนี้ไม่สามารถยกเลิกได้"
+                    confirmText="ลบหมวดหมู่"
+                    cancelText="ยกเลิก"
+                    severity="error"
+                >
+                    {categoryToDelete && (
+                        <Box
+                            sx={{
+                                backgroundColor: "#fef2f2",
+                                padding: 2,
+                                borderRadius: "12px",
+                                border: "1px solid #fecaca",
+                            }}
+                        >
+                            <Typography
+                                variant="subtitle2"
+                                sx={{
+                                    fontWeight: "600",
+                                    color: "#991b1b",
+                                    mb: 1,
+                                }}
+                            >
+                                ชื่อหมวดหมู่: {categoryToDelete.name}
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{ color: "#7f1d1d" }}
+                            >
+                                รายละเอียด: {categoryToDelete.description}
+                            </Typography>
+                            {categoryToDelete.indicators &&
+                                categoryToDelete.indicators.length > 0 && (
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: "#dc2626",
+                                            mt: 1.5,
+                                            fontWeight: "600",
+                                        }}
+                                    >
+                                        ⚠️ คำเตือน: หมวดหมู่นี้มี{" "}
+                                        {categoryToDelete.indicators.length}{" "}
+                                        ตัวชี้วัด
+                                    </Typography>
+                                )}
+                        </Box>
+                    )}
+                </ConfirmModal>
             </CardContent>
+
+            {/* Snackbar for notifications */}
+            <Snackbar
+                open={alertOpen}
+                autoHideDuration={6000}
+                onClose={handleCloseAlert}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={handleCloseAlert}
+                    severity={alertSeverity}
+                    sx={{
+                        width: { xs: "60%", sm: "100%" },
+                        minWidth: 200,
+                        mx: "auto",
+                    }}
+                    variant="filled"
+                >
+                    {alertMessage}
+                </Alert>
+            </Snackbar>
         </Card>
     );
 }
