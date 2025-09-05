@@ -4,6 +4,13 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
+    await prisma.indicatorDepartment.deleteMany({});
+    await prisma.indicator.deleteMany({});
+    await prisma.category.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.role.deleteMany({});
+    await prisma.department.deleteMany({});
+
     console.log("Seeding database...");
 
     // Seed Departments
@@ -15,7 +22,7 @@ async function main() {
     const departmentRecords: Record<string, any> = {};
     for (const dept of departments) {
         departmentRecords[dept.id] = await prisma.department.upsert({
-            where: { id: dept.id },
+            where: { department_name: dept.department_name },
             update: {},
             create: dept,
         });
@@ -23,14 +30,13 @@ async function main() {
 
     // Seed Roles
     const roles = [
-        { id: "role_admin", role_name: "Administrator" },
-        { id: "role_manager", role_name: "Manager" },
-        { id: "role_staff", role_name: "Staff" },
+        { id: "admin", role_name: "Administrator" },
+        { id: "staff", role_name: "Staff" },
     ];
     const roleRecords: Record<string, any> = {};
     for (const role of roles) {
         roleRecords[role.id] = await prisma.role.upsert({
-            where: { id: role.id },
+            where: { role_name: role.role_name },
             update: {},
             create: role,
         });
@@ -44,54 +50,33 @@ async function main() {
             last_name: "User",
             email: "admin@gmail.com",
             password: await bcrypt.hash("10", 10),
-            role_id: roleRecords["role_admin"].id,
+            role_id: roleRecords["admin"].id,
             department_id: departmentRecords["dept_admin"].id,
         },
         {
             id: "u2",
             first_name: "Alice",
-            last_name: "Manager",
-            email: "alice.manager@gmail.com",
-            password: await bcrypt.hash("alicepw", 10),
-            role_id: roleRecords["role_manager"].id,
-            department_id: departmentRecords["dept_hr"].id,
-        },
-        {
-            id: "u3",
-            first_name: "Bob",
             last_name: "Staff",
-            email: "bob.staff@gmail.com",
-            password: await bcrypt.hash("bobpw", 10),
-            role_id: roleRecords["role_staff"].id,
-            department_id: departmentRecords["dept_acad"].id,
+            email: "alice@gmail.com",
+            password: await bcrypt.hash("11", 10),
+            role_id: roleRecords["staff"].id,
+            department_id: departmentRecords["dept_hr"].id,
         },
     ];
     const userRecords: Record<string, any> = {};
     for (const user of users) {
         userRecords[user.id] = await prisma.user.upsert({
-            where: { id: user.id },
+            where: { email: user.email },
             update: {},
             create: user,
         });
     }
 
-    // Seed Categories, Indicators, Sub-Indicators
+    // Seed Categories
     const categories = [
-        {
-            id: "cat1",
-            name: "CMUPA",
-            description: "test test test 123",
-        },
-        {
-            id: "cat2",
-            name: "HR",
-            description: "HR KPIs",
-        },
-        {
-            id: "cat3",
-            name: "Academic",
-            description: "Academic KPIs",
-        },
+        { id: "cat1", name: "CMUPA", description: "test test test 123" },
+        { id: "cat2", name: "HR", description: "HR KPIs" },
+        { id: "cat3", name: "Academic", description: "Academic KPIs" },
     ];
     const categoryRecords: Record<string, any> = {};
     for (const cat of categories) {
@@ -158,7 +143,7 @@ async function main() {
             unit: "papers",
             target_value: 60,
             main_indicator_id: "IN03",
-            responsible_user_id: userRecords["u3"].id,
+            responsible_user_id: userRecords["u2"].id,
             category_id: categoryRecords["cat3"].id,
         },
         {
@@ -167,7 +152,7 @@ async function main() {
             unit: "projects",
             target_value: 30,
             main_indicator_id: "IN03",
-            responsible_user_id: userRecords["u3"].id,
+            responsible_user_id: userRecords["u2"].id,
             category_id: categoryRecords["cat3"].id,
         },
     ];
@@ -180,7 +165,7 @@ async function main() {
         });
     }
 
-    // Link indicators to departments (example)
+    // Link indicators to departments
     for (const indId of Object.keys(indicatorRecords)) {
         await prisma.indicatorDepartment.upsert({
             where: {
