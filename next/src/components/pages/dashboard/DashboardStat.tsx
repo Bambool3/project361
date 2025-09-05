@@ -27,7 +27,7 @@ export default function DashboardStat({ stats, loading }: DashboardStatProps) {
             bgColor: "#f3f4f6",
         },
         {
-            title: "KPI ทั้งหมด",
+            title: "ตัวชี้วัดทั้งหมด",
             value: stats?.totalKPIs?.toString() || "0",
             icon: BarChart3,
             color: "#8b5cf6",
