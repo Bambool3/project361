@@ -56,7 +56,8 @@ export default function DashboardMain() {
                 px: "80px",
                 py: "25px",
                 backgroundColor: "#f8fafc",
-                minHeight: "100vh",
+                minHeight: "100%",
+                width: "100%",
             }}
         >
             {/* Upper Section - Stats Cards */}

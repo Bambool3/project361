@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCategory } from "@/server/services/category/category-service";
+import { CategoryServerService } from "@/server/services/category/category-server-service";
 
 export async function GET() {
     try {
-        const categories = await getCategory();
+        const categories = await CategoryServerService.getCategories();
         return NextResponse.json(categories);
     } catch (error) {
         console.error("Error fetching categories:", error);
@@ -18,14 +18,48 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
 
-        // Implement your create category logic here
-        // const newCategory = await createCategory(body);
+        // Validate required fields
+        if (!body.name?.trim() || !body.description?.trim()) {
+            return NextResponse.json(
+                { error: "ชื่อหมวดหมู่และรายละเอียดจำเป็นต้องกรอก" },
+                { status: 400 }
+            );
+        }
 
-        return NextResponse.json({ message: "Category created successfully" });
+        // Check if category name already exists
+        const existingCategory = await CategoryServerService.getCategoryByName(
+            body.name
+        );
+        if (existingCategory) {
+            return NextResponse.json(
+                { error: "ชื่อหมวดหมู่นี้มีอยู่ในระบบแล้ว" },
+                { status: 409 }
+            );
+        }
+
+        const newCategory = await CategoryServerService.createCategory(body);
+
+        return NextResponse.json(newCategory, { status: 201 });
     } catch (error) {
         console.error("Error creating category:", error);
+
+        if (error instanceof Error) {
+            if (error.message.includes("Unique constraint")) {
+                return NextResponse.json(
+                    { error: "ชื่อหมวดหมู่นี้มีอยู่ในระบบแล้ว" },
+                    { status: 409 }
+                );
+            }
+            if (error.message.includes("required")) {
+                return NextResponse.json(
+                    { error: "ข้อมูลที่จำเป็นไม่ครบถ้วน" },
+                    { status: 400 }
+                );
+            }
+        }
+
         return NextResponse.json(
-            { error: "Failed to create category" },
+            { error: "เกิดข้อผิดพลาดภายในระบบ" },
             { status: 500 }
         );
     }
