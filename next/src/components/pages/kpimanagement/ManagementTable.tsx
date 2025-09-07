@@ -296,7 +296,7 @@ export default function ManagementTable({
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          {kpi.subkpi?.length > 0 && (
+                          {kpi.sub_indicators?.length > 0 && (
                             <IconButton
                               size="small"
                               onClick={() => toggleExpand(kpi.id)}
@@ -350,7 +350,9 @@ export default function ManagementTable({
                         }}
                       >
                         <Chip
-                          label={`${kpi.subkpi?.length || 0} Sub`}
+                          label={`${
+                            kpi.sub_indicators?.length || 0
+                          } ตัวชี้วัดย่อย`}
                           size="small"
                           sx={{
                             backgroundColor: "#f1f5f9",
@@ -385,7 +387,7 @@ export default function ManagementTable({
                       </TableCell>
                     </TableRow>
 
-                    {kpi.subkpi?.length > 0 && (
+                    {kpi.sub_indicators?.length > 0 && (
                       <TableRow>
                         <TableCell
                           style={{ paddingBottom: 0, paddingTop: 0 }}
@@ -431,7 +433,7 @@ export default function ManagementTable({
                                   </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                  {kpi.subkpi.map((sub) => (
+                                  {kpi.sub_indicators.map((sub) => (
                                     <TableRow
                                       key={sub.id}
                                       sx={{
@@ -443,7 +445,7 @@ export default function ManagementTable({
                                       }}
                                     >
                                       <TableCell>{sub.name}</TableCell>
-                                      <TableCell>{sub.target}</TableCell>
+                                      <TableCell>{sub.target_value}</TableCell>
                                     </TableRow>
                                   ))}
                                 </TableBody>

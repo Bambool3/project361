@@ -3,7 +3,7 @@
 import { Box, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useState, useEffect } from "react";
 import ManagementTable from "./ManagementTable";
-import { Indicator, Category } from "@/types/dashboard";
+import { Indicator, Category } from "@/types/management";
 
 export default function ManagementMain() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -18,6 +18,8 @@ export default function ManagementMain() {
       const res = await fetch("/api/category");
       if (!res.ok) throw new Error("Failed to fetch categories");
       const data: Category[] = await res.json();
+      // เอาไว้ debug
+      console.log("Categories:", data);
       setCategories(data);
 
       // ตั้งค่า default catId ถ้ายังไม่มี
@@ -38,6 +40,8 @@ export default function ManagementMain() {
       if (!res.ok) throw new Error("Failed to fetch KPIs");
 
       const data: Indicator[] = await res.json();
+      // เอาไว้ debug
+      console.log("Indicators:", data);
       setIndicators(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
