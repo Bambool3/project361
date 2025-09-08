@@ -77,8 +77,7 @@ export default function ManagementMain() {
     return (
         <Box
             sx={{
-                px: "80px",
-                py: "25px",
+                p: 3,
                 backgroundColor: "#f8fafc",
                 flexGrow: 1,
             }}
