@@ -2,11 +2,11 @@
 
 import { Box } from "@mui/material";
 import { useState, useEffect } from "react";
-import DashboardStat from "./DashboardStat";
-import DashboardTable from "./DashboardTable";
+import DashboardStat from "./DashboardStatCardSection";
+import DashboardTable from "./DashboardTableSection";
 import { Category } from "@/types/dashboard";
 
-export default function DashboardMain() {
+export default function DashboardMainSection() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -53,8 +53,7 @@ export default function DashboardMain() {
     return (
         <Box
             sx={{
-                px: "80px",
-                py: "25px",
+                p: 3,
                 backgroundColor: "#f8fafc",
                 minHeight: "100%",
                 width: "100%",

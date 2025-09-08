@@ -1,15 +1,12 @@
 "use client";
-import MainContent from "@/client/components/MainContent";
+
 import Header from "@/components/header";
 import NavBar from "@/components/navigations/nav-bar";
-import Sidebar from "@/components/navigations/nav-bar";
-import SubNavBar from "@/components/navigations/sub-nav-bar";
 import { useState } from "react";
-import DashboardMain from "./DashboardMain";
+import DashboardMain from "./DashboardMainSection";
 
-export default function DashboardDetails() {
+export default function DashboardDetail() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeNavItem, setActiveNavItem] = useState("KPIs");
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -19,10 +16,6 @@ export default function DashboardDetails() {
         setIsMobileMenuOpen(false);
     };
 
-    const handleNavItemClick = (itemName: string) => {
-        setActiveNavItem(itemName);
-        closeMobileMenu();
-    };
     return (
         <div className="min-h-screen bg-gray-100 font-sans antialiased">
             <div className="flex flex-col h-screen">
