@@ -1,6 +1,6 @@
 "use client";
 
-import { CategoryFormData } from "@/types/dashboard";
+import { CategoryFormData } from "@/types/category";
 import {
     Box,
     TextField,

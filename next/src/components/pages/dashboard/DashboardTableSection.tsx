@@ -2,7 +2,7 @@
 
 import CustomModal from "@/components/ui/custom-modal";
 import ConfirmModal from "@/components/ui/confirm-modal";
-import { Category, CategoryFormData } from "@/types/dashboard";
+import { Category, CategoryFormData } from "@/types/category";
 import { CategoryService } from "@/server/services/category/category-client-service";
 import { useRouter } from "next/navigation";
 import {
@@ -383,7 +383,7 @@ export default function DashboardTableSection({
                                 }}
                             />
                             <Tooltip
-                                title="สร้างหมวดหมู่ใหม่สำหรับการจัดกลุ่มตัวชี้วัด"
+                                title="สร้างหมวดหมู่ใหม่"
                                 arrow
                                 placement="top"
                                 componentsProps={{

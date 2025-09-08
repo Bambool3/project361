@@ -3,7 +3,7 @@
 import Header from "@/components/header";
 import NavBar from "@/components/navigations/nav-bar";
 import { useState } from "react";
-import DashboardMain from "./DashboardMainSection";
+import DashboardMain from "./DashboardMain";
 
 export default function DashboardDetail() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -7,13 +7,14 @@ import {
     Typography,
     Skeleton,
     Tooltip,
+    useTheme,
+    useMediaQuery,
 } from "@mui/material";
 import {
     BarChart3,
     TrendingUp,
     CheckCircle,
     AlertTriangle,
-    Tags,
 } from "lucide-react";
 
 interface DashboardStatCardSectionProps {
@@ -28,6 +29,10 @@ export default function DashboardStatCardSection({
     stats,
     loading,
 }: DashboardStatCardSectionProps) {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+
     const kpiStats = [
         {
             title: "ตัวชี้วัดทั้งหมด",
@@ -77,10 +82,12 @@ export default function DashboardStatCardSection({
                     gridTemplateColumns: {
                         xs: "1fr",
                         sm: "1fr 1fr",
-                        md: "1fr 1fr 1fr 1fr",
+                        md: "repeat(3, 1fr)",
+                        lg: "repeat(4, 1fr)",
                     },
-                    gap: 3,
-                    mb: 4,
+                    gap: { xs: 2, sm: 2.5, md: 3 },
+                    mb: { xs: 3, sm: 4 },
+                    px: { xs: 1, sm: 0 },
                 }}
             >
                 {[1, 2, 3, 4].map((index) => (
@@ -88,14 +95,27 @@ export default function DashboardStatCardSection({
                         key={index}
                         sx={{
                             backgroundColor: "white",
-                            borderRadius: "16px",
+                            borderRadius: { xs: "12px", sm: "16px" },
                             border: "1px solid #e2e8f0",
+                            minHeight: { xs: 120, sm: 140 },
                         }}
                     >
-                        <CardContent sx={{ p: 3 }}>
-                            <Skeleton variant="text" width="60%" />
-                            <Skeleton variant="text" width="40%" height={40} />
-                            <Skeleton variant="text" width="30%" />
+                        <CardContent
+                            sx={{
+                                p: { xs: 2, sm: 2.5, md: 3 },
+                                "&:last-child": {
+                                    pb: { xs: 2, sm: 2.5, md: 3 },
+                                },
+                            }}
+                        >
+                            <Skeleton variant="text" width="60%" height={24} />
+                            <Skeleton
+                                variant="text"
+                                width="40%"
+                                height={24}
+                                sx={{ my: 1 }}
+                            />
+                            <Skeleton variant="text" width="30%" height={24} />
                         </CardContent>
                     </Card>
                 ))}
@@ -110,10 +130,12 @@ export default function DashboardStatCardSection({
                 gridTemplateColumns: {
                     xs: "1fr",
                     sm: "1fr 1fr",
-                    md: "1fr 1fr 1fr 1fr",
+                    md: "repeat(3, 1fr)",
+                    lg: "repeat(4, 1fr)",
                 },
-                gap: 3,
-                mb: 4,
+                gap: { xs: 2, sm: 2.5, md: 3 },
+                mb: { xs: 3, sm: 4 },
+                px: { xs: 1, sm: 0 },
             }}
         >
             {kpiStats.map((stat, index) => {
@@ -125,13 +147,26 @@ export default function DashboardStatCardSection({
                             <Box sx={{ p: 1 }}>
                                 <Typography
                                     variant="body2"
-                                    sx={{ fontWeight: 600, mb: 0.5 }}
+                                    sx={{
+                                        fontWeight: 600,
+                                        mb: 0.5,
+                                        fontSize: {
+                                            xs: "0.75rem",
+                                            sm: "0.875rem",
+                                        },
+                                    }}
                                 >
                                     {stat.title}
                                 </Typography>
                                 <Typography
                                     variant="caption"
-                                    sx={{ color: "rgba(255, 255, 255, 0.9)" }}
+                                    sx={{
+                                        color: "rgba(255, 255, 255, 0.9)",
+                                        fontSize: {
+                                            xs: "0.7rem",
+                                            sm: "0.75rem",
+                                        },
+                                    }}
                                 >
                                     {stat.tooltip}
                                 </Typography>
@@ -142,6 +177,10 @@ export default function DashboardStatCardSection({
                                             display: "block",
                                             mt: 0.5,
                                             color: "rgba(255, 255, 255, 0.8)",
+                                            fontSize: {
+                                                xs: "0.7rem",
+                                                sm: "0.75rem",
+                                            },
                                         }}
                                     >
                                         คิดเป็น {stat.percentage} ของทั้งหมด
@@ -151,8 +190,10 @@ export default function DashboardStatCardSection({
                         }
                         arrow
                         placement="top"
-                        enterDelay={300}
-                        leaveDelay={200}
+                        enterDelay={isMobile ? 0 : 300}
+                        leaveDelay={isMobile ? 0 : 200}
+                        enterTouchDelay={0}
+                        leaveTouchDelay={1500}
                         slotProps={{
                             popper: {
                                 modifiers: [
@@ -167,10 +208,10 @@ export default function DashboardStatCardSection({
                             tooltip: {
                                 sx: {
                                     backgroundColor: stat.color,
-                                    fontSize: "0.875rem",
+                                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
                                     borderRadius: 2,
                                     boxShadow: `0 4px 20px ${stat.color}40`,
-                                    maxWidth: 280,
+                                    maxWidth: { xs: 240, sm: 280 },
                                     "& .MuiTooltip-arrow": {
                                         color: stat.color,
                                     },
@@ -181,24 +222,43 @@ export default function DashboardStatCardSection({
                         <Card
                             sx={{
                                 backgroundColor: "white",
-                                borderRadius: "16px",
+                                borderRadius: { xs: "12px", sm: "16px" },
                                 border: "1px solid #e2e8f0",
                                 boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                                transition: "all 0.2s",
+                                transition: "all 0.2s ease-in-out",
                                 cursor: "pointer",
+                                minHeight: { xs: 120, sm: 140, md: 160 },
                                 "&:hover": {
-                                    transform: "translateY(-2px)",
+                                    transform: {
+                                        xs: "scale(1.02)",
+                                        sm: "translateY(-2px)",
+                                    },
                                     boxShadow: `0 4px 20px ${stat.color}20`,
+                                },
+                                "&:active": {
+                                    transform: "scale(0.98)",
                                 },
                             }}
                         >
-                            <CardContent sx={{ p: 3 }}>
+                            <CardContent
+                                sx={{
+                                    p: { xs: 2, sm: 2.5, md: 3 },
+                                    height: "100%",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "space-between",
+                                    "&:last-child": {
+                                        pb: { xs: 2, sm: 2.5, md: 3 },
+                                    },
+                                }}
+                            >
                                 <Box
                                     sx={{
                                         display: "flex",
-                                        alignItems: "center",
+                                        alignItems: "flex-start",
                                         justifyContent: "space-between",
-                                        mb: 2,
+                                        mb: { xs: 1.5, sm: 2 },
+                                        gap: 1,
                                     }}
                                 >
                                     <Typography
@@ -206,48 +266,78 @@ export default function DashboardStatCardSection({
                                         sx={{
                                             color: "#64748b",
                                             fontWeight: 600,
-                                            fontSize: "0.875rem",
+                                            fontSize: {
+                                                xs: "0.75rem",
+                                                sm: "0.825rem",
+                                                md: "0.875rem",
+                                            },
+                                            lineHeight: 1.3,
+                                            flex: 1,
                                         }}
                                     >
                                         {stat.title}
                                     </Typography>
                                     <Box
                                         sx={{
-                                            p: 1,
-                                            borderRadius: "12px",
+                                            p: { xs: 0.75, sm: 1 },
+                                            borderRadius: {
+                                                xs: "8px",
+                                                sm: "12px",
+                                            },
                                             backgroundColor: stat.bgColor,
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "center",
+                                            flexShrink: 0,
                                         }}
                                     >
                                         <IconComponent
-                                            size={20}
+                                            size={
+                                                isMobile
+                                                    ? 16
+                                                    : isTablet
+                                                    ? 18
+                                                    : 20
+                                            }
                                             color={stat.color}
                                         />
                                     </Box>
                                 </Box>
-                                <Typography
-                                    variant="h4"
-                                    sx={{
-                                        fontWeight: "bold",
-                                        color: "#1e293b",
-                                        mb: 1,
-                                    }}
-                                >
-                                    {stat.value}
-                                </Typography>
-                                {stat.percentage && (
+
+                                <Box>
                                     <Typography
-                                        variant="body2"
+                                        variant="h4"
                                         sx={{
-                                            color: "#64748b",
-                                            fontSize: "0.875rem",
+                                            fontWeight: "bold",
+                                            color: "#1e293b",
+                                            mb: stat.percentage ? 0.5 : 0,
+                                            fontSize: {
+                                                xs: "1.5rem",
+                                                sm: "1.75rem",
+                                                md: "2rem",
+                                            },
+                                            lineHeight: 1.2,
                                         }}
                                     >
-                                        {stat.percentage}
+                                        {stat.value}
                                     </Typography>
-                                )}
+                                    {stat.percentage && (
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: "#64748b",
+                                                fontSize: {
+                                                    xs: "0.75rem",
+                                                    sm: "0.825rem",
+                                                    md: "0.875rem",
+                                                },
+                                                fontWeight: 500,
+                                            }}
+                                        >
+                                            {stat.percentage}
+                                        </Typography>
+                                    )}
+                                </Box>
                             </CardContent>
                         </Card>
                     </Tooltip>

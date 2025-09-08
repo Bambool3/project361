@@ -4,9 +4,9 @@ import { Box } from "@mui/material";
 import { useState, useEffect } from "react";
 import DashboardStat from "./DashboardStatCardSection";
 import DashboardTable from "./DashboardTableSection";
-import { Category } from "@/types/dashboard";
+import { Category } from "@/types/category";
 
-export default function DashboardMainSection() {
+export default function DashboardMain() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
