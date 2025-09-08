@@ -29,7 +29,7 @@ interface NavBarProps {
 const navItems = [
     { name: "หน้าหลัก", icon: LayoutGrid, path: "/dashboard" },
     { name: "ตัวชี้วัด", icon: Goal, path: "/management" },
-    { name: "สถิติ", icon: PieChart, path: "/analytics" },
+    { name: "สถิติ", icon: PieChart, path: "/stat" },
     { name: "บุคลากร", icon: Users, path: "/employee" },
 ];
 
@@ -37,6 +37,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
     const pathname = usePathname();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+    const isTablet = useMediaQuery(theme.breakpoints.between("sm", "lg"));
 
     const handleLogout = async () => {
         await signOut({ callbackUrl: "/" });
@@ -50,7 +51,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
     const navigationContent = (
         <Box
             sx={{
-                width: isMobile ? 256 : "auto",
+                width: isMobile ? { xs: 280, sm: 320 } : "auto",
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
@@ -67,12 +68,13 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
             {isMobile && (
                 <Box
                     sx={{
-                        p: 2,
+                        p: { xs: 2, sm: 2.5 },
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
                         backgroundColor: "rgba(255,255,255,0.08)",
                         borderBottom: "1px solid rgba(255,255,255,0.12)",
+                        minHeight: { xs: 64, sm: 72 },
                     }}
                 >
                     <Typography
@@ -81,6 +83,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             fontWeight: "bold",
                             color: "#fff",
                             letterSpacing: 1,
+                            fontSize: { xs: "1.25rem", sm: "1.5rem" },
                         }}
                     >
                         CMUPA
@@ -92,25 +95,36 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             backgroundColor: "rgba(255,255,255,0.12)",
                             borderRadius: "50%",
                             border: "1.5px solid rgba(255,255,255,0.22)",
-                            width: 40,
-                            height: 40,
+                            width: { xs: 36, sm: 40 },
+                            height: { xs: 36, sm: 40 },
                             "&:hover": {
                                 backgroundColor: "rgba(255,255,255,0.22)",
                                 transform: "scale(1.08) rotate(-10deg)",
                             },
+                            transition: "all 0.2s ease-in-out",
                         }}
                     >
-                        <X size={24} />
+                        <X size={isMobile ? 20 : 24} />
                     </IconButton>
                 </Box>
             )}
 
             {/* Navigation links */}
-            <Box sx={{ flex: 1, p: isMobile ? 2 : 0 }}>
+            <Box
+                sx={{
+                    flex: 1,
+                    p: isMobile ? { xs: 2, sm: 2.5 } : 0,
+                    overflowY: isMobile ? "auto" : "visible",
+                }}
+            >
                 <Box
                     sx={
                         isMobile
-                            ? {}
+                            ? {
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: { xs: 1, sm: 1.5 },
+                              }
                             : {
                                   maxWidth: "1280px",
                                   mx: "auto",
@@ -118,7 +132,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "space-between",
-                                  height: 64,
+                                  height: { xs: 56, sm: 64 },
                               }
                     }
                 >
@@ -128,7 +142,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             display: "flex",
                             flexDirection: isMobile ? "column" : "row",
                             alignItems: isMobile ? "stretch" : "center",
-                            gap: isMobile ? 1.5 : 3,
+                            gap: isMobile ? { xs: 0.5, sm: 1 } : 3,
                         }}
                     >
                         {navItems.map((item) => {
@@ -141,7 +155,17 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                     component={Link}
                                     href={item.path}
                                     onClick={onClose}
-                                    startIcon={<IconComponent size={22} />}
+                                    startIcon={
+                                        <IconComponent
+                                            size={
+                                                isMobile
+                                                    ? isTablet
+                                                        ? 20
+                                                        : 18
+                                                    : 22
+                                            }
+                                        />
+                                    }
                                     sx={{
                                         color: isActive
                                             ? "#2575fc"
@@ -154,12 +178,16 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                             : "center",
                                         textTransform: "none",
                                         fontWeight: 600,
-                                        fontSize: isMobile
-                                            ? "1.08rem"
-                                            : "1.05rem",
-                                        px: 2.5,
-                                        py: 1,
+                                        fontSize: {
+                                            xs: "0.9rem",
+                                            sm: "1rem",
+                                            lg: "1.05rem",
+                                        },
+                                        px: { xs: 2, sm: 2.5 },
+                                        py: { xs: 1.25, sm: 1.5, lg: 1 },
                                         borderRadius: 3,
+                                        minHeight: { xs: 44, sm: 48 },
+                                        transition: "all 0.2s ease-in-out",
                                         "&:hover": {
                                             backgroundColor: isActive
                                                 ? "white"
@@ -167,6 +195,12 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                             color: isActive
                                                 ? "#2575fc"
                                                 : "#fff",
+                                            transform: isMobile
+                                                ? "translateX(4px)"
+                                                : "none",
+                                        },
+                                        "&:active": {
+                                            transform: "scale(0.98)",
                                         },
                                     }}
                                 >
@@ -182,35 +216,43 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             sx={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 2,
+                                gap: { sm: 1.5, lg: 2 },
                             }}
                         >
                             <IconButton
                                 onClick={handleSettingsClick}
                                 sx={{
                                     color: "#fff",
+                                    width: { sm: 40, lg: 44 },
+                                    height: { sm: 40, lg: 44 },
                                     "&:hover": {
                                         backgroundColor:
                                             "rgba(255,255,255,0.18)",
+                                        transform: "scale(1.05)",
                                     },
+                                    transition: "all 0.2s ease-in-out",
                                 }}
                             >
-                                <Settings size={22} />
+                                <Settings size={isTablet ? 20 : 22} />
                             </IconButton>
                             <Button
                                 onClick={handleLogout}
-                                startIcon={<LogOut size={18} />}
+                                startIcon={<LogOut size={isTablet ? 16 : 18} />}
                                 sx={{
                                     color: "#fff",
                                     backgroundColor: "rgba(255,255,255,0.10)",
                                     textTransform: "none",
                                     fontWeight: 700,
-                                    px: 2.5,
-                                    py: 1.2,
+                                    fontSize: { sm: "0.875rem", lg: "0.9rem" },
+                                    px: { sm: 2, lg: 2.5 },
+                                    py: { sm: 1, lg: 1.2 },
                                     borderRadius: 3,
+                                    minHeight: { sm: 36, lg: 40 },
                                     "&:hover": {
                                         backgroundColor: "#dc2626",
+                                        transform: "scale(1.02)",
                                     },
+                                    transition: "all 0.2s ease-in-out",
                                 }}
                             >
                                 ออกจากระบบ
@@ -226,10 +268,12 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                     <Divider sx={{ borderColor: "rgba(255,255,255,0.18)" }} />
                     <Box
                         sx={{
-                            p: 2,
+                            p: { xs: 2, sm: 2.5 },
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
+                            gap: 2,
+                            minHeight: { xs: 68, sm: 76 },
                         }}
                     >
                         <Button
@@ -240,12 +284,21 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                 backgroundColor: "#ef4444",
                                 textTransform: "none",
                                 fontWeight: 700,
-                                px: 2.5,
-                                py: 1,
+                                fontSize: { xs: "0.875rem", sm: "0.9rem" },
+                                px: { xs: 2, sm: 2.5 },
+                                py: { xs: 1, sm: 1.2 },
                                 borderRadius: 3,
+                                flex: 1,
+                                minHeight: { xs: 40, sm: 44 },
+                                maxWidth: "200px",
                                 "&:hover": {
                                     backgroundColor: "#dc2626",
+                                    transform: "scale(1.02)",
                                 },
+                                "&:active": {
+                                    transform: "scale(0.98)",
+                                },
+                                transition: "all 0.2s ease-in-out",
                             }}
                         >
                             ออกจากระบบ
@@ -255,12 +308,19 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             sx={{
                                 color: "#fff",
                                 backgroundColor: "rgba(255,255,255,0.10)",
+                                width: { xs: 40, sm: 44 },
+                                height: { xs: 40, sm: 44 },
                                 "&:hover": {
                                     backgroundColor: "rgba(255,255,255,0.18)",
+                                    transform: "scale(1.05)",
                                 },
+                                "&:active": {
+                                    transform: "scale(0.95)",
+                                },
+                                transition: "all 0.2s ease-in-out",
                             }}
                         >
-                            <Settings size={22} />
+                            <Settings size={isTablet ? 20 : 22} />
                         </IconButton>
                     </Box>
                 </Box>
@@ -278,11 +338,19 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                 sx={{
                     display: { xs: "block", lg: "none" },
                     "& .MuiDrawer-paper": {
-                        width: 256,
+                        width: { xs: 280, sm: 320 },
                         border: "none",
                         backgroundColor: "var(--color-purple)",
                         boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
                     },
+                    "& .MuiBackdrop-root": {
+                        backgroundColor: "rgba(0, 0, 0, 0.3)",
+                        backdropFilter: "blur(4px)",
+                    },
+                }}
+                transitionDuration={{
+                    enter: 300,
+                    exit: 250,
                 }}
             >
                 {navigationContent}
@@ -296,6 +364,9 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                     backgroundColor: "var(--color-purple)",
                     width: "100%",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: theme.zIndex.appBar,
                 }}
             >
                 {navigationContent}
