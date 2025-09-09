@@ -50,8 +50,8 @@ model Indicator {
   target_value        Int
 
   // --- Corrected Self-Relation ---
-  main_indicator_id   String 
-  main_indicator      Indicator            @relation("MainSubIndicators", fields: [main_indicator_id], references: [id])
+  main_indicator_id   String?
+  main_indicator      Indicator?            @relation("MainSubIndicators", fields: [main_indicator_id], references: [id])
   sub_indicators      Indicator[]           @relation("MainSubIndicators")
 
   // --- Corrected User Relation ---
