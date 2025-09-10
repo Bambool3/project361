@@ -15,8 +15,8 @@ export async function PUT(
             !body.first_name?.trim() ||
             !body.last_name?.trim() ||
             !body.email?.trim() ||
-            !body.role_id?.trim() ||
-            !body.department_id?.trim()
+            !body.role_ids?.length ||
+            !body.jobtitle_ids?.length
         ) {
             return NextResponse.json(
                 {
@@ -41,8 +41,8 @@ export async function PUT(
             first_name: body.first_name,
             last_name: body.last_name,
             email: body.email,
-            role_id: body.role_id,
-            department_id: body.department_id,
+            role_ids: body.role_ids,
+            jobtitle_ids: body.jobtitle_ids,
         };
 
         // Hash password if provided
