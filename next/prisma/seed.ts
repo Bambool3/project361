@@ -4,183 +4,280 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
-    await prisma.indicatorDepartment.deleteMany({});
+    // Clean up existing data
+    await prisma.responsiblePerson.deleteMany({});
     await prisma.indicator.deleteMany({});
     await prisma.category.deleteMany({});
+    await prisma.userJobTitle.deleteMany({});
+    await prisma.userRole.deleteMany({});
     await prisma.user.deleteMany({});
     await prisma.role.deleteMany({});
-    await prisma.department.deleteMany({});
+    await prisma.jobTitle.deleteMany({});
 
     console.log("Seeding database...");
 
-    // Seed Departments
-    const departments = [
-        { id: "dept_admin", department_name: "Administration" },
-        { id: "dept_hr", department_name: "Human Resources" },
-        { id: "dept_acad", department_name: "Academic" },
+    // Seed Job Titles
+    const jobTitles = [
+        { name: "Administrator" },
+        { name: "HR Manager" },
+        { name: "Academic Staff" },
+        { name: "Research Director" },
     ];
-    const departmentRecords: Record<string, any> = {};
-    for (const dept of departments) {
-        departmentRecords[dept.id] = await prisma.department.upsert({
-            where: { department_name: dept.department_name },
-            update: {},
-            create: dept,
+    const jobTitleRecords: Record<string, any> = {};
+    for (let i = 0; i < jobTitles.length; i++) {
+        const jobTitle = jobTitles[i];
+        jobTitleRecords[`job${i + 1}`] = await prisma.jobTitle.create({
+            data: jobTitle,
         });
     }
 
     // Seed Roles
     const roles = [
-        { id: "admin", role_name: "Administrator" },
-        { id: "staff", role_name: "Staff" },
+        { name: "Administrator" },
+        { name: "Staff" },
+        { name: "Manager" },
     ];
     const roleRecords: Record<string, any> = {};
-    for (const role of roles) {
-        roleRecords[role.id] = await prisma.role.upsert({
-            where: { role_name: role.role_name },
-            update: {},
-            create: role,
+    for (let i = 0; i < roles.length; i++) {
+        const role = roles[i];
+        roleRecords[`role${i + 1}`] = await prisma.role.create({
+            data: role,
         });
     }
 
     // Seed Users
     const users = [
         {
-            id: "a1",
             first_name: "Admin",
             last_name: "User",
             email: "admin@gmail.com",
             password: await bcrypt.hash("10", 10),
-            role_id: roleRecords["admin"].id,
-            department_id: departmentRecords["dept_admin"].id,
         },
         {
-            id: "u2",
             first_name: "Alice",
             last_name: "Staff",
             email: "alice@gmail.com",
             password: await bcrypt.hash("11", 10),
-            role_id: roleRecords["staff"].id,
-            department_id: departmentRecords["dept_hr"].id,
+        },
+        {
+            first_name: "Bob",
+            last_name: "Manager",
+            email: "bob@gmail.com",
+            password: await bcrypt.hash("12", 10),
         },
     ];
     const userRecords: Record<string, any> = {};
-    for (const user of users) {
-        userRecords[user.id] = await prisma.user.upsert({
-            where: { email: user.email },
-            update: {},
-            create: user,
+    for (let i = 0; i < users.length; i++) {
+        const user = users[i];
+        userRecords[`user${i + 1}`] = await prisma.user.create({
+            data: user,
         });
     }
+
+    // Seed User Roles
+    await prisma.userRole.createMany({
+        data: [
+            {
+                user_id: userRecords["user1"].user_id,
+                role_id: roleRecords["role1"].role_id, // Admin role
+            },
+            {
+                user_id: userRecords["user2"].user_id,
+                role_id: roleRecords["role2"].role_id, // Staff role
+            },
+            {
+                user_id: userRecords["user3"].user_id,
+                role_id: roleRecords["role3"].role_id, // Manager role
+            },
+        ],
+    });
+
+    // Seed User Job Titles
+    await prisma.userJobTitle.createMany({
+        data: [
+            {
+                user_id: userRecords["user1"].user_id,
+                jobtitle_id: jobTitleRecords["job1"].jobtitle_id, // Administrator
+            },
+            {
+                user_id: userRecords["user2"].user_id,
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id, // HR Manager
+            },
+            {
+                user_id: userRecords["user3"].user_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, // Academic Staff
+            },
+        ],
+    });
 
     // Seed Categories
     const categories = [
-        { id: "cat1", name: "CMUPA", description: "test test test 123" },
-        { id: "cat2", name: "HR", description: "HR KPIs" },
-        { id: "cat3", name: "Academic", description: "Academic KPIs" },
+        { 
+            name: "CMUPA", 
+            description: "test test test 123",
+            user_id: userRecords["user1"].user_id,
+        },
+        { 
+            name: "HR", 
+            description: "HR KPIs",
+            user_id: userRecords["user2"].user_id,
+        },
+        { 
+            name: "Academic", 
+            description: "Academic KPIs",
+            user_id: userRecords["user3"].user_id,
+        },
     ];
     const categoryRecords: Record<string, any> = {};
-    for (const cat of categories) {
-        categoryRecords[cat.id] = await prisma.category.upsert({
-            where: { id: cat.id },
-            update: {},
-            create: cat,
+    for (let i = 0; i < categories.length; i++) {
+        const category = categories[i];
+        categoryRecords[`cat${i + 1}`] = await prisma.category.create({
+            data: category,
         });
     }
 
-    // Indicators and Sub-Indicators
-    const indicators = [
-        // CMUPA indicators
+    // First, create main indicators (without main_indicator_id)
+    const mainIndicators = [
         {
-            id: "IN01",
             name: "จำนวนต้นแบบนวัตกรรม",
             unit: "10 เล่ม",
             target_value: 100,
-            main_indicator_id: null,
-            responsible_user_id: userRecords["a1"].id,
-            category_id: categoryRecords["cat1"].id,
+            main_indicator_id: null, // This is a main indicator
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "Monthly",
+            status: "Active",
+            date: new Date(),
         },
         {
-            id: "IN01-1",
-            name: "จำนวนผลงานวิจัย CMU-RL 4-7",
-            unit: "10 เล่ม",
-            target_value: 50,
-            main_indicator_id: "IN01",
-            responsible_user_id: userRecords["a1"].id,
-            category_id: categoryRecords["cat1"].id,
-        },
-        {
-            id: "IN01-2",
-            name: "จำนวนนวัตกรรมสิ่งแวดล้อม",
-            unit: "10 เล่ม",
-            target_value: 25,
-            main_indicator_id: "IN01",
-            responsible_user_id: userRecords["a1"].id,
-            category_id: categoryRecords["cat1"].id,
-        },
-        // HR indicators
-        {
-            id: "IN02",
             name: "HR Efficiency",
             unit: "points",
             target_value: 80,
-            main_indicator_id: null,
-            responsible_user_id: userRecords["u2"].id,
-            category_id: categoryRecords["cat2"].id,
+            main_indicator_id: null, // This is a main indicator
+            user_id: userRecords["user2"].user_id,
+            category_id: categoryRecords["cat2"].category_id,
+            tracking_frequency: "Quarterly",
+            status: "Active",
+            date: new Date(),
         },
         {
-            id: "IN02-1",
-            name: "HR Training Completion",
-            unit: "sessions",
-            target_value: 40,
-            main_indicator_id: "IN02",
-            responsible_user_id: userRecords["u2"].id,
-            category_id: categoryRecords["cat2"].id,
-        },
-        // Academic indicators
-        {
-            id: "IN03",
             name: "Academic Publications",
             unit: "papers",
             target_value: 60,
-            main_indicator_id: null,
-            responsible_user_id: userRecords["u2"].id,
-            category_id: categoryRecords["cat3"].id,
-        },
-        {
-            id: "IN03-1",
-            name: "Student Research Projects",
-            unit: "projects",
-            target_value: 30,
-            main_indicator_id: "IN03",
-            responsible_user_id: userRecords["u2"].id,
-            category_id: categoryRecords["cat3"].id,
+            main_indicator_id: null, // This is a main indicator
+            user_id: userRecords["user3"].user_id,
+            category_id: categoryRecords["cat3"].category_id,
+            tracking_frequency: "Annually",
+            status: "Active",
+            date: new Date(),
         },
     ];
-    const indicatorRecords: Record<string, any> = {};
-    for (const ind of indicators) {
-        indicatorRecords[ind.id] = await prisma.indicator.upsert({
-            where: { id: ind.id },
-            update: {},
-            create: ind,
+
+    const mainIndicatorRecords: Record<string, any> = {};
+    for (let i = 0; i < mainIndicators.length; i++) {
+        const indicator = mainIndicators[i];
+        mainIndicatorRecords[`main${i + 1}`] = await prisma.indicator.create({
+            data: indicator,
         });
     }
 
-    // Link indicators to departments
-    for (const indId of Object.keys(indicatorRecords)) {
-        await prisma.indicatorDepartment.upsert({
-            where: {
-                indicator_id_department_id: {
-                    indicator_id: indicatorRecords[indId].id,
-                    department_id: departmentRecords["dept_admin"].id,
-                },
-            },
-            update: {},
-            create: {
-                indicator_id: indicatorRecords[indId].id,
-                department_id: departmentRecords["dept_admin"].id,
-            },
+    // Then create sub-indicators that reference main indicators
+    const subIndicators = [
+        {
+            name: "จำนวนผลงานวิจัย CMU-RL 4-7",
+            unit: "10 เล่ม",
+            target_value: 50,
+            main_indicator_id: mainIndicatorRecords["main1"].indicator_id, // Sub-indicator of first main indicator
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "Monthly",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวนนวัตกรรมสิ่งแวดล้อม",
+            unit: "10 เล่ม",
+            target_value: 25,
+            main_indicator_id: mainIndicatorRecords["main1"].indicator_id, // Sub-indicator of first main indicator
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "Monthly",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "HR Training Completion",
+            unit: "sessions",
+            target_value: 40,
+            main_indicator_id: mainIndicatorRecords["main2"].indicator_id, // Sub-indicator of HR main indicator
+            user_id: userRecords["user2"].user_id,
+            category_id: categoryRecords["cat2"].category_id,
+            tracking_frequency: "Monthly",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "Student Research Projects",
+            unit: "projects",
+            target_value: 30,
+            main_indicator_id: mainIndicatorRecords["main3"].indicator_id, // Sub-indicator of Academic main indicator
+            user_id: userRecords["user3"].user_id,
+            category_id: categoryRecords["cat3"].category_id,
+            tracking_frequency: "Semester",
+            status: "Active",
+            date: new Date(),
+        },
+    ];
+
+    const subIndicatorRecords: Record<string, any> = {};
+    for (let i = 0; i < subIndicators.length; i++) {
+        const indicator = subIndicators[i];
+        subIndicatorRecords[`sub${i + 1}`] = await prisma.indicator.create({
+            data: indicator,
         });
     }
+
+    // Combine all indicators for responsible person seeding
+    const allIndicators = {
+        ...mainIndicatorRecords,
+        ...subIndicatorRecords,
+    };
+
+    // Seed Responsible Persons (Link indicators to job titles)
+    await prisma.responsiblePerson.createMany({
+        data: [
+            // Main indicators
+            {
+                indicator_id: mainIndicatorRecords["main1"].indicator_id,
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, // Research Director
+            },
+            {
+                indicator_id: mainIndicatorRecords["main2"].indicator_id,
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id, // HR Manager
+            },
+            {
+                indicator_id: mainIndicatorRecords["main3"].indicator_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, // Academic Staff
+            },
+            // Sub-indicators
+            {
+                indicator_id: subIndicatorRecords["sub1"].indicator_id,
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, // Research Director
+            },
+            {
+                indicator_id: subIndicatorRecords["sub2"].indicator_id,
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, // Research Director
+            },
+            {
+                indicator_id: subIndicatorRecords["sub3"].indicator_id,
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id, // HR Manager
+            },
+            {
+                indicator_id: subIndicatorRecords["sub4"].indicator_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, // Academic Staff
+            },
+        ],
+    });
 
     console.log("Database Seeded Successfully!");
 }
