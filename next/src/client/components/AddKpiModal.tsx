@@ -1,6 +1,5 @@
 import {
   Crosshair,
-  HelpCircle,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -40,6 +39,8 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
     department: departments[0],
   });
 
+  if (!isOpen) return null;
+
   function addSubKpi() {
     setSubKpis([...subkpis, { id: crypto.randomUUID(), name: "", target: "" }]);
     setExpandedIndex(subkpis.length);
@@ -71,15 +72,14 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
     onClose();
   }
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+
+      {/* Modal */}
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 transition-all duration-300 ease-out"
+        className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 z-50 overflow-auto max-h-[90vh] transition-all duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit}>
@@ -98,8 +98,9 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
               </a>
             </div>
 
-            {/* Main KPI (HORIZONTAL WRAP, NO SCROLL) */}
+            {/* Main KPI */}
             <div className="flex flex-row flex-wrap gap-4 mb-8">
+              {/* Name */}
               <div className="flex flex-col flex-1 min-w-[180px] max-w-[240px]">
                 <label
                   htmlFor="kpi-name"
@@ -124,6 +125,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                   </div>
                 </div>
               </div>
+              {/* Target */}
               <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
                 <label
                   htmlFor="kpi-target"
@@ -142,6 +144,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                   }
                 />
               </div>
+              {/* Format */}
               <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
                 <label
                   htmlFor="kpi-format"
@@ -162,6 +165,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                   ))}
                 </select>
               </div>
+              {/* Year */}
               <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
                 <label
                   htmlFor="kpi-year"
@@ -180,6 +184,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                   ))}
                 </select>
               </div>
+              {/* Department */}
               <div className="flex flex-col flex-1 min-w-[140px] max-w-[200px]">
                 <label
                   htmlFor="kpi-department"
@@ -245,7 +250,6 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
-                      {/* Expanded: inputs inline and wrap */}
                       {expandedIndex === idx && (
                         <div className="flex flex-row flex-wrap items-end bg-gray-100 border-l-4 border-purple-400 p-4 mt-2 rounded-lg gap-4">
                           <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
