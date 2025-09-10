@@ -1,76 +1,88 @@
-import {
-  Crosshair,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  Plus,
-  Trash2,
-} from "lucide-react";
+"use client";
+
 import { useState } from "react";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import z from "zod";
+import { Plus, Trash2, ChevronDown, ChevronUp, Crosshair } from "lucide-react";
+
+// Zod Schema
+const subKpiSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "กรุณากรอกชื่อ Sub-KPI"),
+  target: z.string().min(1, "กรุณากรอกเป้าหมาย Sub-KPI"),
+});
+
+const mainKpiSchema = z.object({
+  name: z.string().min(2, "กรุณากรอกชื่อ KPI").max(50),
+  target: z.string().min(1, "กรุณากรอกเป้าหมาย"),
+  format: z.string(),
+  year: z.string(),
+  department: z.string(),
+  subKpis: z.array(subKpiSchema),
+});
+
+type FormData = z.infer<typeof mainKpiSchema>;
 
 interface AddKpiModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (data: FormData) => Promise<void>;
 }
-type SubKpi = {
-  id: string;
-  name: string;
-  target: string;
-};
 
 const kpiFormats = ["1,234", "$1,234.56", "15%"];
-const kpiYears = [
-  "รายวัน",
-  "รายสัปดาห์",
-  "รายเดือน",
-  "รายไตรมาส",
-  "รายปีปฏิทิน",
-];
+const kpiYears = ["รายวัน", "รายสัปดาห์", "รายเดือน", "รายไตรมาส", "รายปี"];
 const departments = ["ฝ่ายที่ 1", "ฝ่ายที่ 2", "ฝ่ายที่ 3"];
 
-const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
-  const [subkpis, setSubKpis] = useState<SubKpi[]>([]);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [mainKpi, setMainKpi] = useState({
-    name: "",
-    target: "",
-    format: kpiFormats[0],
-    year: kpiYears[0],
-    department: departments[0],
-  });
+export default function AddKpiModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: AddKpiModalProps) {
+  const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
 
-  if (!isOpen) return null;
-
-  function addSubKpi() {
-    setSubKpis([...subkpis, { id: crypto.randomUUID(), name: "", target: "" }]);
-    setExpandedIndex(subkpis.length);
-  }
-  function removeSubKpi(idx: number) {
-    setSubKpis(subkpis.filter((_, i) => i !== idx));
-    if (expandedIndex === idx) setExpandedIndex(null);
-  }
-  function updateSubKpi(idx: number, key: keyof SubKpi, value: string) {
-    const newsub = [...subkpis];
-    newsub[idx][key] = value;
-    setSubKpis(newsub);
-  }
-  function handleMainKpiChange(key: keyof typeof mainKpi, value: string) {
-    setMainKpi((prev) => ({ ...prev, [key]: value }));
-  }
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    alert(JSON.stringify({ ...mainKpi, subkpis }, null, 2));
-    setMainKpi({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(mainKpiSchema),
+    defaultValues: {
       name: "",
       target: "",
       format: kpiFormats[0],
       year: kpiYears[0],
       department: departments[0],
-    });
-    setSubKpis([]);
-    setExpandedIndex(null);
+      subKpis: [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "subKpis",
+  });
+
+  if (!isOpen) return null;
+
+  const submitForm = async (data: FormData) => {
+    // แสดงข้อมูลใน alert
+    alert(JSON.stringify(data, null, 2));
+
+    // เรียก onSubmit ตามปกติ
+    await onSubmit(data);
+
+    // รีเซ็ต form
+    reset();
+    setExpandedIndexes([]);
     onClose();
-  }
+  };
+
+  const toggleExpand = (idx: number) => {
+    setExpandedIndexes((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    );
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
@@ -78,210 +90,223 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
       {/* Modal */}
-      <div
-        className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 z-50 overflow-auto max-h-[90vh] transition-all duration-300"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <form onSubmit={handleSubmit}>
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 z-50 overflow-auto max-h-[90vh] transition-all duration-300">
+        <form onSubmit={handleSubmit(submitForm)}>
           <div className="p-6 sm:p-8">
-            {/* Header */}
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
-                เพิ่มตัวชี้วัด (KPI)
-              </h2>
-              <a
-                href="#"
-                className="text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1"
-              >
-                ศึกษาวิธีใช้งาน
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">เพิ่ม KPI</h2>
 
             {/* Main KPI */}
             <div className="flex flex-row flex-wrap gap-4 mb-8">
               {/* Name */}
-              <div className="flex flex-col flex-1 min-w-[180px] max-w-[240px]">
-                <label
-                  htmlFor="kpi-name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  ชื่อตัวชี้วัด
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="kpi-name"
-                    placeholder="กรอกชื่อตัวชี้วัด"
-                    className="pl-4 pr-12 py-2 border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
-                    value={mainKpi.name}
-                    onChange={(e) =>
-                      handleMainKpiChange("name", e.target.value)
-                    }
-                    required
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                    <Crosshair className="w-5 h-5" />
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex flex-col flex-1 min-w-[180px] max-w-[240px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      ชื่อตัวชี้วัด
+                    </label>
+                    <div className="relative">
+                      <input
+                        {...field}
+                        placeholder="กรอกชื่อตัวชี้วัด"
+                        className="pl-4 pr-12 py-2 border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                        <Crosshair className="w-5 h-5" />
+                      </div>
+                    </div>
+                    {errors.name && (
+                      <span className="text-red-500 text-xs">
+                        {errors.name.message}
+                      </span>
+                    )}
                   </div>
-                </div>
-              </div>
+                )}
+              />
+
               {/* Target */}
-              <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
-                <label
-                  htmlFor="kpi-target"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  เป้าหมาย
-                </label>
-                <input
-                  type="text"
-                  id="kpi-target"
-                  placeholder="ระบุเป้าหมาย"
-                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
-                  value={mainKpi.target}
-                  onChange={(e) =>
-                    handleMainKpiChange("target", e.target.value)
-                  }
-                />
-              </div>
+              <Controller
+                name="target"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      เป้าหมาย
+                    </label>
+                    <input
+                      {...field}
+                      placeholder="ระบุเป้าหมาย"
+                      className="px-4 py-2 border border-gray-300 rounded-lg w-full"
+                    />
+                    {errors.target && (
+                      <span className="text-red-500 text-xs">
+                        {errors.target.message}
+                      </span>
+                    )}
+                  </div>
+                )}
+              />
+
               {/* Format */}
-              <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
-                <label
-                  htmlFor="kpi-format"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  รูปแบบข้อมูล
-                </label>
-                <select
-                  id="kpi-format"
-                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
-                  value={mainKpi.format}
-                  onChange={(e) =>
-                    handleMainKpiChange("format", e.target.value)
-                  }
-                >
-                  {kpiFormats.map((fmt) => (
-                    <option key={fmt}>{fmt}</option>
-                  ))}
-                </select>
-              </div>
+              <Controller
+                name="format"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      รูปแบบข้อมูล
+                    </label>
+                    <select
+                      {...field}
+                      className="px-4 py-2 border border-gray-300 rounded-lg w-full"
+                    >
+                      {kpiFormats.map((f) => (
+                        <option key={f}>{f}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              />
+
               {/* Year */}
-              <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
-                <label
-                  htmlFor="kpi-year"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  รอบการรายงาน
-                </label>
-                <select
-                  id="kpi-year"
-                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
-                  value={mainKpi.year}
-                  onChange={(e) => handleMainKpiChange("year", e.target.value)}
-                >
-                  {kpiYears.map((year) => (
-                    <option key={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
+              <Controller
+                name="year"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      รอบการรายงาน
+                    </label>
+                    <select
+                      {...field}
+                      className="px-4 py-2 border border-gray-300 rounded-lg w-full"
+                    >
+                      {kpiYears.map((y) => (
+                        <option key={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              />
+
               {/* Department */}
-              <div className="flex flex-col flex-1 min-w-[140px] max-w-[200px]">
-                <label
-                  htmlFor="kpi-department"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  ฝ่ายที่รับผิดชอบ
-                </label>
-                <select
-                  id="kpi-department"
-                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
-                  value={mainKpi.department}
-                  onChange={(e) =>
-                    handleMainKpiChange("department", e.target.value)
-                  }
-                >
-                  {departments.map((dep) => (
-                    <option key={dep}>{dep}</option>
-                  ))}
-                </select>
-              </div>
+              <Controller
+                name="department"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex flex-col flex-1 min-w-[140px] max-w-[200px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      ฝ่ายที่รับผิดชอบ
+                    </label>
+                    <select
+                      {...field}
+                      className="px-4 py-2 border border-gray-300 rounded-lg w-full"
+                    >
+                      {departments.map((d) => (
+                        <option key={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              />
             </div>
 
-            {/* Sub-KPI Section */}
+            {/* Sub-KPI */}
             <div className="mt-4">
               <button
                 type="button"
                 className="flex items-center gap-1 text-sm text-purple-700 font-bold mb-2"
-                onClick={addSubKpi}
+                onClick={() =>
+                  append({ id: crypto.randomUUID(), name: "", target: "" })
+                }
               >
                 <Plus className="w-4 h-4" /> เพิ่ม Sub-KPI
               </button>
-              {subkpis.length === 0 ? (
+
+              {fields.length === 0 ? (
                 <div className="text-gray-500 text-sm mb-2">
                   ยังไม่มี Sub-KPI
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {subkpis.map((sub, idx) => (
-                    <div key={sub.id} className="mb-2">
+                  {fields.map((sub, idx) => (
+                    <div key={sub.id}>
                       <div className="flex items-center">
                         <button
                           type="button"
                           className="mr-2"
-                          aria-label="expand"
-                          onClick={() =>
-                            setExpandedIndex(expandedIndex === idx ? null : idx)
-                          }
+                          onClick={() => toggleExpand(idx)}
                         >
-                          {expandedIndex === idx ? (
+                          {expandedIndexes.includes(idx) ? (
                             <ChevronUp className="w-5 h-5" />
                           ) : (
                             <ChevronDown className="w-5 h-5" />
                           )}
                         </button>
                         <span className="font-semibold text-gray-900">
-                          {sub.name ? sub.name : "ชื่อ Sub-KPI"}
+                          {sub.name || "ชื่อ Sub-KPI"}
                         </span>
                         <button
                           type="button"
                           className="ml-auto text-red-500"
-                          onClick={() => removeSubKpi(idx)}
+                          onClick={() => remove(idx)}
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
-                      {expandedIndex === idx && (
+
+                      {expandedIndexes.includes(idx) && (
                         <div className="flex flex-row flex-wrap items-end bg-gray-100 border-l-4 border-purple-400 p-4 mt-2 rounded-lg gap-4">
-                          <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
-                            <label className="text-xs font-medium text-gray-700 mb-1">
-                              ชื่อ Sub-KPI
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="ชื่อ Sub-KPI"
-                              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
-                              value={sub.name}
-                              onChange={(e) =>
-                                updateSubKpi(idx, "name", e.target.value)
-                              }
-                              required
-                            />
-                          </div>
-                          <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
-                            <label className="text-xs font-medium text-gray-700 mb-1">
-                              เป้าหมาย Sub-KPI
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="เป้าหมาย Sub-KPI"
-                              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
-                              value={sub.target}
-                              onChange={(e) =>
-                                updateSubKpi(idx, "target", e.target.value)
-                              }
-                              required
-                            />
-                          </div>
+                          {/* ชื่อ Sub-KPI */}
+                          <Controller
+                            name={`subKpis.${idx}.name`}
+                            control={control}
+                            render={({ field }) => (
+                              <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
+                                <label className="text-xs font-medium text-gray-700 mb-1">
+                                  ชื่อ Sub-KPI
+                                </label>
+                                <input
+                                  {...field}
+                                  type="text"
+                                  placeholder="ชื่อ Sub-KPI"
+                                  className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
+                                  required
+                                />
+                                {errors.subKpis?.[idx]?.name && (
+                                  <span className="text-red-500 text-xs">
+                                    {errors.subKpis[idx]?.name?.message}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          />
+
+                          {/* เป้าหมาย Sub-KPI */}
+                          <Controller
+                            name={`subKpis.${idx}.target`}
+                            control={control}
+                            render={({ field }) => (
+                              <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
+                                <label className="text-xs font-medium text-gray-700 mb-1">
+                                  เป้าหมาย Sub-KPI
+                                </label>
+                                <input
+                                  {...field}
+                                  type="text"
+                                  placeholder="เป้าหมาย Sub-KPI"
+                                  className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
+                                  required
+                                />
+                                {errors.subKpis?.[idx]?.target && (
+                                  <span className="text-red-500 text-xs">
+                                    {errors.subKpis[idx]?.target?.message}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          />
                         </div>
                       )}
                     </div>
@@ -290,7 +315,7 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
               )}
             </div>
 
-            {/* Submit/Cancel */}
+            {/* Buttons */}
             <div className="flex gap-2 mt-6">
               <button
                 type="submit"
@@ -300,19 +325,12 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
               </button>
               <button
                 type="button"
-                className="border border-gray-400 px-6 py-2 rounded-md text-gray-700 hover:bg-gray-100"
                 onClick={() => {
-                  setMainKpi({
-                    name: "",
-                    target: "",
-                    format: kpiFormats[0],
-                    year: kpiYears[0],
-                    department: departments[0],
-                  });
-                  setSubKpis([]);
-                  setExpandedIndex(null);
+                  reset();
+                  setExpandedIndexes([]);
                   onClose();
                 }}
+                className="border border-gray-400 px-6 py-2 rounded-md text-gray-700 hover:bg-gray-100"
               >
                 ยกเลิก
               </button>
@@ -322,6 +340,4 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
       </div>
     </div>
   );
-};
-
-export default AddKpiModal;
+}
