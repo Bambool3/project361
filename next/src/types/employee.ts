@@ -1,15 +1,15 @@
-export interface Department {
+export interface JobTitle {
     id: string;
-    department_name: string;
+    name: string;
 }
 
-export interface DepartmentFormData {
+export interface JobTitleFormData {
     name: string;
 }
 
 export interface Role {
     id: string;
-    role_name: string;
+    name: string;
 }
 
 export interface Employee {
@@ -17,10 +17,8 @@ export interface Employee {
     first_name: string;
     last_name: string;
     email: string;
-    role: Role;
-    role_id: string;
-    department: Department;
-    department_id: string;
+    roles: Role[];
+    job_titles: JobTitle[];
     created_at?: Date;
     updated_at?: Date;
 }
@@ -30,19 +28,19 @@ export interface EmployeeFormData {
     last_name: string;
     email: string;
     password: string;
-    role_id: string;
-    department_id: string;
+    role_ids: string[];
+    jobtitle_ids: string[];
 }
 
 export interface EmployeeFilter {
     searchTerm: string;
-    departmentId: string;
+    jobTitleId: string;
     roleId?: string;
 }
 
 export interface EmployeeStats {
     totalEmployees: number;
-    totalDepartments: number;
+    totalJobTitles: number;
     activeEmployees: number;
 }
 

@@ -5,11 +5,16 @@ export async function GET() {
     try {
         const roles = await prisma.role.findMany({
             orderBy: {
-                role_name: "asc",
+                name: "asc",
             },
         });
 
-        return NextResponse.json(roles);
+        const transformedRoles = roles.map((role) => ({
+            id: role.role_id.toString(),
+            role_name: role.name,
+        }));
+
+        return NextResponse.json(transformedRoles);
     } catch (error) {
         console.error("Error fetching roles:", error);
         return NextResponse.json(

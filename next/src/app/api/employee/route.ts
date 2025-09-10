@@ -25,12 +25,12 @@ export async function POST(request: Request) {
             !body.last_name?.trim() ||
             !body.email?.trim() ||
             !body.password?.trim() ||
-            !body.role_id?.trim() ||
-            !body.department_id?.trim()
+            !body.role_ids?.length ||
+            !body.jobtitle_ids?.length
         ) {
             return NextResponse.json(
                 {
-                    error: "ชื่อ-นามสกุล อีเมล รหัสผ่าน ตำแหน่ง และหน่วยงานจำเป็นต้องกรอก",
+                    error: "ชื่อ-นามสกุล อีเมล รหัสผ่าน บทบาท และตำแหน่งงานจำเป็นต้องกรอก",
                 },
                 { status: 400 }
             );

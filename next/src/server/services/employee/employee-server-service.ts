@@ -6,8 +6,16 @@ export class EmployeeServerService {
         try {
             const employees = await prisma.user.findMany({
                 include: {
-                    role: true,
-                    department: true,
+                    user_roles: {
+                        include: {
+                            role: true,
+                        },
+                    },
+                    user_jobtitle: {
+                        include: {
+                            jobtitle: true,
+                        },
+                    },
                     indicators: true,
                 },
                 orderBy: [
@@ -18,20 +26,18 @@ export class EmployeeServerService {
             });
 
             return employees.map((employee: any) => ({
-                id: employee.id,
+                id: employee.user_id.toString(),
                 first_name: employee.first_name,
                 last_name: employee.last_name,
                 email: employee.email,
-                role: {
-                    id: employee.role.id,
-                    role_name: employee.role.role_name,
-                },
-                role_id: employee.role_id,
-                department: {
-                    id: employee.department.id,
-                    department_name: employee.department.department_name,
-                },
-                department_id: employee.department_id,
+                roles: employee.user_roles.map((ur: any) => ({
+                    id: ur.role.role_id.toString(),
+                    name: ur.role.name,
+                })),
+                job_titles: employee.user_jobtitle.map((uj: any) => ({
+                    id: uj.jobtitle.jobtitle_id.toString(),
+                    name: uj.jobtitle.name,
+                })),
             }));
         } catch (error) {
             console.error("Error fetching employees from database:", error);
@@ -49,8 +55,16 @@ export class EmployeeServerService {
                     },
                 },
                 include: {
-                    role: true,
-                    department: true,
+                    user_roles: {
+                        include: {
+                            role: true,
+                        },
+                    },
+                    user_jobtitle: {
+                        include: {
+                            jobtitle: true,
+                        },
+                    },
                     indicators: true,
                 },
             });
@@ -60,20 +74,18 @@ export class EmployeeServerService {
             }
 
             return {
-                id: employee.id,
+                id: employee.user_id.toString(),
                 first_name: employee.first_name,
                 last_name: employee.last_name,
                 email: employee.email,
-                role: {
-                    id: employee.role.id,
-                    role_name: employee.role.role_name,
-                },
-                role_id: employee.role_id,
-                department: {
-                    id: employee.department.id,
-                    department_name: employee.department.department_name,
-                },
-                department_id: employee.department_id,
+                roles: employee.user_roles.map((ur: any) => ({
+                    id: ur.role.role_id.toString(),
+                    name: ur.role.name,
+                })),
+                job_titles: employee.user_jobtitle.map((uj: any) => ({
+                    id: uj.jobtitle.jobtitle_id.toString(),
+                    name: uj.jobtitle.name,
+                })),
             };
         } catch (error) {
             console.error(
@@ -92,46 +104,74 @@ export class EmployeeServerService {
                 !data.last_name?.trim() ||
                 !data.email?.trim() ||
                 !data.password?.trim() ||
-                !data.role_id?.trim() ||
-                !data.department_id?.trim()
+                !data.role_ids?.length ||
+                !data.jobtitle_ids?.length
             ) {
                 throw new Error("All required fields must be provided");
             }
 
-            const newEmployee = await prisma.user.create({
+            // Create the user first
+            const newUser = await prisma.user.create({
                 data: {
-                    id: `emp_${Date.now()}_${Math.random()
-                        .toString(36)
-                        .substr(2, 9)}`,
                     first_name: data.first_name.trim(),
                     last_name: data.last_name.trim(),
                     email: data.email.trim(),
                     password: data.password,
-                    role_id: data.role_id,
-                    department_id: data.department_id,
-                },
-                include: {
-                    role: true,
-                    department: true,
-                    indicators: true,
                 },
             });
 
+            // Create user-role relationships
+            const userRoleData = data.role_ids.map((roleId) => ({
+                user_id: newUser.user_id,
+                role_id: parseInt(roleId),
+            }));
+            await prisma.userRole.createMany({
+                data: userRoleData,
+            });
+
+            // Create user-jobtitle relationships
+            const userJobTitleData = data.jobtitle_ids.map((jobTitleId) => ({
+                user_id: newUser.user_id,
+                jobtitle_id: parseInt(jobTitleId),
+            }));
+            await prisma.userJobTitle.createMany({
+                data: userJobTitleData,
+            });
+
+            // Fetch the complete user with relationships
+            const employee = await prisma.user.findUnique({
+                where: { user_id: newUser.user_id },
+                include: {
+                    user_roles: {
+                        include: {
+                            role: true,
+                        },
+                    },
+                    user_jobtitle: {
+                        include: {
+                            jobtitle: true,
+                        },
+                    },
+                },
+            });
+
+            if (!employee) {
+                throw new Error("Failed to retrieve created employee");
+            }
+
             return {
-                id: newEmployee.id,
-                first_name: newEmployee.first_name,
-                last_name: newEmployee.last_name,
-                email: newEmployee.email,
-                role: {
-                    id: newEmployee.role.id,
-                    role_name: newEmployee.role.role_name,
-                },
-                role_id: newEmployee.role_id,
-                department: {
-                    id: newEmployee.department.id,
-                    department_name: newEmployee.department.department_name,
-                },
-                department_id: newEmployee.department_id,
+                id: employee.user_id.toString(),
+                first_name: employee.first_name,
+                last_name: employee.last_name,
+                email: employee.email,
+                roles: employee.user_roles.map((ur: any) => ({
+                    id: ur.role.role_id.toString(),
+                    name: ur.role.name,
+                })),
+                job_titles: employee.user_jobtitle.map((uj: any) => ({
+                    id: uj.jobtitle.jobtitle_id.toString(),
+                    name: uj.jobtitle.name,
+                })),
             };
         } catch (error) {
             console.error("Error creating employee in database:", error);
@@ -151,9 +191,11 @@ export class EmployeeServerService {
                 throw new Error("Employee ID is required");
             }
 
+            const userId = parseInt(id);
+
             // Check if employee exists
             const existingEmployee = await prisma.user.findUnique({
-                where: { id: id.trim() },
+                where: { user_id: userId },
             });
 
             if (!existingEmployee) {
@@ -161,7 +203,6 @@ export class EmployeeServerService {
             }
 
             const updateData: any = {};
-
             if (data.first_name?.trim()) {
                 updateData.first_name = data.first_name.trim();
             }
@@ -171,42 +212,81 @@ export class EmployeeServerService {
             if (data.email?.trim()) {
                 updateData.email = data.email.trim();
             }
-            if (data.role_id?.trim()) {
-                updateData.role_id = data.role_id.trim();
-            }
-            if (data.department_id?.trim()) {
-                updateData.department_id = data.department_id.trim();
-            }
-            // Only update password if provided
             if (data.password?.trim()) {
                 updateData.password = data.password;
             }
 
-            const updatedEmployee = await prisma.user.update({
-                where: { id: id.trim() },
+            await prisma.user.update({
+                where: { user_id: userId },
                 data: updateData,
+            });
+
+            // Update roles if provided
+            if (data.role_ids?.length) {
+                await prisma.userRole.deleteMany({
+                    where: { user_id: userId },
+                });
+
+                const userRoleData = data.role_ids.map((roleId) => ({
+                    user_id: userId,
+                    role_id: parseInt(roleId),
+                }));
+                await prisma.userRole.createMany({
+                    data: userRoleData,
+                });
+            }
+
+            // Update job titles if provided
+            if (data.jobtitle_ids?.length) {
+                await prisma.userJobTitle.deleteMany({
+                    where: { user_id: userId },
+                });
+
+                const userJobTitleData = data.jobtitle_ids.map(
+                    (jobTitleId) => ({
+                        user_id: userId,
+                        jobtitle_id: parseInt(jobTitleId),
+                    })
+                );
+                await prisma.userJobTitle.createMany({
+                    data: userJobTitleData,
+                });
+            }
+
+            // Fetch updated employee
+            const updatedEmployee = await prisma.user.findUnique({
+                where: { user_id: userId },
                 include: {
-                    role: true,
-                    department: true,
-                    indicators: true,
+                    user_roles: {
+                        include: {
+                            role: true,
+                        },
+                    },
+                    user_jobtitle: {
+                        include: {
+                            jobtitle: true,
+                        },
+                    },
                 },
             });
 
+            if (!updatedEmployee) {
+                throw new Error("Failed to retrieve updated employee");
+            }
+
             return {
-                id: updatedEmployee.id,
+                id: updatedEmployee.user_id.toString(),
                 first_name: updatedEmployee.first_name,
                 last_name: updatedEmployee.last_name,
                 email: updatedEmployee.email,
-                role: {
-                    id: updatedEmployee.role.id,
-                    role_name: updatedEmployee.role.role_name,
-                },
-                role_id: updatedEmployee.role_id,
-                department: {
-                    id: updatedEmployee.department.id,
-                    department_name: updatedEmployee.department.department_name,
-                },
-                department_id: updatedEmployee.department_id,
+                roles: updatedEmployee.user_roles.map((ur: any) => ({
+                    id: ur.role.role_id.toString(),
+                    name: ur.role.name,
+                })),
+                job_titles: updatedEmployee.user_jobtitle.map((uj: any) => ({
+                    id: uj.jobtitle.jobtitle_id.toString(),
+                    name: uj.jobtitle.name,
+                })),
             };
         } catch (error) {
             console.error("Error updating employee in database:", error);
@@ -219,9 +299,11 @@ export class EmployeeServerService {
 
     static async deleteEmployee(employeeId: string): Promise<void> {
         try {
+            const userId = parseInt(employeeId);
+
             // Check if employee exists
             const existingEmployee = await prisma.user.findUnique({
-                where: { id: employeeId },
+                where: { user_id: userId },
                 include: {
                     indicators: true,
                 },
@@ -241,9 +323,18 @@ export class EmployeeServerService {
                 );
             }
 
-            // Delete the employee
+            // Delete user relationships first
+            await prisma.userRole.deleteMany({
+                where: { user_id: userId },
+            });
+
+            await prisma.userJobTitle.deleteMany({
+                where: { user_id: userId },
+            });
+
+            // Delete the user
             await prisma.user.delete({
-                where: { id: employeeId },
+                where: { user_id: userId },
             });
         } catch (error) {
             console.error("Error deleting employee from database:", error);
@@ -256,11 +347,21 @@ export class EmployeeServerService {
 
     static async getEmployeeById(employeeId: string): Promise<Employee | null> {
         try {
+            const userId = parseInt(employeeId);
+
             const employee = await prisma.user.findUnique({
-                where: { id: employeeId },
+                where: { user_id: userId },
                 include: {
-                    role: true,
-                    department: true,
+                    user_roles: {
+                        include: {
+                            role: true,
+                        },
+                    },
+                    user_jobtitle: {
+                        include: {
+                            jobtitle: true,
+                        },
+                    },
                     indicators: true,
                 },
             });
@@ -270,20 +371,18 @@ export class EmployeeServerService {
             }
 
             return {
-                id: employee.id,
+                id: employee.user_id.toString(),
                 first_name: employee.first_name,
                 last_name: employee.last_name,
                 email: employee.email,
-                role: {
-                    id: employee.role.id,
-                    role_name: employee.role.role_name,
-                },
-                role_id: employee.role_id,
-                department: {
-                    id: employee.department.id,
-                    department_name: employee.department.department_name,
-                },
-                department_id: employee.department_id,
+                roles: employee.user_roles.map((ur: any) => ({
+                    id: ur.role.role_id.toString(),
+                    name: ur.role.name,
+                })),
+                job_titles: employee.user_jobtitle.map((uj: any) => ({
+                    id: uj.jobtitle.jobtitle_id.toString(),
+                    name: uj.jobtitle.name,
+                })),
             };
         } catch (error) {
             console.error(

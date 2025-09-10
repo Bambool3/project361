@@ -1,4 +1,4 @@
-import { Employee, EmployeeFormData, Department, Role } from "@/types/employee";
+import { Employee, EmployeeFormData, JobTitle, Role } from "@/types/employee";
 
 export class EmployeeService {
     private static baseUrl = "/api/employee";
@@ -64,9 +64,9 @@ export class EmployeeService {
         }
     }
 
-    static async getDepartments(): Promise<Department[]> {
+    static async getJobTitles(): Promise<JobTitle[]> {
         try {
-            const response = await fetch("/api/departments", {
+            const response = await fetch("/api/jobTitle", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -75,13 +75,17 @@ export class EmployeeService {
 
             if (!response.ok) {
                 throw new Error(
-                    `Failed to fetch departments: ${response.statusText}`
+                    `Failed to fetch job titles: ${response.statusText}`
                 );
             }
 
-            return await response.json();
+            const data = await response.json();
+            return data.map((item: any) => ({
+                id: item.id,
+                name: item.jobTitle_name,
+            }));
         } catch (error) {
-            console.error("Error fetching departments:", error);
+            console.error("Error fetching job titles:", error);
             throw error;
         }
     }
@@ -101,7 +105,11 @@ export class EmployeeService {
                 );
             }
 
-            return await response.json();
+            const data = await response.json();
+            return data.map((item: any) => ({
+                id: item.id,
+                name: item.role_name,
+            }));
         } catch (error) {
             console.error("Error fetching roles:", error);
             throw error;
