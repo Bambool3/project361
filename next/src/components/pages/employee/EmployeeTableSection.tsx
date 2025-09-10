@@ -2,7 +2,8 @@
 
 import CustomModal from "@/components/ui/custom-modal";
 import ConfirmModal from "@/components/ui/confirm-modal";
-import { Employee, Department, EmployeeFormData, Role } from "@/types/employee";
+import { Employee, JobTitle, EmployeeFormData, Role } from "@/types/employee";
+
 import {
     Box,
     Card,
@@ -45,7 +46,7 @@ import { EmployeeService } from "@/server/services/employee/employee-client-serv
 
 interface EmployeeTableSectionProps {
     employees: Employee[];
-    departments: Department[];
+    jobTitles: JobTitle[];
     loading: boolean;
     error: string | null;
     onRefresh?: () => void;
@@ -53,7 +54,7 @@ interface EmployeeTableSectionProps {
 
 export default function EmployeeTableSection({
     employees,
-    departments,
+    jobTitles,
     loading,
     error,
     onRefresh,
@@ -137,11 +138,11 @@ export default function EmployeeTableSection({
                     .includes(searchTerm.toLowerCase()) ||
                 employee.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-            const matchesDepartment =
+            const matchesJobTitle =
                 !selectedDepartment ||
-                employee.department_id === selectedDepartment;
+                employee.job_titles.some((jt) => jt.id === selectedDepartment);
 
-            return matchesSearch && matchesDepartment;
+            return matchesSearch && matchesJobTitle;
         });
     }, [employees, searchTerm, selectedDepartment]);
 
@@ -466,9 +467,12 @@ export default function EmployeeTableSection({
                                     }}
                                 >
                                     <MenuItem value="">ทั้งหมด</MenuItem>
-                                    {departments.map((dept) => (
-                                        <MenuItem key={dept.id} value={dept.id}>
-                                            {dept.department_name}
+                                    {jobTitles.map((jobTitle) => (
+                                        <MenuItem
+                                            key={jobTitle.id}
+                                            value={jobTitle.id}
+                                        >
+                                            {jobTitle.name}
                                         </MenuItem>
                                     ))}
                                 </Select>
@@ -777,7 +781,7 @@ export default function EmployeeTableSection({
                                                         </Typography>
                                                     </TableCell>
 
-                                                    {/* Department Column */}
+                                                    {/* Job Title Column */}
                                                     <TableCell
                                                         sx={{
                                                             border: "none",
@@ -785,23 +789,45 @@ export default function EmployeeTableSection({
                                                             textAlign: "center",
                                                         }}
                                                     >
-                                                        <Chip
-                                                            label={
-                                                                employee
-                                                                    .department
-                                                                    .department_name
-                                                            }
-                                                            size="small"
-                                                            sx={{
-                                                                backgroundColor:
-                                                                    "#f1f5f9",
-                                                                color: "#475569",
-                                                                fontWeight:
-                                                                    "600",
-                                                                maxWidth:
-                                                                    "200px",
-                                                            }}
-                                                        />
+                                                        {employee.job_titles
+                                                            .length > 0 ? (
+                                                            employee.job_titles.map(
+                                                                (
+                                                                    jobTitle,
+                                                                    index
+                                                                ) => (
+                                                                    <Chip
+                                                                        key={
+                                                                            jobTitle.id
+                                                                        }
+                                                                        label={
+                                                                            jobTitle.name
+                                                                        }
+                                                                        size="small"
+                                                                        sx={{
+                                                                            backgroundColor:
+                                                                                "#f1f5f9",
+                                                                            color: "#475569",
+                                                                            fontWeight:
+                                                                                "600",
+                                                                            margin: "2px",
+                                                                        }}
+                                                                    />
+                                                                )
+                                                            )
+                                                        ) : (
+                                                            <Chip
+                                                                label="ไม่ได้ระบุตำแหน่ง"
+                                                                size="small"
+                                                                sx={{
+                                                                    backgroundColor:
+                                                                        "#fee2e2",
+                                                                    color: "#dc2626",
+                                                                    fontWeight:
+                                                                        "600",
+                                                                }}
+                                                            />
+                                                        )}
                                                     </TableCell>
 
                                                     {/* Role Column */}
@@ -812,20 +838,45 @@ export default function EmployeeTableSection({
                                                             textAlign: "center",
                                                         }}
                                                     >
-                                                        <Chip
-                                                            label={
-                                                                employee.role
-                                                                    .role_name
-                                                            }
-                                                            size="small"
-                                                            sx={{
-                                                                backgroundColor:
-                                                                    "#f1f5f9",
-                                                                color: "#475569",
-                                                                fontWeight:
-                                                                    "600",
-                                                            }}
-                                                        />
+                                                        {employee.roles.length >
+                                                        0 ? (
+                                                            employee.roles.map(
+                                                                (
+                                                                    role,
+                                                                    index
+                                                                ) => (
+                                                                    <Chip
+                                                                        key={
+                                                                            role.id
+                                                                        }
+                                                                        label={
+                                                                            role.name
+                                                                        }
+                                                                        size="small"
+                                                                        sx={{
+                                                                            backgroundColor:
+                                                                                "#f1f5f9",
+                                                                            color: "#475569",
+                                                                            fontWeight:
+                                                                                "600",
+                                                                            margin: "2px",
+                                                                        }}
+                                                                    />
+                                                                )
+                                                            )
+                                                        ) : (
+                                                            <Chip
+                                                                label="ไม่ได้ระบุบทบาท"
+                                                                size="small"
+                                                                sx={{
+                                                                    backgroundColor:
+                                                                        "#fee2e2",
+                                                                    color: "#dc2626",
+                                                                    fontWeight:
+                                                                        "600",
+                                                                }}
+                                                            />
+                                                        )}
                                                     </TableCell>
 
                                                     {/* Manage Column */}
@@ -1003,7 +1054,7 @@ export default function EmployeeTableSection({
                 showActions={false}
             >
                 <EmployeeAddEdit
-                    departments={departments}
+                    jobTitles={jobTitles}
                     roles={roles}
                     onSubmit={handleAddEmployeeSubmit}
                     onCancel={() => setIsAddModalOpen(false)}
@@ -1025,7 +1076,7 @@ export default function EmployeeTableSection({
                 {selectedEmployee && (
                     <EmployeeAddEdit
                         initialData={selectedEmployee}
-                        departments={departments}
+                        jobTitles={jobTitles}
                         roles={roles}
                         onSubmit={handleEditEmployeeSubmit}
                         onCancel={() => {

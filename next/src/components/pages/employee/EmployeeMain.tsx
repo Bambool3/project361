@@ -1,13 +1,13 @@
 "use client";
 
-import { Department, Employee } from "@/types/employee";
+import { JobTitle, Employee } from "@/types/employee";
 import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import EmployeeTableSection from "./EmployeeTableSection";
 
 export default function EmployeeMain() {
     const [employees, setEmployees] = useState<Employee[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
+    const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -38,31 +38,35 @@ export default function EmployeeMain() {
         }
     };
 
-    const loadDepartments = async () => {
+    const loadJobTitles = async () => {
         try {
-            const response = await fetch("/api/departments");
+            const response = await fetch("/api/jobTitle");
 
             if (!response.ok) {
                 throw new Error(
-                    `Failed to fetch departments: ${response.status}`
+                    `Failed to fetch job titles: ${response.status}`
                 );
             }
 
-            const departmentData = await response.json();
-            setDepartments(departmentData);
+            const data = await response.json();
+            const transformedJobTitles = data.map((item: any) => ({
+                id: item.id,
+                name: item.jobTitle_name,
+            }));
+            setJobTitles(transformedJobTitles);
         } catch (err) {
-            console.error("Error loading departments:", err);
+            console.error("Error loading job titles:", err);
         }
     };
 
     const handleRefresh = () => {
         loadEmployees();
-        loadDepartments();
+        loadJobTitles();
     };
 
     useEffect(() => {
         loadEmployees();
-        loadDepartments();
+        loadJobTitles();
     }, []);
 
     return (
@@ -76,7 +80,7 @@ export default function EmployeeMain() {
         >
             <EmployeeTableSection
                 employees={employees}
-                departments={departments}
+                jobTitles={jobTitles}
                 loading={loading}
                 error={error}
                 onRefresh={handleRefresh}

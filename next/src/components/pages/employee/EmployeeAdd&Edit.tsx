@@ -1,6 +1,6 @@
 "use client";
 
-import { EmployeeFormData, Department, Role, Employee } from "@/types/employee";
+import { EmployeeFormData, JobTitle, Role, Employee } from "@/types/employee";
 import {
     Box,
     TextField,
@@ -13,6 +13,10 @@ import {
     Select,
     MenuItem,
     FormHelperText,
+    Chip,
+    OutlinedInput,
+    SelectChangeEvent,
+    Checkbox,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -20,7 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 import ConfirmModal from "@/components/ui/confirm-modal";
 
-// Zod schema for validation
+// Zod schema for validation with multi-select support
 const createEmployeeSchema = (isEditMode: boolean) =>
     z.object({
         first_name: z
@@ -53,15 +57,19 @@ const createEmployeeSchema = (isEditMode: boolean) =>
                   .min(1, "กรุณาระบุรหัสผ่าน")
                   .min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร")
                   .max(100, "รหัสผ่านต้องไม่เกิน 100 ตัวอักษร"),
-        role_id: z.string().min(1, "กรุณาเลือกตำแหน่ง"),
-        department_id: z.string().min(1, "กรุณาเลือกหน่วยงาน"),
+        role_ids: z
+            .array(z.string())
+            .min(1, "กรุณาเลือกตำแหน่งอย่างน้อย 1 อัน"),
+        jobtitle_ids: z
+            .array(z.string())
+            .min(1, "กรุณาเลือกหน่วยงานอย่างน้อย 1 อัน"),
     });
 
 type FormData = z.infer<ReturnType<typeof createEmployeeSchema>>;
 
 interface EmployeeAddEditProps {
     initialData?: Employee;
-    departments: Department[];
+    jobTitles: JobTitle[];
     roles: Role[];
     onSubmit: (data: EmployeeFormData) => Promise<void>;
     onCancel: () => void;
@@ -70,7 +78,7 @@ interface EmployeeAddEditProps {
 
 export default function EmployeeAddEdit({
     initialData,
-    departments,
+    jobTitles,
     roles,
     onSubmit,
     onCancel,
@@ -98,8 +106,8 @@ export default function EmployeeAddEdit({
             last_name: initialData?.last_name || "",
             email: initialData?.email || "",
             password: "",
-            role_id: initialData?.role_id || "",
-            department_id: initialData?.department_id || "",
+            role_ids: initialData?.roles?.map((role) => role.id) || [],
+            jobtitle_ids: initialData?.job_titles?.map((jt) => jt.id) || [],
         },
     });
 
@@ -121,8 +129,8 @@ export default function EmployeeAddEdit({
                 last_name: pendingFormData.last_name.trim(),
                 email: pendingFormData.email.trim(),
                 password: pendingFormData.password || "",
-                role_id: pendingFormData.role_id,
-                department_id: pendingFormData.department_id,
+                role_ids: pendingFormData.role_ids,
+                jobtitle_ids: pendingFormData.jobtitle_ids,
             };
 
             if (isEditMode && !pendingFormData.password?.trim()) {
@@ -147,15 +155,16 @@ export default function EmployeeAddEdit({
         setPendingFormData(null);
     };
 
-    const getSelectedDepartmentName = (departmentId: string) => {
-        return (
-            departments.find((dept) => dept.id === departmentId)
-                ?.department_name || ""
-        );
+    const getSelectedJobTitleNames = (jobTitleIds: string[]) => {
+        return jobTitleIds
+            .map((id) => jobTitles.find((jt) => jt.id === id)?.name || "")
+            .filter((name) => name !== "");
     };
 
-    const getSelectedRoleName = (roleId: string) => {
-        return roles.find((role) => role.id === roleId)?.role_name || "";
+    const getSelectedRoleNames = (roleIds: string[]) => {
+        return roleIds
+            .map((id) => roles.find((role) => role.id === id)?.name || "")
+            .filter((name) => name !== "");
     };
 
     return (
@@ -266,7 +275,7 @@ export default function EmployeeAddEdit({
                 </Box>
 
                 <Box sx={{ mb: 3, display: "flex", gap: 2 }}>
-                    {/* Department Dropdown */}
+                    {/* Job Title Dropdown */}
                     <Box sx={{ flex: 1 }}>
                         <Typography
                             variant="subtitle2"
@@ -279,17 +288,38 @@ export default function EmployeeAddEdit({
                             หน่วยงาน *
                         </Typography>
                         <Controller
-                            name="department_id"
+                            name="jobtitle_ids"
                             control={control}
                             render={({ field }) => (
                                 <FormControl
                                     fullWidth
-                                    error={!!errors.department_id}
+                                    error={!!errors.jobtitle_ids}
                                     disabled={isLoading}
                                 >
                                     <Select
                                         {...field}
+                                        multiple
                                         displayEmpty
+                                        input={<OutlinedInput />}
+                                        renderValue={(selected) => {
+                                            if (
+                                                (selected as string[])
+                                                    .length === 0
+                                            ) {
+                                                return (
+                                                    <Typography
+                                                        sx={{
+                                                            color: "#9ca3af",
+                                                        }}
+                                                    >
+                                                        เลือกหน่วยงาน...
+                                                    </Typography>
+                                                );
+                                            }
+                                            return `เลือกแล้ว ${
+                                                (selected as string[]).length
+                                            } หน่วยงาน`;
+                                        }}
                                         sx={{
                                             borderRadius: "12px",
                                             backgroundColor: "#f8fafc",
@@ -307,25 +337,40 @@ export default function EmployeeAddEdit({
                                             setSubmitError(null);
                                         }}
                                     >
-                                        <MenuItem value="" disabled>
-                                            <Typography
-                                                sx={{ color: "#9ca3af" }}
-                                            >
-                                                เลือกหน่วยงาน
-                                            </Typography>
-                                        </MenuItem>
-                                        {departments.map((department) => (
+                                        {jobTitles.map((jobTitle) => (
                                             <MenuItem
-                                                key={department.id}
-                                                value={department.id}
+                                                key={jobTitle.id}
+                                                value={jobTitle.id}
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 1,
+                                                    "&:hover": {
+                                                        backgroundColor:
+                                                            "#f8fafc",
+                                                    },
+                                                }}
                                             >
-                                                {department.department_name}
+                                                <Checkbox
+                                                    checked={field.value.includes(
+                                                        jobTitle.id
+                                                    )}
+                                                    sx={{
+                                                        color: "#8b5cf6",
+                                                        "&.Mui-checked": {
+                                                            color: "#8b5cf6",
+                                                        },
+                                                    }}
+                                                />
+                                                <Typography>
+                                                    {jobTitle.name}
+                                                </Typography>
                                             </MenuItem>
                                         ))}
                                     </Select>
-                                    {errors.department_id && (
+                                    {errors.jobtitle_ids && (
                                         <FormHelperText>
-                                            {errors.department_id.message}
+                                            {errors.jobtitle_ids.message}
                                         </FormHelperText>
                                     )}
                                 </FormControl>
@@ -333,7 +378,7 @@ export default function EmployeeAddEdit({
                         />
                     </Box>
 
-                    {/* Role Dropdown */}
+                    {/* Role Multi-Select */}
                     <Box sx={{ flex: 1 }}>
                         <Typography
                             variant="subtitle2"
@@ -346,17 +391,38 @@ export default function EmployeeAddEdit({
                             ตำแหน่ง *
                         </Typography>
                         <Controller
-                            name="role_id"
+                            name="role_ids"
                             control={control}
                             render={({ field }) => (
                                 <FormControl
                                     fullWidth
-                                    error={!!errors.role_id}
+                                    error={!!errors.role_ids}
                                     disabled={isLoading}
                                 >
                                     <Select
                                         {...field}
+                                        multiple
                                         displayEmpty
+                                        input={<OutlinedInput />}
+                                        renderValue={(selected) => {
+                                            if (
+                                                (selected as string[])
+                                                    .length === 0
+                                            ) {
+                                                return (
+                                                    <Typography
+                                                        sx={{
+                                                            color: "#9ca3af",
+                                                        }}
+                                                    >
+                                                        เลือกตำแหน่ง...
+                                                    </Typography>
+                                                );
+                                            }
+                                            return `เลือกแล้ว ${
+                                                (selected as string[]).length
+                                            } ตำแหน่ง`;
+                                        }}
                                         sx={{
                                             borderRadius: "12px",
                                             backgroundColor: "#f8fafc",
@@ -374,25 +440,40 @@ export default function EmployeeAddEdit({
                                             setSubmitError(null);
                                         }}
                                     >
-                                        <MenuItem value="" disabled>
-                                            <Typography
-                                                sx={{ color: "#9ca3af" }}
-                                            >
-                                                เลือกตำแหน่ง
-                                            </Typography>
-                                        </MenuItem>
                                         {roles.map((role) => (
                                             <MenuItem
                                                 key={role.id}
                                                 value={role.id}
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 1,
+                                                    "&:hover": {
+                                                        backgroundColor:
+                                                            "#f8fafc",
+                                                    },
+                                                }}
                                             >
-                                                {role.role_name}
+                                                <Checkbox
+                                                    checked={field.value.includes(
+                                                        role.id
+                                                    )}
+                                                    sx={{
+                                                        color: "#8b5cf6",
+                                                        "&.Mui-checked": {
+                                                            color: "#8b5cf6",
+                                                        },
+                                                    }}
+                                                />
+                                                <Typography>
+                                                    {role.name}
+                                                </Typography>
                                             </MenuItem>
                                         ))}
                                     </Select>
-                                    {errors.role_id && (
+                                    {errors.role_ids && (
                                         <FormHelperText>
-                                            {errors.role_id.message}
+                                            {errors.role_ids.message}
                                         </FormHelperText>
                                     )}
                                 </FormControl>
@@ -598,14 +679,16 @@ export default function EmployeeAddEdit({
                             variant="body2"
                             sx={{ color: "#64748b", mb: 1 }}
                         >
-                            หน่วยงาน:{" "}
-                            {getSelectedDepartmentName(
-                                pendingFormData.department_id
-                            )}
+                            ตำแหน่งงาน:{" "}
+                            {getSelectedJobTitleNames(
+                                pendingFormData.jobtitle_ids
+                            ).join(", ")}
                         </Typography>
                         <Typography variant="body2" sx={{ color: "#64748b" }}>
-                            ตำแหน่ง:{" "}
-                            {getSelectedRoleName(pendingFormData.role_id)}
+                            บทบาท:{" "}
+                            {getSelectedRoleNames(
+                                pendingFormData.role_ids
+                            ).join(", ")}
                         </Typography>
                     </Box>
                 )}
