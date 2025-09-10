@@ -50,7 +50,6 @@ export const authOptions: AuthOptions = {
                         throw new Error("รหัสผ่านไม่ถูกต้อง");
                     }
 
-                    // Get the first role (you might want to handle multiple roles differently)
                     const userRole =
                         user.user_roles[0]?.role?.name || "No Role";
                     const userJobTitle =
@@ -61,7 +60,7 @@ export const authOptions: AuthOptions = {
                         email: user.email,
                         name: `${user.first_name} ${user.last_name}`,
                         role: userRole,
-                        department: userJobTitle, // Using job title as department for now
+                        department: userJobTitle,
                     };
                 } catch (error) {
                     // console.error("Auth error:", error);
