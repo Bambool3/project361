@@ -1,5 +1,13 @@
-import { Crosshair, HelpCircle, ChevronDown, ChevronUp, ExternalLink, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import {
+  Crosshair,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { useState } from "react";
 
 interface AddKpiModalProps {
   isOpen: boolean;
@@ -12,7 +20,13 @@ type SubKpi = {
 };
 
 const kpiFormats = ["1,234", "$1,234.56", "15%"];
-const kpiYears = ["รายวัน", "รายสัปดาห์", "รายเดือน", "รายไตรมาส", "รายปีปฏิทิน"];
+const kpiYears = [
+  "รายวัน",
+  "รายสัปดาห์",
+  "รายเดือน",
+  "รายไตรมาส",
+  "รายปีปฏิทิน",
+];
 const departments = ["ฝ่ายที่ 1", "ฝ่ายที่ 2", "ฝ่ายที่ 3"];
 
 const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
@@ -60,18 +74,25 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      onClick={onClose}
+    >
       <div
         className="bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 transition-all duration-300 ease-out"
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit}>
           <div className="p-6 sm:p-8">
-
             {/* Header */}
             <div className="flex justify-between items-start mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">เพิ่มตัวชี้วัด (KPI)</h2>
-              <a href="#" className="text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1">
+              <h2 className="text-2xl font-bold text-gray-800">
+                เพิ่มตัวชี้วัด (KPI)
+              </h2>
+              <a
+                href="#"
+                className="text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1"
+              >
                 ศึกษาวิธีใช้งาน
                 <ExternalLink className="h-4 w-4" />
               </a>
@@ -80,7 +101,12 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
             {/* Main KPI (HORIZONTAL WRAP, NO SCROLL) */}
             <div className="flex flex-row flex-wrap gap-4 mb-8">
               <div className="flex flex-col flex-1 min-w-[180px] max-w-[240px]">
-                <label htmlFor="kpi-name" className="block text-sm font-medium text-gray-700 mb-1">ชื่อตัวชี้วัด</label>
+                <label
+                  htmlFor="kpi-name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  ชื่อตัวชี้วัด
+                </label>
                 <div className="relative">
                   <input
                     type="text"
@@ -88,7 +114,9 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                     placeholder="กรอกชื่อตัวชี้วัด"
                     className="pl-4 pr-12 py-2 border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
                     value={mainKpi.name}
-                    onChange={(e) => handleMainKpiChange("name", e.target.value)}
+                    onChange={(e) =>
+                      handleMainKpiChange("name", e.target.value)
+                    }
                     required
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
@@ -97,47 +125,79 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                 </div>
               </div>
               <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
-                <label htmlFor="kpi-target" className="block text-sm font-medium text-gray-700 mb-1">เป้าหมาย</label>
+                <label
+                  htmlFor="kpi-target"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  เป้าหมาย
+                </label>
                 <input
                   type="text"
                   id="kpi-target"
                   placeholder="ระบุเป้าหมาย"
                   className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
                   value={mainKpi.target}
-                  onChange={(e) => handleMainKpiChange("target", e.target.value)}
+                  onChange={(e) =>
+                    handleMainKpiChange("target", e.target.value)
+                  }
                 />
               </div>
               <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
-                <label htmlFor="kpi-format" className="block text-sm font-medium text-gray-700 mb-1">รูปแบบข้อมูล</label>
+                <label
+                  htmlFor="kpi-format"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  รูปแบบข้อมูล
+                </label>
                 <select
                   id="kpi-format"
                   className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
                   value={mainKpi.format}
-                  onChange={(e) => handleMainKpiChange("format", e.target.value)}
+                  onChange={(e) =>
+                    handleMainKpiChange("format", e.target.value)
+                  }
                 >
-                  {kpiFormats.map(fmt => <option key={fmt}>{fmt}</option>)}
+                  {kpiFormats.map((fmt) => (
+                    <option key={fmt}>{fmt}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
-                <label htmlFor="kpi-year" className="block text-sm font-medium text-gray-700 mb-1">รอบการรายงาน</label>
+                <label
+                  htmlFor="kpi-year"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  รอบการรายงาน
+                </label>
                 <select
                   id="kpi-year"
                   className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
                   value={mainKpi.year}
                   onChange={(e) => handleMainKpiChange("year", e.target.value)}
                 >
-                  {kpiYears.map(year => <option key={year}>{year}</option>)}
+                  {kpiYears.map((year) => (
+                    <option key={year}>{year}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex flex-col flex-1 min-w-[140px] max-w-[200px]">
-                <label htmlFor="kpi-department" className="block text-sm font-medium text-gray-700 mb-1">ฝ่ายที่รับผิดชอบ</label>
+                <label
+                  htmlFor="kpi-department"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  ฝ่ายที่รับผิดชอบ
+                </label>
                 <select
                   id="kpi-department"
                   className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
                   value={mainKpi.department}
-                  onChange={(e) => handleMainKpiChange("department", e.target.value)}
+                  onChange={(e) =>
+                    handleMainKpiChange("department", e.target.value)
+                  }
                 >
-                  {departments.map(dep => <option key={dep}>{dep}</option>)}
+                  {departments.map((dep) => (
+                    <option key={dep}>{dep}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -152,7 +212,9 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                 <Plus className="w-4 h-4" /> เพิ่ม Sub-KPI
               </button>
               {subkpis.length === 0 ? (
-                <div className="text-gray-500 text-sm mb-2">ยังไม่มี Sub-KPI</div>
+                <div className="text-gray-500 text-sm mb-2">
+                  ยังไม่มี Sub-KPI
+                </div>
               ) : (
                 <div className="space-y-1">
                   {subkpis.map((sub, idx) => (
@@ -162,11 +224,15 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                           type="button"
                           className="mr-2"
                           aria-label="expand"
-                          onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
+                          onClick={() =>
+                            setExpandedIndex(expandedIndex === idx ? null : idx)
+                          }
                         >
-                          {expandedIndex === idx
-                            ? <ChevronUp className="w-5 h-5" />
-                            : <ChevronDown className="w-5 h-5" />}
+                          {expandedIndex === idx ? (
+                            <ChevronUp className="w-5 h-5" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5" />
+                          )}
                         </button>
                         <span className="font-semibold text-gray-900">
                           {sub.name ? sub.name : "ชื่อ Sub-KPI"}
@@ -183,24 +249,32 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                       {expandedIndex === idx && (
                         <div className="flex flex-row flex-wrap items-end bg-gray-100 border-l-4 border-purple-400 p-4 mt-2 rounded-lg gap-4">
                           <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
-                            <label className="text-xs font-medium text-gray-700 mb-1">ชื่อ Sub-KPI</label>
+                            <label className="text-xs font-medium text-gray-700 mb-1">
+                              ชื่อ Sub-KPI
+                            </label>
                             <input
                               type="text"
                               placeholder="ชื่อ Sub-KPI"
                               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
                               value={sub.name}
-                              onChange={(e) => updateSubKpi(idx, "name", e.target.value)}
+                              onChange={(e) =>
+                                updateSubKpi(idx, "name", e.target.value)
+                              }
                               required
                             />
                           </div>
                           <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
-                            <label className="text-xs font-medium text-gray-700 mb-1">เป้าหมาย Sub-KPI</label>
+                            <label className="text-xs font-medium text-gray-700 mb-1">
+                              เป้าหมาย Sub-KPI
+                            </label>
                             <input
                               type="text"
                               placeholder="เป้าหมาย Sub-KPI"
                               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition w-full"
                               value={sub.target}
-                              onChange={(e) => updateSubKpi(idx, "target", e.target.value)}
+                              onChange={(e) =>
+                                updateSubKpi(idx, "target", e.target.value)
+                              }
                               required
                             />
                           </div>
@@ -239,7 +313,6 @@ const AddKpiModal = ({ isOpen, onClose }: AddKpiModalProps) => {
                 ยกเลิก
               </button>
             </div>
-
           </div>
         </form>
       </div>

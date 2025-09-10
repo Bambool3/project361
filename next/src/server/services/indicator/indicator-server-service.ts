@@ -11,11 +11,11 @@ export class IndicatorServerService {
       });
       // กรอง main indicator (main_indicator_id เท่ากับ id ตัวเอง) ต้อง seed main indicator เป็น null ค่อยลบ
       const mainIndicators = indicators.filter(
-        (indicator: any) => indicator.main_indicator_id === indicator.id
+        (indicator: any) => indicator.main_indicator_id === null
       );
       // ดึง subindicator ใช้วิธ๊ filter ไปก่อน
       const subIndicators = indicators.filter(
-        (indicator: any) => indicator.main_indicator_id !== indicator.id
+        (indicator: any) => indicator.main_indicator_id !== null
       );
 
       return mainIndicators.map((indicator: any) => ({
