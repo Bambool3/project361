@@ -6,7 +6,7 @@ export class IndicatorServerService {
     try {
       // ดึง main indicator
       const indicators = await prisma.indicator.findMany({
-        where: { category_id: catId },
+        where: { category_id: parseInt(catId) },
         orderBy: [{ name: "asc" }],
       });
       // กรอง main indicator (main_indicator_id เท่ากับ id ตัวเอง) ต้อง seed main indicator เป็น null ค่อยลบ
