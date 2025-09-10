@@ -17,12 +17,19 @@ async function main() {
     console.log("Seeding database...");
 
     // Seed Job Titles
-    const jobTitles = [
-        { name: "Administrator" },
-        { name: "HR Manager" },
-        { name: "Academic Staff" },
-        { name: "Research Director" },
-    ];
+    const jobTitles = [ { name: "งานบริหารทั่วไป" }, 
+                        { name: "งานการเงิน การคลังพัสดุ" }, 
+                        { name: "งานบริหารงานวิจัยฯ" },
+                        { name: "งานนโยบายและแผนฯ"},
+                        { name: "หน่วยเทคโนโลยีสารสนเทศ"},
+                        { name: "งานบริการการศึกษาฯ"},
+                        { name: "หน่วยพัฒนาคุณภาพ นศ."},
+                        { name: "ผช.คณบดี (สื่อสารองค์กร)"},
+                        { name: "ผช.คณบดี (กายภาพ)"},
+                        { name: "ผช.คณบดี (LE)"},
+                        { name: "เลขานุการคณะ"},
+                        { name: "ศูนย์วิจัยศูนย์บริการ"},
+                    ]
     const jobTitleRecords: Record<string, any> = {};
     for (let i = 0; i < jobTitles.length; i++) {
         const jobTitle = jobTitles[i];
@@ -139,13 +146,68 @@ async function main() {
     // First, create main indicators (without main_indicator_id)
     const mainIndicators = [
         {
-            name: "จำนวนต้นแบบนวัตกรรม",
-            unit: "10 เล่ม",
+            name: "ร้อยละบทความวิจัยได้รับการตีพิมพ์ตอบรับให้ตีพิมพ์ในฐานข้อมูล Scopus ที่สอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)",
+            unit: "ร้อยละ",
             target_value: 100,
-            main_indicator_id: null, // This is a main indicator
+            main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "Monthly",
+            tracking_frequency: "ราย 3 เดือน",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวต้นแบบนวัตกรรมที่พัฒนาขึ้นด้วยความเชี่ยวชาญของมหาวิทยาลัยและตอบสนองความต้องการของผู้ใช้จริง",
+            unit: "เล่ม",
+            target_value: 50,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "ราย 3 เดือน",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวนธุรกิจเกิดใหม่ (Startup/Spinoff) หรือจำนวน Technology Licensing หรือจำนวนผลงานที่บ่มเพาะ CMU-RL 8–9 ด้านสังคม เศรษฐกิจ พลังงาน อาหาร สุขภาพ และการดูแลผู้สูงอายุ",
+            unit: "เล่ม",
+            target_value: 50,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "ราย 3 เดือน",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวนหลักสูตรที่มีการบูรณาการการเรียนรู้ หรือมีส่วนร่วมกับมือกับผู้ใช้บัณฑิต เพื่อเพิ่มขีดความสามารถในการแข่งขันและตอบสนองความต้องการของตลาดในอนาคต",
+            unit: "เล่ม",
+            target_value: 50,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "รายภาคการศึกษา",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "ผลประเมินคุณภาพองค์กรตามแนวทางเกณฑ์คุณภาพการศึกษาเพื่อการดำเนินการที่เป็นเลิศ",
+            unit: "ร้อยละ",
+            target_value: 50,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "รายปีงบประมาณ",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "ร้อยละของบัณฑิตที่ได้ทำงานหรือศึกษาต่อภายใน 1 ปีหลังสำเร็จการศึกษาซึ่งได้รับการตอบรับเข้าทำงานในบริษัทยข้ามชาติ องค์กรระหว่างประเทศหรือศึกษาต่อต่างประเทศ",
+            unit: "ร้อยละ",
+            target_value: 100,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "รายปีการศึกษา",
             status: "Active",
             date: new Date(),
         },
@@ -185,23 +247,67 @@ async function main() {
     const subIndicators = [
         {
             name: "จำนวนผลงานวิจัย CMU-RL 4-7",
-            unit: "10 เล่ม",
+            unit: "เล่ม",
             target_value: 50,
-            main_indicator_id: mainIndicatorRecords["main1"].indicator_id, // Sub-indicator of first main indicator
+            main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "Monthly",
+            tracking_frequency: "ราย 3 เดือน",
             status: "Active",
             date: new Date(),
         },
         {
             name: "จำนวนนวัตกรรมสิ่งแวดล้อม",
-            unit: "10 เล่ม",
+            unit: "เล่ม",
             target_value: 25,
-            main_indicator_id: mainIndicatorRecords["main1"].indicator_id, // Sub-indicator of first main indicator
+            main_indicator_id: mainIndicatorRecords["main2"].indicator_id, 
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "Monthly",
+            tracking_frequency: "ราย 3 เดือน",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวนนวัตกรรมสด้านอาหารและสุขภาพและการดูแลผู้สูงอายุ",
+            unit: "เล่ม",
+            target_value: 25,
+            main_indicator_id: mainIndicatorRecords["main2"].indicator_id, 
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "ราย 3 เดือน",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวนหลักสูตรหรือโปรแกรมที่เปิด/ปรับปรุง เช่น หลักสูตรแบบพหุศาสตร์, หลักสูตรที่พัฒนาร่วมกับกับภาคอุตสาหกรรม/ภาคเอกชน, หลักสูตรควบปริญญาตรี-โท (5ปี)",
+            unit: "เล่ม",
+            target_value: 25,
+            main_indicator_id: mainIndicatorRecords["main4"].indicator_id, 
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "รายภาคการศึกษา",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวนหลักสูตร/โปรแกรมที่เปิดใหม่/ปรับปรุงเป็นหลักสูตรนานาชาติในระดับปริญญาตรี",
+            unit: "เล่ม",
+            target_value: 25,
+            main_indicator_id: mainIndicatorRecords["main4"].indicator_id, 
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "รายภาคการศึกษา",
+            status: "Active",
+            date: new Date(),
+        },
+        {
+            name: "จำนวนหลักสูตร/โครงการปริญญาคู่ร่วมกับมหาวิยาลัยชั้นนำของโลกที่เพิ่มขึ้น",
+            unit: "เล่ม",
+            target_value: 25,
+            main_indicator_id: mainIndicatorRecords["main4"].indicator_id, 
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            tracking_frequency: "รายภาคการศึกษา",
             status: "Active",
             date: new Date(),
         },
@@ -249,32 +355,52 @@ async function main() {
             // Main indicators
             {
                 indicator_id: mainIndicatorRecords["main1"].indicator_id,
-                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, // Research Director
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, 
             },
             {
                 indicator_id: mainIndicatorRecords["main2"].indicator_id,
-                jobtitle_id: jobTitleRecords["job2"].jobtitle_id, // HR Manager
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
             },
             {
                 indicator_id: mainIndicatorRecords["main3"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, // Academic Staff
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
+            },
+            {
+                indicator_id: mainIndicatorRecords["main4"].indicator_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id, 
+            },
+            {
+                indicator_id: mainIndicatorRecords["main5"].indicator_id,
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, 
+            },
+            {
+                indicator_id: mainIndicatorRecords["main6"].indicator_id,
+                jobtitle_id: jobTitleRecords["job7"].jobtitle_id, 
             },
             // Sub-indicators
             {
                 indicator_id: subIndicatorRecords["sub1"].indicator_id,
-                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, // Research Director
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
             },
             {
                 indicator_id: subIndicatorRecords["sub2"].indicator_id,
-                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, // Research Director
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
             },
             {
                 indicator_id: subIndicatorRecords["sub3"].indicator_id,
-                jobtitle_id: jobTitleRecords["job2"].jobtitle_id, // HR Manager
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
             },
             {
                 indicator_id: subIndicatorRecords["sub4"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, // Academic Staff
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id, 
+            },
+            {
+                indicator_id: subIndicatorRecords["sub5"].indicator_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub6"].indicator_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id, 
             },
         ],
     });
