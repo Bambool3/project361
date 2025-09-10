@@ -8,69 +8,109 @@ datasource db {
 }
 
 model User {
-  id            String         @id 
-  first_name    String
-  last_name     String
-  email         String         @unique
-  password      String
+  user_id    Int    @id @default(autoincrement())
+  first_name String
+  last_name  String
+  password   String
+  email      String @unique
 
-  role          Role           @relation(fields: [role_id], references: [id])
-  role_id       String
+  // Relations
+  user_roles    UserRole[]
+  user_jobtitle UserJobTitle[]
+  indicators    Indicator[]
 
-  department    Department     @relation(fields: [department_id], references: [id])
-  department_id String
-
-  indicators    Indicator[] 
-}
-
-model Department {
-  id              String                @id 
-  department_name String                @unique
-  users           User[]
-  indicators      IndicatorDepartment[] 
+  @@map("users")
 }
 
 model Role {
-  id        String   @id 
-  role_name String   @unique
-  users     User[]
+  role_id Int    @id @default(autoincrement())
+  name    String
+
+  // Relations
+  user_roles UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  user_id Int
+  role_id Int
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  role Role @relation(fields: [role_id], references: [role_id], onDelete: Cascade)
+
+  @@id([user_id, role_id])
+  @@map("user_roles")
+}
+
+model JobTitle {
+  jobtitle_id Int    @id @default(autoincrement())
+  name        String
+
+  // Relations
+  user_jobtitle UserJobTitle[]
+  responsible_person ResponsiblePerson[]
+  
+  @@map("job_titles")
+}
+
+model UserJobTitle {
+  user_id     Int
+  jobtitle_id Int
+
+  // Relations
+  user     User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  jobtitle JobTitle @relation(fields: [jobtitle_id], references: [jobtitle_id], onDelete: Cascade)
+
+  @@id([user_id, jobtitle_id])
+  @@map("user_job_titles")
 }
 
 model Category {
-  id          String      @id 
+  category_id Int     @id @default(autoincrement())
   name        String
-  description String
-  indicators  Indicator[]
+  description String?
+  user_id     Int
+
+  // Relations
+  indicators Indicator[]
+
+  @@map("categories")
 }
 
 model Indicator {
-  id                  String                @id 
+  indicator_id        Int      @id @default(autoincrement())
   name                String
-  unit                String
-  target_value        Int
+  target_value        Float?
+  unit                String?
+  tracking_frequency  String?
+  date                DateTime?
+  status              String?
+  main_indicator_id   Int?
+  category_id         Int
+  user_id             Int
 
   // --- Corrected Self-Relation ---
-  main_indicator_id   String?
-  main_indicator      Indicator?            @relation("MainSubIndicators", fields: [main_indicator_id], references: [id])
+  main_indicator      Indicator?            @relation("MainSubIndicators", fields: [main_indicator_id], references: [indicator_id])
   sub_indicators      Indicator[]           @relation("MainSubIndicators")
 
-  // --- Corrected User Relation ---
-  responsible_user_id String
-  responsible_user    User                  @relation(fields: [responsible_user_id], references: [id])
+  // Relations
+  category           Category             @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
+  user               User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  responsible_person ResponsiblePerson[]
 
-  // --- Corrected Category Relation ---
-  category_id         String
-  category            Category              @relation(fields: [category_id], references: [id])
-
-  // --- Relation to the join table ---
-  departments         IndicatorDepartment[]
+  @@map("indicators")
 }
 
-model IndicatorDepartment {
-  indicator_id  String
-  indicator     Indicator  @relation(fields: [indicator_id], references: [id])
-  department_id String
-  department    Department @relation(fields: [department_id], references: [id])
+model ResponsiblePerson {
+  indicator_id Int
+  jobtitle_id  Int
 
-  @@id([indicator_id, department_id]) // Composite primary key
+  // Relations
+  indicator Indicator @relation(fields: [indicator_id], references: [indicator_id], onDelete: Cascade)
+  jobtitle  JobTitle  @relation(fields: [jobtitle_id], references: [jobtitle_id], onDelete: Cascade)
+
+  @@id([indicator_id, jobtitle_id])
+  @@map("responsible_persons")
 }
