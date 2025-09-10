@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
     // Clean up existing data
-    await prisma.responsiblePerson.deleteMany({});
+    await prisma.responsibleJobTitle.deleteMany({});
     await prisma.indicator.deleteMany({});
     await prisma.category.deleteMany({});
     await prisma.userJobTitle.deleteMany({});
@@ -244,7 +244,7 @@ async function main() {
     };
 
     // Seed Responsible Persons (Link indicators to job titles)
-    await prisma.responsiblePerson.createMany({
+    await prisma.responsibleJobTitle.createMany({
         data: [
             // Main indicators
             {
