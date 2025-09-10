@@ -9,6 +9,7 @@ export class IndicatorServerService {
         where: { category_id: parseInt(catId) },
         orderBy: [{ name: "asc" }],
       });
+      console.log("indicators=", indicators);
       // กรอง main indicator (main_indicator_id เท่ากับ id ตัวเอง) ต้อง seed main indicator เป็น null ค่อยลบ
       const mainIndicators = indicators.filter(
         (indicator: any) => indicator.main_indicator_id === null
@@ -19,7 +20,7 @@ export class IndicatorServerService {
       );
 
       return mainIndicators.map((indicator: any) => ({
-        id: indicator.id,
+        id: indicator.indicator_id,
         name: indicator.name,
         unit: indicator.unit,
         target_value: indicator.target_value,
@@ -27,7 +28,7 @@ export class IndicatorServerService {
         responsible_user_id: indicator.responsible_user_id,
         category_id: indicator.category_id,
         sub_indicators: subIndicators
-          .filter((sub) => sub.main_indicator_id === indicator.id)
+          .filter((sub) => sub.main_indicator_id === indicator.indicator_id)
           .map((sub) => ({
             id: sub.id,
             name: sub.name,
