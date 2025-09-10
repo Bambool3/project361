@@ -24,8 +24,16 @@ export const authOptions: AuthOptions = {
                             email: credentials.email,
                         },
                         include: {
-                            role: true,
-                            department: true,
+                            user_roles: {
+                                include: {
+                                    role: true,
+                                },
+                            },
+                            user_jobtitle: {
+                                include: {
+                                    jobtitle: true,
+                                },
+                            },
                         },
                     });
 
@@ -42,12 +50,17 @@ export const authOptions: AuthOptions = {
                         throw new Error("รหัสผ่านไม่ถูกต้อง");
                     }
 
+                    const userRole =
+                        user.user_roles[0]?.role?.name || "No Role";
+                    const userJobTitle =
+                        user.user_jobtitle[0]?.jobtitle?.name || "No Job Title";
+
                     return {
-                        id: user.id,
+                        id: user.user_id.toString(),
                         email: user.email,
                         name: `${user.first_name} ${user.last_name}`,
-                        role: user.role.role_name,
-                        department: user.department.department_name,
+                        role: userRole,
+                        department: userJobTitle,
                     };
                 } catch (error) {
                     // console.error("Auth error:", error);

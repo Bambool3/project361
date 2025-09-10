@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { CategoryServerService } from "@/server/services/category/category-server-service";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET() {
     try {
@@ -16,6 +18,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
+        // Verify user is authenticated
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: "กรุณาเข้าสู่ระบบ" },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
 
         // Validate required fields
@@ -37,7 +48,10 @@ export async function POST(request: Request) {
             );
         }
 
-        const newCategory = await CategoryServerService.createCategory(body);
+        const newCategory = await CategoryServerService.createCategory(
+            body,
+            parseInt(session.user.id)
+        );
 
         return NextResponse.json(newCategory, { status: 201 });
     } catch (error) {

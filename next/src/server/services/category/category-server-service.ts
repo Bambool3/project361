@@ -16,10 +16,20 @@ export class CategoryServerService {
             });
 
             return categories.map((category: any) => ({
-                id: category.id,
+                id: category.category_id.toString(),
                 name: category.name,
                 description: category.description,
-                indicators: category.indicators || [],
+                indicators:
+                    category.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id.toString(),
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id:
+                            indicator.main_indicator_id?.toString() || "",
+                        responsible_user_id: indicator.user_id.toString(),
+                        category_id: indicator.category_id.toString(),
+                    })) || [],
             }));
         } catch (error) {
             console.error("Error fetching categories from database:", error);
@@ -46,10 +56,20 @@ export class CategoryServerService {
             }
 
             return {
-                id: category.id,
+                id: category.category_id.toString(),
                 name: category.name,
-                description: category.description,
-                indicators: category.indicators || [],
+                description: category.description || "",
+                indicators:
+                    category.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id.toString(),
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id:
+                            indicator.main_indicator_id?.toString() || "",
+                        responsible_user_id: indicator.user_id.toString(),
+                        category_id: indicator.category_id.toString(),
+                    })) || [],
             };
         } catch (error) {
             console.error(
@@ -63,7 +83,7 @@ export class CategoryServerService {
     static async getCategoryById(id: string): Promise<Category | null> {
         try {
             const category = await prisma.category.findUnique({
-                where: { id },
+                where: { category_id: parseInt(id) },
                 include: {
                     indicators: true,
                 },
@@ -74,10 +94,20 @@ export class CategoryServerService {
             }
 
             return {
-                id: category.id,
+                id: category.category_id.toString(),
                 name: category.name,
-                description: category.description,
-                indicators: category.indicators || [],
+                description: category.description || "",
+                indicators:
+                    category.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id.toString(),
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id:
+                            indicator.main_indicator_id?.toString() || "",
+                        responsible_user_id: indicator.user_id.toString(),
+                        category_id: indicator.category_id.toString(),
+                    })) || [],
             };
         } catch (error) {
             console.error(
@@ -88,7 +118,10 @@ export class CategoryServerService {
         }
     }
 
-    static async createCategory(data: CategoryFormData): Promise<Category> {
+    static async createCategory(
+        data: CategoryFormData,
+        userId: number
+    ): Promise<Category> {
         try {
             // Validate input
             if (!data.name?.trim() || !data.description?.trim()) {
@@ -97,11 +130,9 @@ export class CategoryServerService {
 
             const newCategory = await prisma.category.create({
                 data: {
-                    id: `cat_${Date.now()}_${Math.random()
-                        .toString(36)
-                        .substr(2, 9)}`,
                     name: data.name.trim(),
                     description: data.description.trim(),
+                    user_id: userId,
                 },
                 include: {
                     indicators: true,
@@ -109,10 +140,20 @@ export class CategoryServerService {
             });
 
             return {
-                id: newCategory.id,
+                id: newCategory.category_id.toString(),
                 name: newCategory.name,
-                description: newCategory.description,
-                indicators: newCategory.indicators || [],
+                description: newCategory.description || "",
+                indicators:
+                    newCategory.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id.toString(),
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id:
+                            indicator.main_indicator_id?.toString() || "",
+                        responsible_user_id: indicator.user_id.toString(),
+                        category_id: indicator.category_id.toString(),
+                    })) || [],
             };
         } catch (error) {
             console.error("Error creating category in database:", error);
@@ -134,7 +175,7 @@ export class CategoryServerService {
             }
 
             const updatedCategory = await prisma.category.update({
-                where: { id },
+                where: { category_id: parseInt(id) },
                 data: {
                     name: data.name.trim(),
                     description: data.description.trim(),
@@ -145,10 +186,20 @@ export class CategoryServerService {
             });
 
             return {
-                id: updatedCategory.id,
+                id: updatedCategory.category_id.toString(),
                 name: updatedCategory.name,
-                description: updatedCategory.description,
-                indicators: updatedCategory.indicators || [],
+                description: updatedCategory.description || "",
+                indicators:
+                    updatedCategory.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id.toString(),
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id:
+                            indicator.main_indicator_id?.toString() || "",
+                        responsible_user_id: indicator.user_id.toString(),
+                        category_id: indicator.category_id.toString(),
+                    })) || [],
             };
         } catch (error) {
             console.error("Error updating category in database:", error);
@@ -162,7 +213,7 @@ export class CategoryServerService {
     static async deleteCategory(id: string): Promise<void> {
         try {
             await prisma.category.delete({
-                where: { id },
+                where: { category_id: parseInt(id) },
             });
         } catch (error) {
             console.error("Error deleting category from database:", error);
