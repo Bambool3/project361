@@ -72,6 +72,8 @@ model Category {
   name        String
   description String?
   user_id     Int
+  created_at  DateTime
+  updated_at  DateTime?
 
   // Relations
   indicators Indicator[]
@@ -84,7 +86,7 @@ model Indicator {
   name                String
   target_value        Float?
   unit                String?
-  tracking_frequency  String?
+  frequency_id        Int
   date                DateTime?
   status              String?
   main_indicator_id   Int?
@@ -98,12 +100,13 @@ model Indicator {
   // Relations
   category           Category             @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
   user               User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  frequency          Frequency            @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
   responsible_jobtitle responsibleJobTitle[]
 
   @@map("indicators")
 }
 
-model responsibleJobTitle {
+model ResponsibleJobTitle {
   indicator_id Int
   jobtitle_id  Int
 
@@ -113,4 +116,27 @@ model responsibleJobTitle {
 
   @@id([indicator_id, jobtitle_id])
   @@map("responsible_jobTitles")
+}
+
+model Frequency {
+  frequency_id Int    @id @default(autoincrement())
+  name         String // เช่น รายเดือน, รายปี, รายเทอม, ไตรมาส
+  
+  // Relations
+  indicators Indicator[]
+  periods    Period[]
+  
+  @@map("frequencies")
+}
+
+model Period {
+  period_id    Int      @id @default(autoincrement())
+  start_date   DateTime
+  end_date     DateTime
+  frequency_id Int
+  
+  // Relations
+  frequency Frequency @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
+  
+  @@map("periods")
 }
