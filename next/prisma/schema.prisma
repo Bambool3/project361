@@ -121,6 +121,7 @@ model ResponsibleJobTitle {
 model Frequency {
   frequency_id Int    @id @default(autoincrement())
   name         String // เช่น รายเดือน, รายปี, รายเทอม, ไตรมาส
+  periods_in_year Int
   
   // Relations
   indicators Indicator[]
