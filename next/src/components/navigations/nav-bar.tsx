@@ -15,6 +15,7 @@ import {
     ChevronDown,
     ChevronUp,
     PenLine,
+    Clock,
 } from "lucide-react";
 import {
     Drawer,
@@ -45,8 +46,9 @@ const navItems = [
 
 const managementItems = [
     { name: "ตำแหน่ง", icon: Crown, path: "/role" },
-    { name: "บุคลากร", icon: Users, path: "/employee" },
     { name: "หน่วยงาน", icon: Building2, path: "/job" },
+    { name: "บุคลากร", icon: Users, path: "/employee" },
+    { name: "ความถี่", icon: Clock, path: "/frequency" },
 ];
 
 export default function NavBar({ isOpen, onClose }: NavBarProps) {

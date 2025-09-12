@@ -22,7 +22,7 @@ export default function JobMain() {
             }
 
             const jobData = await response.json();
-            // Transform the data to match our Job interface
+
             const transformedJobs = jobData.map((item: any) => ({
                 id: item.id,
                 name: item.jobTitle_name,

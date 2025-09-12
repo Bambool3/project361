@@ -24,6 +24,7 @@ import {
     Button,
     TextField,
     InputAdornment,
+    Chip,
 } from "@mui/material";
 import { Edit, Trash2, Search, Plus, Building2 } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -443,6 +444,7 @@ export default function JobTableSection({
                                     >
                                         จำนวนบุคลากร
                                     </TableCell>
+
                                     <TableCell
                                         sx={{
                                             fontWeight: "bold",
@@ -524,7 +526,8 @@ export default function JobTableSection({
                                                     <Typography
                                                         variant="body2"
                                                         sx={{
-                                                            color: "#374151",
+                                                            fontWeight: "600",
+                                                            color: "#1e293b",
                                                         }}
                                                     >
                                                         {job.name}
@@ -532,6 +535,7 @@ export default function JobTableSection({
                                                 </TableCell>
 
                                                 {/* Employee Count Column */}
+
                                                 <TableCell
                                                     sx={{
                                                         border: "none",
@@ -539,16 +543,19 @@ export default function JobTableSection({
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    <Typography
-                                                        variant="body2"
+                                                    <Chip
+                                                        label={`${
+                                                            job.employeeCount ||
+                                                            0
+                                                        } คน`}
+                                                        size="small"
                                                         sx={{
-                                                            color: "#374151",
-                                                            fontWeight: "500",
+                                                            backgroundColor:
+                                                                "#f1f5f9",
+                                                            color: "#475569",
+                                                            fontWeight: "600",
                                                         }}
-                                                    >
-                                                        {job.employeeCount || 0}{" "}
-                                                        คน
-                                                    </Typography>
+                                                    />
                                                 </TableCell>
 
                                                 {/* Manage Column */}
