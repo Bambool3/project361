@@ -1112,17 +1112,16 @@ export default function EmployeeTableSection({
                 open={alertOpen}
                 autoHideDuration={6000}
                 onClose={handleCloseAlert}
-                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
             >
                 <Alert
                     onClose={handleCloseAlert}
                     severity={alertSeverity}
                     sx={{
-                        width: { xs: "60%", sm: "100%" },
-                        minWidth: 200,
-                        mx: "auto",
+                        width: "100%",
+                        borderRadius: "12px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                     }}
-                    variant="filled"
                 >
                     {alertMessage}
                 </Alert>
