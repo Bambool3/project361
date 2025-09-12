@@ -217,6 +217,16 @@ export default function ManagementTable({
                     py: 2,
                   }}
                 >
+                  ลำดับที่
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#475569",
+                    border: "none",
+                    py: 2,
+                  }}
+                >
                   ชื่อตัวชี้วัด
                 </TableCell>
                 <TableCell
