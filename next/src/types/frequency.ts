@@ -1,23 +1,23 @@
 export interface FrequencyPeriod {
-    id: string;
-    startDate: Date;
-    endDate: Date;
+    period_id: number;
+    start_date: string;
+    end_date: string;
+    frequency_id: number;
 }
 
 export interface Frequency {
-    id: string;
+    frequency_id: number;
     name: string;
-    type: "standard" | "custom";
     periods: FrequencyPeriod[];
     indicatorCount?: number;
-    created_at?: Date;
-    updated_at?: Date;
 }
 
 export interface FrequencyFormData {
     name: string;
-    type: "standard" | "custom";
-    periods: Omit<FrequencyPeriod, "id">[];
+    periods: {
+        startDate: Date;
+        endDate: Date;
+    }[];
 }
 
 export interface FrequencyFilter {

@@ -26,7 +26,7 @@ export default function FrequencyMain() {
             const frequencyData = await response.json();
 
             const transformedFrequencies = frequencyData.map((item: any) => ({
-                id: item.id,
+                frequency_id: item.frequency_id,
                 name: item.name,
                 type: item.type,
                 periods: item.periods || [],

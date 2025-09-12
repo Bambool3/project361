@@ -1,85 +1,65 @@
 import { NextResponse } from "next/server";
+import db from "@/lib/db";
 import { z } from "zod";
+import {
+    normalizeToBangkokMidnight,
+    parseDateInputToBangkok,
+    isDateAfter,
+    isSameDay,
+} from "@/lib/dateUtils";
 
-// Validation schema for frequency data
+// Validation schema
 const frequencySchema = z.object({
     name: z.string().min(1, "Name is required"),
-    type: z.enum(["standard", "custom"]),
     periods: z
         .array(
             z.object({
-                startDate: z.string().transform((str) => new Date(str)),
-                endDate: z.string().transform((str) => new Date(str)),
+                startDate: z.union([z.string(), z.date()]).transform((val) => {
+                    if (typeof val === "string") {
+                        return parseDateInputToBangkok(val);
+                    }
+                    return normalizeToBangkokMidnight(val);
+                }),
+                endDate: z.union([z.string(), z.date()]).transform((val) => {
+                    if (typeof val === "string") {
+                        return parseDateInputToBangkok(val);
+                    }
+                    return normalizeToBangkokMidnight(val);
+                }),
             })
         )
         .min(1, "At least one period is required"),
 });
-
-// Mock data - same as in the main route
-let frequencies: any[] = [
-    {
-        id: "1",
-        name: "รายปี",
-        type: "standard",
-        periods: [
-            {
-                startDate: new Date("2024-01-01"),
-                endDate: new Date("2024-12-31"),
-            },
-        ],
-        indicatorCount: 5,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-    {
-        id: "2",
-        name: "รายเดือน",
-        type: "standard",
-        periods: Array.from({ length: 12 }, (_, i) => {
-            const year = 2024;
-            const month = i + 1;
-            const startDate = new Date(year, i, 1);
-            const endDate = new Date(year, i + 1, 0); // Last day of the month
-            return { startDate, endDate };
-        }),
-        indicatorCount: 8,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-    {
-        id: "3",
-        name: "รายไตรมาส",
-        type: "custom",
-        periods: [
-            {
-                startDate: new Date("2024-01-01"),
-                endDate: new Date("2024-03-31"),
-            },
-            {
-                startDate: new Date("2024-04-01"),
-                endDate: new Date("2024-06-30"),
-            },
-            {
-                startDate: new Date("2024-07-01"),
-                endDate: new Date("2024-09-30"),
-            },
-            {
-                startDate: new Date("2024-10-01"),
-                endDate: new Date("2024-12-31"),
-            },
-        ],
-        indicatorCount: 12,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-];
 
 export async function GET(
     request: Request,
     { params }: { params: { id: string } }
 ) {
     try {
-        const frequency = frequencies.find((f) => f.id === params.id);
+        const frequency_id = parseInt(params.id);
+
+        if (isNaN(frequency_id)) {
+            return NextResponse.json(
+                { error: "Invalid frequency ID" },
+                { status: 400 }
+            );
+        }
+
+        const frequency = await db.frequency.findUnique({
+            where: { frequency_id },
+            include: {
+                periods: {
+                    orderBy: {
+                        start_date: "asc",
+                    },
+                },
+                _count: {
+                    select: {
+                        indicators: true,
+                    },
+                },
+            },
+        });
 
         if (!frequency) {
             return NextResponse.json(
@@ -88,7 +68,19 @@ export async function GET(
             );
         }
 
-        return NextResponse.json(frequency);
+        const transformedFrequency = {
+            frequency_id: frequency.frequency_id,
+            name: frequency.name,
+            periods: frequency.periods.map((period) => ({
+                period_id: period.period_id,
+                start_date: period.start_date.toISOString(),
+                end_date: period.end_date.toISOString(),
+                frequency_id: period.frequency_id,
+            })),
+            indicatorCount: frequency._count.indicators,
+        };
+
+        return NextResponse.json(transformedFrequency);
     } catch (error) {
         console.error("Error fetching frequency:", error);
         return NextResponse.json(
@@ -103,19 +95,37 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     try {
+        const frequency_id = parseInt(params.id);
+
+        if (isNaN(frequency_id)) {
+            return NextResponse.json(
+                { error: "Invalid frequency ID" },
+                { status: 400 }
+            );
+        }
+
         const body = await request.json();
 
-        // Find the frequency to update
-        const frequencyIndex = frequencies.findIndex((f) => f.id === params.id);
+        // Check if frequency exists
+        const existingFrequency = await db.frequency.findUnique({
+            where: { frequency_id },
+            include: {
+                periods: true,
+                _count: {
+                    select: {
+                        indicators: true,
+                    },
+                },
+            },
+        });
 
-        if (frequencyIndex === -1) {
+        if (!existingFrequency) {
             return NextResponse.json(
                 { error: "Frequency not found" },
                 { status: 404 }
             );
         }
 
-        // Validate the request body
         const validationResult = frequencySchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
@@ -127,16 +137,18 @@ export async function PUT(
             );
         }
 
-        const { name, type, periods } = validationResult.data;
+        const { name, periods } = validationResult.data;
 
-        // Check if frequency name already exists (excluding current frequency)
-        const existingFrequency = frequencies.find(
-            (f) =>
-                f.id !== params.id &&
-                f.name.toLowerCase() === name.trim().toLowerCase()
-        );
+        const duplicateFrequency = await db.frequency.findFirst({
+            where: {
+                name: name.trim(),
+                frequency_id: {
+                    not: frequency_id,
+                },
+            },
+        });
 
-        if (existingFrequency) {
+        if (duplicateFrequency) {
             return NextResponse.json(
                 { error: "Frequency name already exists" },
                 { status: 409 }
@@ -145,9 +157,14 @@ export async function PUT(
 
         // Validate periods
         for (const period of periods) {
-            if (period.endDate <= period.startDate) {
+            if (
+                isSameDay(period.startDate, period.endDate) ||
+                !isDateAfter(period.endDate, period.startDate)
+            ) {
                 return NextResponse.json(
-                    { error: "End date must be after start date" },
+                    {
+                        error: "End date must be after start date and cannot be the same day",
+                    },
                     { status: 400 }
                 );
             }
@@ -155,16 +172,15 @@ export async function PUT(
 
         // Check for overlapping periods
         const sortedPeriods = [...periods].sort(
-            (a, b) =>
-                new Date(a.startDate).getTime() -
-                new Date(b.startDate).getTime()
+            (a, b) => a.startDate.getTime() - b.startDate.getTime()
         );
 
         for (let i = 0; i < sortedPeriods.length - 1; i++) {
             const current = sortedPeriods[i];
             const next = sortedPeriods[i + 1];
 
-            if (current.endDate >= next.startDate) {
+            // Periods overlap if current end date >= next start date
+            if (current.endDate.getTime() >= next.startDate.getTime()) {
                 return NextResponse.json(
                     { error: "Periods cannot overlap" },
                     { status: 400 }
@@ -172,19 +188,65 @@ export async function PUT(
             }
         }
 
-        // Update the frequency
-        const currentFrequency = frequencies[frequencyIndex];
-        const updatedFrequency = {
-            ...currentFrequency,
-            name: name.trim(),
-            type,
-            periods,
-            updatedAt: new Date(),
+        // Update the frequency with periods
+        const updatedFrequency = await db.$transaction(async (tx) => {
+            // Update the frequency name
+            await tx.frequency.update({
+                where: { frequency_id },
+                data: {
+                    name: name.trim(),
+                },
+            });
+
+            // Delete existing periods
+            await tx.period.deleteMany({
+                where: { frequency_id },
+            });
+
+            // Create new periods
+            await tx.period.createMany({
+                data: periods.map((period) => ({
+                    frequency_id,
+                    start_date: period.startDate,
+                    end_date: period.endDate,
+                })),
+            });
+
+            // Return the updated frequency with periods
+            return await tx.frequency.findUnique({
+                where: { frequency_id },
+                include: {
+                    periods: {
+                        orderBy: {
+                            start_date: "asc",
+                        },
+                    },
+                    _count: {
+                        select: {
+                            indicators: true,
+                        },
+                    },
+                },
+            });
+        });
+
+        if (!updatedFrequency) {
+            throw new Error("Failed to update frequency");
+        }
+
+        const transformedFrequency = {
+            frequency_id: updatedFrequency.frequency_id,
+            name: updatedFrequency.name,
+            periods: updatedFrequency.periods.map((period) => ({
+                period_id: period.period_id,
+                start_date: period.start_date.toISOString(),
+                end_date: period.end_date.toISOString(),
+                frequency_id: period.frequency_id,
+            })),
+            indicatorCount: updatedFrequency._count.indicators,
         };
 
-        frequencies[frequencyIndex] = updatedFrequency;
-
-        return NextResponse.json(updatedFrequency);
+        return NextResponse.json(transformedFrequency);
     } catch (error) {
         console.error("Error updating frequency:", error);
         return NextResponse.json(
@@ -199,19 +261,36 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const frequencyIndex = frequencies.findIndex((f) => f.id === params.id);
+        const frequency_id = parseInt(params.id);
 
-        if (frequencyIndex === -1) {
+        if (isNaN(frequency_id)) {
+            return NextResponse.json(
+                { error: "Invalid frequency ID" },
+                { status: 400 }
+            );
+        }
+
+        // Check if frequency exists and get indicator count
+        const frequency = await db.frequency.findUnique({
+            where: { frequency_id },
+            include: {
+                _count: {
+                    select: {
+                        indicators: true,
+                    },
+                },
+            },
+        });
+
+        if (!frequency) {
             return NextResponse.json(
                 { error: "Frequency not found" },
                 { status: 404 }
             );
         }
 
-        const frequency = frequencies[frequencyIndex];
-
         // Check if frequency has associated indicators
-        if (frequency.indicatorCount > 0) {
+        if (frequency._count.indicators > 0) {
             return NextResponse.json(
                 {
                     error: "Cannot delete frequency that has associated indicators. Please remove all indicators using this frequency first.",
@@ -220,8 +299,18 @@ export async function DELETE(
             );
         }
 
-        // Remove the frequency
-        frequencies.splice(frequencyIndex, 1);
+        // Delete the frequency and its periods in a transaction
+        await db.$transaction(async (tx) => {
+            // Delete all periods first
+            await tx.period.deleteMany({
+                where: { frequency_id },
+            });
+
+            // Then delete the frequency
+            await tx.frequency.delete({
+                where: { frequency_id },
+            });
+        });
 
         return NextResponse.json({ message: "Frequency deleted successfully" });
     } catch (error) {

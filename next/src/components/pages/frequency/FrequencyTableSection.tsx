@@ -48,7 +48,6 @@ export default function FrequencyTableSection({
 }: FrequencyTableSectionProps) {
     // Search and filter states
     const [searchTerm, setSearchTerm] = useState<string>("");
-    const [selectedType, setSelectedType] = useState<string>("");
 
     // Pagination
     const [page, setPage] = useState<number>(0);
@@ -90,17 +89,15 @@ export default function FrequencyTableSection({
         setAlertOpen(false);
     };
 
-    // Filter frequencies based on search term and type
+    // Filter frequencies based on search term only
     const filteredFrequencies = useMemo(() => {
         return frequencies.filter((frequency) => {
             const matchesSearch = frequency.name
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase());
-            const matchesType =
-                !selectedType || frequency.type === selectedType;
-            return matchesSearch && matchesType;
+            return matchesSearch;
         });
-    }, [frequencies, searchTerm, selectedType]);
+    }, [frequencies, searchTerm]);
 
     // Paginated data
     const paginatedFrequencies = useMemo(() => {
@@ -121,11 +118,6 @@ export default function FrequencyTableSection({
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
-        setPage(0);
-    };
-
-    const handleTypeChange = (event: any) => {
-        setSelectedType(event.target.value);
         setPage(0);
     };
 
@@ -165,11 +157,20 @@ export default function FrequencyTableSection({
         }
     };
 
-    const handleEditFrequency = (frequencyId: string) => {
-        const frequency = frequencies.find((f) => f.id === frequencyId);
-        if (frequency) {
+    const handleEditFrequency = async (frequencyId: number) => {
+        try {
+            const response = await fetch(`/api/frequency/${frequencyId}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch frequency details");
+            }
+            const frequency = await response.json();
+            console.log("Loaded frequency for edit:", frequency);
+            console.log("Number of periods:", frequency.periods?.length || 0);
             setSelectedFrequency(frequency);
             setIsEditModalOpen(true);
+        } catch (error) {
+            console.error("Error fetching frequency for edit:", error);
+            showAlert("เกิดข้อผิดพลาดในการโหลดข้อมูลความถี่", "error");
         }
     };
 
@@ -178,7 +179,7 @@ export default function FrequencyTableSection({
 
         try {
             const response = await fetch(
-                `/api/frequency/${selectedFrequency.id}`,
+                `/api/frequency/${selectedFrequency.frequency_id}`,
                 {
                     method: "PUT",
                     headers: {
@@ -211,8 +212,10 @@ export default function FrequencyTableSection({
         }
     };
 
-    const handleDeleteFrequency = (frequencyId: string) => {
-        const frequency = frequencies.find((f) => f.id === frequencyId);
+    const handleDeleteFrequency = (frequencyId: number) => {
+        const frequency = frequencies.find(
+            (f) => f.frequency_id === frequencyId
+        );
         if (frequency) {
             setFrequencyToDelete(frequency);
             setIsDeleteModalOpen(true);
@@ -224,7 +227,7 @@ export default function FrequencyTableSection({
 
         try {
             const response = await fetch(
-                `/api/frequency/${frequencyToDelete.id}`,
+                `/api/frequency/${frequencyToDelete.frequency_id}`,
                 {
                     method: "DELETE",
                 }
@@ -260,9 +263,9 @@ export default function FrequencyTableSection({
         if (!periods || periods.length === 0) return "ไม่มีข้อมูล";
         if (periods.length === 1) {
             const period = periods[0];
-            return `${new Date(period.startDate).toLocaleDateString(
+            return `${new Date(period.start_date).toLocaleDateString(
                 "th-TH"
-            )} - ${new Date(period.endDate).toLocaleDateString("th-TH")}`;
+            )} - ${new Date(period.end_date).toLocaleDateString("th-TH")}`;
         }
         return `${periods.length} ช่วงเวลา`;
     };
@@ -389,37 +392,6 @@ export default function FrequencyTableSection({
                                 }}
                             />
 
-                            {/* Type Filter */}
-                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                                <InputLabel id="type-select-label">
-                                    ประเภท
-                                </InputLabel>
-                                <Select
-                                    labelId="type-select-label"
-                                    value={selectedType}
-                                    label="ประเภท"
-                                    onChange={handleTypeChange}
-                                    sx={{
-                                        borderRadius: "12px",
-                                        backgroundColor: "#f8fafc",
-                                        "&:hover .MuiOutlinedInput-notchedOutline":
-                                            {
-                                                borderColor: "#8b5cf6",
-                                            },
-                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                            {
-                                                borderColor: "#8b5cf6",
-                                            },
-                                    }}
-                                >
-                                    <MenuItem value="">ทั้งหมด</MenuItem>
-                                    <MenuItem value="standard">
-                                        มาตรฐาน
-                                    </MenuItem>
-                                    <MenuItem value="custom">กำหนดเอง</MenuItem>
-                                </Select>
-                            </FormControl>
-
                             {/* Add Frequency Button */}
                             <Tooltip
                                 title="เพิ่มความถี่ใหม่"
@@ -499,17 +471,6 @@ export default function FrequencyTableSection({
                                             textAlign: "center",
                                         }}
                                     >
-                                        ประเภท
-                                    </TableCell>
-                                    <TableCell
-                                        sx={{
-                                            fontWeight: "bold",
-                                            color: "#475569",
-                                            border: "none",
-                                            py: 2,
-                                            textAlign: "center",
-                                        }}
-                                    >
                                         ช่วงเวลา
                                     </TableCell>
                                     <TableCell
@@ -540,11 +501,11 @@ export default function FrequencyTableSection({
                                 {paginatedFrequencies.length === 0 ? (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={6}
+                                            colSpan={5}
                                             sx={{ textAlign: "center", py: 4 }}
                                         >
                                             <Typography color="#64748b">
-                                                {searchTerm || selectedType
+                                                {searchTerm
                                                     ? "ไม่พบความถี่ที่ค้นหา"
                                                     : "ไม่มีข้อมูลความถี่"}
                                             </Typography>
@@ -557,7 +518,7 @@ export default function FrequencyTableSection({
                                                 page * rowsPerPage + index + 1;
                                             return (
                                                 <TableRow
-                                                    key={frequency.id}
+                                                    key={frequency.frequency_id}
                                                     sx={{
                                                         "&:hover": {
                                                             backgroundColor:
@@ -601,39 +562,6 @@ export default function FrequencyTableSection({
                                                         >
                                                             {frequency.name}
                                                         </Typography>
-                                                    </TableCell>
-
-                                                    {/* Type Column */}
-                                                    <TableCell
-                                                        sx={{
-                                                            border: "none",
-                                                            py: 2.5,
-                                                            textAlign: "center",
-                                                        }}
-                                                    >
-                                                        <Chip
-                                                            label={
-                                                                frequency.type ===
-                                                                "standard"
-                                                                    ? "มาตรฐาน"
-                                                                    : "กำหนดเอง"
-                                                            }
-                                                            size="small"
-                                                            sx={{
-                                                                backgroundColor:
-                                                                    frequency.type ===
-                                                                    "standard"
-                                                                        ? "#dbeafe"
-                                                                        : "#fef3c7",
-                                                                color:
-                                                                    frequency.type ===
-                                                                    "standard"
-                                                                        ? "#1e40af"
-                                                                        : "#92400e",
-                                                                fontWeight:
-                                                                    "600",
-                                                            }}
-                                                        />
                                                     </TableCell>
 
                                                     {/* Periods Column */}
@@ -722,7 +650,7 @@ export default function FrequencyTableSection({
                                                                 <IconButton
                                                                     onClick={() =>
                                                                         handleEditFrequency(
-                                                                            frequency.id
+                                                                            frequency.frequency_id
                                                                         )
                                                                     }
                                                                     size="small"
@@ -771,7 +699,7 @@ export default function FrequencyTableSection({
                                                                 <IconButton
                                                                     onClick={() =>
                                                                         handleDeleteFrequency(
-                                                                            frequency.id
+                                                                            frequency.frequency_id
                                                                         )
                                                                     }
                                                                     size="small"
@@ -888,7 +816,7 @@ export default function FrequencyTableSection({
                 }}
                 onConfirm={handleConfirmDelete}
                 title="ยืนยันการลบความถี่"
-                message={`คุณแน่ใจหรือไม่ที่จะลบความถี่ "${frequencyToDelete?.name}" ออกจากระบบ? การกระทำนี้ไม่สามารถย้อนกลับได้`}
+                message={`คุณแน่ใจหรือไม่ที่จะลบความถี่ "${frequencyToDelete?.name}" ออกจากระบบ?`}
                 confirmText="ลบ"
                 cancelText="ยกเลิก"
                 severity="error"

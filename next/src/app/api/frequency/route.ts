@@ -1,82 +1,94 @@
 import { NextResponse } from "next/server";
+import db from "@/lib/db";
 import { z } from "zod";
+import {
+    normalizeToBangkokMidnight,
+    parseDateInputToBangkok,
+    isDateAfter,
+    isSameDay,
+} from "@/lib/dateUtils";
 
 // Validation schema for frequency data
 const frequencySchema = z.object({
     name: z.string().min(1, "Name is required"),
-    type: z.enum(["standard", "custom"]),
+    periods_in_year: z
+        .number()
+        .int()
+        .min(1, "Periods in year must be at least 1")
+        .max(365, "Periods in year cannot exceed 365"),
     periods: z
         .array(
             z.object({
-                startDate: z.string().transform((str) => new Date(str)),
-                endDate: z.string().transform((str) => new Date(str)),
+                startDate: z.union([z.string(), z.date()]).transform((val) => {
+                    try {
+                        if (typeof val === "string") {
+                            return parseDateInputToBangkok(val);
+                        }
+                        return normalizeToBangkokMidnight(val);
+                    } catch (error) {
+                        const errorMessage =
+                            error instanceof Error
+                                ? error.message
+                                : String(error);
+                        throw new Error(
+                            `Failed to parse start date: ${errorMessage}`
+                        );
+                    }
+                }),
+                endDate: z.union([z.string(), z.date()]).transform((val) => {
+                    try {
+                        if (typeof val === "string") {
+                            return parseDateInputToBangkok(val);
+                        }
+                        return normalizeToBangkokMidnight(val);
+                    } catch (error) {
+                        const errorMessage =
+                            error instanceof Error
+                                ? error.message
+                                : String(error);
+                        throw new Error(
+                            `Failed to parse end date: ${errorMessage}`
+                        );
+                    }
+                }),
             })
         )
         .min(1, "At least one period is required"),
 });
 
-// Mock data for now - in a real app this would be in database
-let frequencies: any[] = [
-    {
-        id: "1",
-        name: "รายปี",
-        type: "standard",
-        periods: [
-            {
-                startDate: new Date("2024-01-01"),
-                endDate: new Date("2024-12-31"),
-            },
-        ],
-        indicatorCount: 5,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-    {
-        id: "2",
-        name: "รายเดือน",
-        type: "standard",
-        periods: Array.from({ length: 12 }, (_, i) => {
-            const year = 2024;
-            const month = i + 1;
-            const startDate = new Date(year, i, 1);
-            const endDate = new Date(year, i + 1, 0); // Last day of the month
-            return { startDate, endDate };
-        }),
-        indicatorCount: 8,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-    {
-        id: "3",
-        name: "รายไตรมาส",
-        type: "custom",
-        periods: [
-            {
-                startDate: new Date("2024-01-01"),
-                endDate: new Date("2024-03-31"),
-            },
-            {
-                startDate: new Date("2024-04-01"),
-                endDate: new Date("2024-06-30"),
-            },
-            {
-                startDate: new Date("2024-07-01"),
-                endDate: new Date("2024-09-30"),
-            },
-            {
-                startDate: new Date("2024-10-01"),
-                endDate: new Date("2024-12-31"),
-            },
-        ],
-        indicatorCount: 12,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-];
-
 export async function GET() {
     try {
-        return NextResponse.json(frequencies);
+        const frequencies = await db.frequency.findMany({
+            include: {
+                periods: {
+                    orderBy: {
+                        start_date: "asc",
+                    },
+                },
+                _count: {
+                    select: {
+                        indicators: true,
+                    },
+                },
+            },
+            orderBy: {
+                frequency_id: "desc",
+            },
+        });
+
+        const transformedFrequencies = frequencies.map((frequency) => ({
+            frequency_id: frequency.frequency_id,
+            name: frequency.name,
+            periods: frequency.periods.map((period) => ({
+                period_id: period.period_id,
+                start_date: period.start_date.toISOString(),
+                end_date: period.end_date.toISOString(),
+                frequency_id: period.frequency_id,
+            })),
+            indicatorCount: frequency._count.indicators,
+        }));
+
+        return NextResponse.json(transformedFrequencies);
     } catch (error) {
         console.error("Error fetching frequencies:", error);
         return NextResponse.json(
@@ -102,12 +114,12 @@ export async function POST(request: Request) {
             );
         }
 
-        const { name, type, periods } = validationResult.data;
+        const { name, periods } = validationResult.data;
 
         // Check if frequency name already exists
-        const existingFrequency = frequencies.find(
-            (f) => f.name.toLowerCase() === name.trim().toLowerCase()
-        );
+        const existingFrequency = await db.frequency.findFirst({
+            where: { name: name.trim() },
+        });
 
         if (existingFrequency) {
             return NextResponse.json(
@@ -118,9 +130,26 @@ export async function POST(request: Request) {
 
         // Validate periods
         for (const period of periods) {
-            if (period.endDate <= period.startDate) {
+            if (
+                !period.startDate ||
+                !period.endDate ||
+                isNaN(period.startDate.getTime()) ||
+                isNaN(period.endDate.getTime())
+            ) {
                 return NextResponse.json(
-                    { error: "End date must be after start date" },
+                    { error: "Invalid date format" },
+                    { status: 400 }
+                );
+            }
+
+            if (
+                isSameDay(period.startDate, period.endDate) ||
+                !isDateAfter(period.endDate, period.startDate)
+            ) {
+                return NextResponse.json(
+                    {
+                        error: "End date must be after start date and cannot be the same day",
+                    },
                     { status: 400 }
                 );
             }
@@ -128,16 +157,15 @@ export async function POST(request: Request) {
 
         // Check for overlapping periods
         const sortedPeriods = [...periods].sort(
-            (a, b) =>
-                new Date(a.startDate).getTime() -
-                new Date(b.startDate).getTime()
+            (a, b) => a.startDate.getTime() - b.startDate.getTime()
         );
 
         for (let i = 0; i < sortedPeriods.length - 1; i++) {
             const current = sortedPeriods[i];
             const next = sortedPeriods[i + 1];
 
-            if (current.endDate >= next.startDate) {
+            // Periods overlap if current end date >= next start date
+            if (current.endDate.getTime() >= next.startDate.getTime()) {
                 return NextResponse.json(
                     { error: "Periods cannot overlap" },
                     { status: 400 }
@@ -145,20 +173,59 @@ export async function POST(request: Request) {
             }
         }
 
-        // Create new frequency
-        const newFrequency = {
-            id: (frequencies.length + 1).toString(),
-            name: name.trim(),
-            type,
-            periods,
-            indicatorCount: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+        // Create the frequency with periods in a transaction
+        const newFrequency = await db.$transaction(async (tx) => {
+            // Create the frequency
+            const frequency = await tx.frequency.create({
+                data: {
+                    name: name.trim(),
+                },
+            });
+
+            // Create the periods
+            await tx.period.createMany({
+                data: periods.map((period) => ({
+                    frequency_id: frequency.frequency_id,
+                    start_date: period.startDate,
+                    end_date: period.endDate,
+                })),
+            });
+
+            // Return the frequency with periods
+            return await tx.frequency.findUnique({
+                where: { frequency_id: frequency.frequency_id },
+                include: {
+                    periods: {
+                        orderBy: {
+                            start_date: "asc",
+                        },
+                    },
+                    _count: {
+                        select: {
+                            indicators: true,
+                        },
+                    },
+                },
+            });
+        });
+
+        if (!newFrequency) {
+            throw new Error("Failed to create frequency");
+        }
+
+        const transformedFrequency = {
+            frequency_id: newFrequency.frequency_id,
+            name: newFrequency.name,
+            periods: newFrequency.periods.map((period) => ({
+                period_id: period.period_id,
+                start_date: period.start_date.toISOString(),
+                end_date: period.end_date.toISOString(),
+                frequency_id: period.frequency_id,
+            })),
+            indicatorCount: newFrequency._count.indicators,
         };
 
-        frequencies.push(newFrequency);
-
-        return NextResponse.json(newFrequency, { status: 201 });
+        return NextResponse.json(transformedFrequency, { status: 201 });
     } catch (error) {
         console.error("Error creating frequency:", error);
         return NextResponse.json(
