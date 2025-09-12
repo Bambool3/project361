@@ -50,7 +50,7 @@ model JobTitle {
 
   // Relations
   user_jobtitle UserJobTitle[]
-  responsible_jobtitle responsibleJobTitle[]
+  responsible_jobtitle ResponsibleJobTitle[]
   
   @@map("job_titles")
 }
@@ -101,7 +101,7 @@ model Indicator {
   category           Category             @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
   user               User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   frequency          Frequency            @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
-  responsible_jobtitle responsibleJobTitle[]
+  responsible_jobtitle ResponsibleJobTitle[]
 
   @@map("indicators")
 }
