@@ -215,9 +215,10 @@ export default function ManagementTable({
                     color: "#475569",
                     border: "none",
                     py: 2,
+                    width: "70px",
                   }}
                 >
-                  ลำดับที่
+                  ลำดับ
                 </TableCell>
                 <TableCell
                   sx={{
@@ -225,6 +226,7 @@ export default function ManagementTable({
                     color: "#475569",
                     border: "none",
                     py: 2,
+                    maxWidth: "80px",
                   }}
                 >
                   ชื่อตัวชี้วัด
@@ -238,7 +240,7 @@ export default function ManagementTable({
                     textAlign: "center",
                   }}
                 >
-                  เป้าหมาย
+                  ความคืบหน้า
                 </TableCell>
                 <TableCell
                   sx={{
@@ -250,6 +252,17 @@ export default function ManagementTable({
                   }}
                 >
                   หน่วย
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#475569",
+                    border: "none",
+                    py: 2,
+                    textAlign: "center",
+                  }}
+                >
+                  หน่วยงาน
                 </TableCell>
                 <TableCell
                   sx={{
@@ -298,7 +311,7 @@ export default function ManagementTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredKpi.map((kpi) => (
+                filteredKpi.map((kpi, kpiIndex) => (
                   <React.Fragment key={kpi.id}>
                     <TableRow
                       sx={{
@@ -308,7 +321,17 @@ export default function ManagementTable({
                         borderBottom: "1px solid #f1f5f9",
                       }}
                     >
-                      <TableCell sx={{ border: "none", py: 2.5 }}>
+                      <TableCell
+                        sx={{
+                          textAlign: "center",
+                          color: "#1e293b",
+                          fontSize: "0.875rem",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {kpiIndex + 1}
+                      </TableCell>
+                      <TableCell sx={{ py: 2.5 }}>
                         <Box
                           sx={{
                             display: "flex",
@@ -332,6 +355,7 @@ export default function ManagementTable({
                             sx={{
                               fontWeight: "600",
                               color: "#1e293b",
+                              maxWidth: 600,
                             }}
                           >
                             {kpi.name}
@@ -345,7 +369,7 @@ export default function ManagementTable({
                           fontSize: "0.875rem",
                         }}
                       >
-                        {kpi.target_value}
+                        /{kpi.target_value}
                       </TableCell>
                       <TableCell
                         sx={{
@@ -355,6 +379,19 @@ export default function ManagementTable({
                         }}
                       >
                         {kpi.unit}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          textAlign: "center",
+                          color: "#64748b",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        {kpi.responsible_jobtitles?.length
+                          ? kpi.responsible_jobtitles
+                              .map((r) => r.name)
+                              .join(", ")
+                          : "-"}
                       </TableCell>
                       <TableCell
                         sx={{
@@ -421,24 +458,14 @@ export default function ManagementTable({
                             paddingBottom: 0,
                             paddingTop: 0,
                           }}
-                          colSpan={6}
+                          colSpan={8}
                         >
                           <Collapse
                             in={expanded.has(kpi.id)}
                             timeout="auto"
                             unmountOnExit
                           >
-                            <Box sx={{ margin: 2 }}>
-                              <Typography
-                                variant="subtitle2"
-                                sx={{
-                                  mb: 1,
-                                  color: "#1e293b",
-                                  fontWeight: "550",
-                                }}
-                              >
-                                รายการตัวชี้วัดย่อย:
-                              </Typography>
+                            <Box sx={{ margin: 2, pl: 5 }}>
                               <Table size="small">
                                 <TableHead>
                                   <TableRow>
@@ -447,35 +474,44 @@ export default function ManagementTable({
                                         py: 2,
                                         color: "#1e293b",
                                         fontWeight: "550",
+                                        borderBottom: "none",
                                       }}
                                     >
-                                      ชื่อตัวชี้วัดย่อย
+                                      รายการตัวชี้วัดย่อย
                                     </TableCell>
                                     <TableCell
                                       sx={{
                                         py: 2,
                                         color: "#1e293b",
                                         fontWeight: "550",
+                                        borderBottom: "none",
                                       }}
                                     >
-                                      เป้าหมาย
+                                      ความคืบหน้า
                                     </TableCell>
                                   </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                  {kpi.sub_indicators.map((sub) => (
+                                  {kpi.sub_indicators.map((sub, subIndex) => (
                                     <TableRow
                                       key={sub.id}
                                       sx={{
                                         "&:hover": {
                                           backgroundColor: "#f8fafc",
                                         },
-                                        borderBottom: "px solid #f1f5f9",
+                                        "& td": {
+                                          borderBottom: "1px solid #f1f5f9",
+                                        },
                                         height: 50,
                                       }}
                                     >
-                                      <TableCell>{sub.name}</TableCell>
-                                      <TableCell>{sub.target_value}</TableCell>
+                                      <TableCell sx={{ pl: 5 }}>
+                                        {kpiIndex + 1}.{subIndex + 1}
+                                        &nbsp;&nbsp;{sub.name}
+                                      </TableCell>
+                                      <TableCell sx={{ pl: 5 }}>
+                                        /{sub.target_value}
+                                      </TableCell>
                                     </TableRow>
                                   ))}
                                 </TableBody>

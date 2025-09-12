@@ -8,25 +8,38 @@ export class IndicatorServerService {
       const indicators = await prisma.indicator.findMany({
         where: { category_id: parseInt(catId) },
         orderBy: [{ name: "asc" }],
+        include: {
+          responsible_jobtitle: {
+            include: {
+              jobtitle: true, // ดึง id และ name ของ jobtitle
+            },
+          },
+        },
       });
       console.log("indicators=", indicators);
-      // กรอง main indicator (main_indicator_id เท่ากับ id ตัวเอง) ต้อง seed main indicator เป็น null ค่อยลบ
+      // กรอง main indicator
       const mainIndicators = indicators.filter(
         (indicator) => indicator.main_indicator_id === null
       );
-      // ดึง subindicator ใช้วิธ๊ filter ไปก่อน
+      // ดึง subindicator
       const subIndicators = indicators.filter(
         (indicator: any) => indicator.main_indicator_id !== null
       );
 
       return mainIndicators.map((indicator: any) => ({
-        id: indicator.indicator_id,
+        id: indicator.indicator_id.toString(),
         name: indicator.name,
         unit: indicator.unit,
         target_value: indicator.target_value,
         main_indicator_id: indicator.main_indicator_id,
         responsible_user_id: indicator.responsible_user_id,
+        responsible_jobtitles: indicator.responsible_jobtitle.map((r) => ({
+          in_id: r.indicator_id,
+          id: r.jobtitle.jobtitle_id,
+          name: r.jobtitle.name,
+        })),
         category_id: indicator.category_id,
+        frequency: indicator.tracking_frequency,
         sub_indicators: subIndicators
           .filter((sub) => sub.main_indicator_id === indicator.indicator_id)
           .map((sub) => ({
