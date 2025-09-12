@@ -62,10 +62,6 @@ async function main() {
         { name: "รายภาคการศึกษา" },
         { name: "รายปีการศึกษา" },
         { name: "รายปีงบประมาณ" },
-        { name: "Monthly" },
-        { name: "Quarterly" },
-        { name: "Semester" },
-        { name: "Annually" },
     ];
     const frequencyRecords: Record<string, any> = {};
     for (let i = 0; i < frequencies.length; i++) {
@@ -285,7 +281,7 @@ async function main() {
             main_indicator_id: null, // This is a main indicator
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            frequency_id: frequencyRecords["freq7"].frequency_id, // Quarterly
+            frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
             date: new Date(),
         },
@@ -296,7 +292,7 @@ async function main() {
             main_indicator_id: null, // This is a main indicator
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            frequency_id: frequencyRecords["freq9"].frequency_id, // Annually
+            frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
             date: new Date(),
         },
@@ -385,7 +381,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // Sub-indicator of HR main indicator
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            frequency_id: frequencyRecords["freq6"].frequency_id, // Monthly
+            frequency_id: frequencyRecords["freq3"].frequency_id, // Monthly
             status: "Active",
             date: new Date(),
         },
@@ -396,7 +392,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // Sub-indicator of Academic main indicator
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            frequency_id: frequencyRecords["freq8"].frequency_id, // Semester
+            frequency_id: frequencyRecords["freq4"].frequency_id, // Semester
             status: "Active",
             date: new Date(),
         },
@@ -493,45 +489,45 @@ async function main() {
         {
             start_date: createNormalizedDate("2024-01-01"),
             end_date: createNormalizedDate("2024-01-31"),
-            frequency_id: frequencyRecords["freq6"].frequency_id, // Monthly
+            frequency_id: frequencyRecords["freq3"].frequency_id, // Monthly
         },
         // Quarterly periods
         {
-            start_date: createNormalizedDate("2024-01-01"),
-            end_date: createNormalizedDate("2024-03-31"),
+            start_date: new Date("2024-01-01"),
+            end_date: new Date("2024-03-31"),
             frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
         },
         {
-            start_date: createNormalizedDate("2024-01-01"),
-            end_date: createNormalizedDate("2024-03-31"),
-            frequency_id: frequencyRecords["freq7"].frequency_id, // Quarterly
+            start_date: new Date("2024-01-01"),
+            end_date: new Date("2024-03-31"),
+            frequency_id: frequencyRecords["freq4"].frequency_id, // Quarterly
         },
         // Academic semester periods
         {
-            start_date: createNormalizedDate("2024-08-01"),
-            end_date: createNormalizedDate("2024-12-31"),
+            start_date: new Date("2024-08-01"),
+            end_date: new Date("2024-12-31"),
             frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
         },
         {
-            start_date: createNormalizedDate("2024-08-01"),
-            end_date: createNormalizedDate("2024-12-31"),
-            frequency_id: frequencyRecords["freq8"].frequency_id, // Semester
+            start_date: new Date("2024-08-01"),
+            end_date: new Date("2024-12-31"),
+            frequency_id: frequencyRecords["freq4"].frequency_id, // Semester
         },
         // Annual periods
         {
-            start_date: createNormalizedDate("2024-01-01"),
-            end_date: createNormalizedDate("2024-12-31"),
+            start_date: new Date("2024-01-01"),
+            end_date: new Date("2024-12-31"),
             frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีการศึกษา
         },
         {
-            start_date: createNormalizedDate("2024-10-01"),
-            end_date: createNormalizedDate("2025-09-30"),
+            start_date: new Date("2024-10-01"),
+            end_date: new Date("2025-09-30"),
             frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีงบประมาณ
         },
         {
-            start_date: createNormalizedDate("2024-01-01"),
-            end_date: createNormalizedDate("2024-12-31"),
-            frequency_id: frequencyRecords["freq9"].frequency_id, // Annually
+            start_date: new Date("2024-01-01"),
+            end_date: new Date("2024-12-31"),
+            frequency_id: frequencyRecords["freq3"].frequency_id, // Annually
         },
     ];
 
