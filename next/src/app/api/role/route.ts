@@ -3,9 +3,9 @@ import prisma from "@/lib/db";
 
 export async function GET() {
     try {
-        const jobTitles = await prisma.jobTitle.findMany({
+        const roles = await prisma.role.findMany({
             include: {
-                user_jobtitle: {
+                user_roles: {
                     select: {
                         user_id: true,
                     },
@@ -16,17 +16,17 @@ export async function GET() {
             },
         });
 
-        const jobTitle = jobTitles.map((jobTitle) => ({
-            id: jobTitle.jobtitle_id.toString(),
-            jobTitle_name: jobTitle.name,
-            employeeCount: jobTitle.user_jobtitle.length,
+        const transformedRoles = roles.map((role) => ({
+            id: role.role_id.toString(),
+            role_name: role.name,
+            employeeCount: role.user_roles.length,
         }));
 
-        return NextResponse.json(jobTitle);
+        return NextResponse.json(transformedRoles);
     } catch (error) {
-        console.error("Error fetching job titles:", error);
+        console.error("Error fetching roles:", error);
         return NextResponse.json(
-            { error: "Failed to fetch job titles" },
+            { error: "Failed to fetch roles" },
             { status: 500 }
         );
     }
@@ -39,26 +39,26 @@ export async function POST(request: Request) {
         // Validate input
         if (!name || typeof name !== "string" || name.trim().length === 0) {
             return NextResponse.json(
-                { error: "Job title name is required" },
+                { error: "Role name is required" },
                 { status: 400 }
             );
         }
 
-        // Check if job title already exists
-        const existingJobTitle = await prisma.jobTitle.findFirst({
+        // Check if role already exists
+        const existingRole = await prisma.role.findFirst({
             where: {
                 name: name.trim(),
             },
         });
 
-        if (existingJobTitle) {
+        if (existingRole) {
             return NextResponse.json(
-                { error: "Job title already exists" },
+                { error: "Role already exists" },
                 { status: 409 }
             );
         }
 
-        const newJobTitle = await prisma.jobTitle.create({
+        const newRole = await prisma.role.create({
             data: {
                 name: name.trim(),
             },
@@ -66,15 +66,15 @@ export async function POST(request: Request) {
 
         return NextResponse.json(
             {
-                id: newJobTitle.jobtitle_id.toString(),
-                jobTitle_name: newJobTitle.name,
+                id: newRole.role_id.toString(),
+                role_name: newRole.name,
             },
             { status: 201 }
         );
     } catch (error) {
-        console.error("Error creating job title:", error);
+        console.error("Error creating role:", error);
         return NextResponse.json(
-            { error: "Failed to create job title" },
+            { error: "Failed to create role" },
             { status: 500 }
         );
     }

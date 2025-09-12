@@ -42,13 +42,13 @@ export default function DashboardMain() {
         loadCategories();
     }, []);
 
-    const stats = {
-        totalKPIs: categories.reduce(
-            (sum, cat) => sum + (cat.indicators?.length || 0),
-            0
-        ),
-        totalCategories: categories.length,
-    };
+    // const stats = {
+    //     totalKPIs: categories.reduce(
+    //         (sum, cat) => sum + (cat.indicators?.length || 0),
+    //         0
+    //     ),
+    //     totalCategories: categories.length,
+    // };
 
     return (
         <Box
@@ -60,7 +60,7 @@ export default function DashboardMain() {
             }}
         >
             {/* Upper Section - Stats Cards */}
-            <DashboardStat stats={stats} loading={loading} />
+            {/* <DashboardStat stats={stats} loading={loading} /> */}
 
             {/* Lower Section - Table */}
             <DashboardTable

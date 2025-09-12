@@ -3,7 +3,7 @@
 import Header from "@/components/header";
 import NavBar from "@/components/navigations/nav-bar";
 import { useState } from "react";
-import JobMain from "./JobMain";
+import JobMainSection from "./JobMain";
 
 export default function JobDetail() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,7 +34,7 @@ export default function JobDetail() {
                 </div>
 
                 <div className="flex-1 bg-gray-100">
-                    <JobMain />
+                    <JobMainSection />
                 </div>
             </div>
         </div>

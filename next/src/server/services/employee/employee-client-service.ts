@@ -92,7 +92,7 @@ export class EmployeeService {
 
     static async getRoles(): Promise<Role[]> {
         try {
-            const response = await fetch("/api/roles", {
+            const response = await fetch("/api/role", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

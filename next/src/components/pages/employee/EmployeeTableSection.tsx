@@ -403,7 +403,7 @@ export default function EmployeeTableSection({
                                     color: "#1e293b",
                                 }}
                             >
-                                รายการบุคลากร ({filteredEmployees.length})
+                                บุคลากรทั้งหมด ({filteredEmployees.length})
                             </Typography>
                         </Box>
 
@@ -1104,6 +1104,7 @@ export default function EmployeeTableSection({
                 }
                 confirmText="ลบ"
                 cancelText="ยกเลิก"
+                severity="error"
             />
 
             {/* Snackbar for notifications */}
