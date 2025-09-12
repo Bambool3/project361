@@ -11,11 +11,6 @@ import {
 // Validation schema for frequency data
 const frequencySchema = z.object({
     name: z.string().min(1, "Name is required"),
-    periods_in_year: z
-        .number()
-        .int()
-        .min(1, "Periods in year must be at least 1")
-        .max(365, "Periods in year cannot exceed 365"),
     periods: z
         .array(
             z.object({
