@@ -12,7 +12,7 @@ export class IndicatorServerService {
       console.log("indicators=", indicators);
       // กรอง main indicator (main_indicator_id เท่ากับ id ตัวเอง) ต้อง seed main indicator เป็น null ค่อยลบ
       const mainIndicators = indicators.filter(
-        (indicator: any) => indicator.main_indicator_id === null
+        (indicator) => indicator.main_indicator_id === null
       );
       // ดึง subindicator ใช้วิธ๊ filter ไปก่อน
       const subIndicators = indicators.filter(
@@ -30,7 +30,7 @@ export class IndicatorServerService {
         sub_indicators: subIndicators
           .filter((sub) => sub.main_indicator_id === indicator.indicator_id)
           .map((sub) => ({
-            id: sub.id,
+            id: sub.indicator_id,
             name: sub.name,
             target_value: sub.target_value,
           })),

@@ -9,12 +9,12 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Crosshair } from "lucide-react";
 // Zod Schema
 const subKpiSchema = z.object({
   id: z.string(),
-  name: z.string().min(1, "กรุณากรอกชื่อ Sub-KPI"),
-  target: z.string().min(1, "กรุณากรอกเป้าหมาย Sub-KPI"),
+  name: z.string().min(1, "กรุณากรอกชื่อตัวชี้วัดย่อย"),
+  target: z.string().min(1, "กรุณากรอกเป้าหมายตัวชี้วัดย่อย"),
 });
 
 const mainKpiSchema = z.object({
-  name: z.string().min(2, "กรุณากรอกชื่อ KPI").max(50),
+  name: z.string().min(2, "กรุณากรอกชื่อตัวชี้วัด").max(50),
   target: z.string().min(1, "กรุณากรอกเป้าหมาย"),
   format: z.string(),
   year: z.string(),
@@ -93,7 +93,9 @@ export default function AddKpiModal({
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 z-50 overflow-auto max-h-[90vh] transition-all duration-300">
         <form onSubmit={handleSubmit(submitForm)}>
           <div className="p-6 sm:p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">เพิ่ม KPI</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              เพิ่มตัวชี้วัด
+            </h2>
 
             {/* Main KPI */}
             <div className="flex flex-row flex-wrap gap-4 mb-8">
@@ -221,12 +223,12 @@ export default function AddKpiModal({
                   append({ id: crypto.randomUUID(), name: "", target: "" })
                 }
               >
-                <Plus className="w-4 h-4" /> เพิ่ม Sub-KPI
+                <Plus className="w-4 h-4" /> เพิ่มตัวชี้วัดย่อย
               </button>
 
               {fields.length === 0 ? (
                 <div className="text-gray-500 text-sm mb-2">
-                  ยังไม่มี Sub-KPI
+                  ยังไม่มีตัวชี้วัดย่อย
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -265,12 +267,12 @@ export default function AddKpiModal({
                             render={({ field }) => (
                               <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
                                 <label className="text-xs font-medium text-gray-700 mb-1">
-                                  ชื่อ Sub-KPI
+                                  ชื่อตัวชี้วัด
                                 </label>
                                 <input
                                   {...field}
                                   type="text"
-                                  placeholder="ชื่อ Sub-KPI"
+                                  placeholder="ชื่อตัวชี้วัด"
                                   className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
                                   required
                                 />
@@ -290,12 +292,12 @@ export default function AddKpiModal({
                             render={({ field }) => (
                               <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
                                 <label className="text-xs font-medium text-gray-700 mb-1">
-                                  เป้าหมาย Sub-KPI
+                                  เป้าหมาย
                                 </label>
                                 <input
                                   {...field}
                                   type="text"
-                                  placeholder="เป้าหมาย Sub-KPI"
+                                  placeholder="เป้าหมาย"
                                   className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
                                   required
                                 />

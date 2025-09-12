@@ -21,3 +21,5 @@ export type Category = {
   description: string;
   indicators: Indicator[];
 };
+
+export type IndicatorFormDaTa = {};
