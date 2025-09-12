@@ -1,5 +1,15 @@
+#!/usr/bin/env npx ts-node
+
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import * as dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Load environment variables from .env file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const prisma = new PrismaClient();
 
@@ -17,19 +27,20 @@ async function main() {
     console.log("Seeding database...");
 
     // Seed Job Titles
-    const jobTitles = [ { name: "งานบริหารทั่วไป" }, 
-                        { name: "งานการเงิน การคลังพัสดุ" }, 
-                        { name: "งานบริหารงานวิจัยฯ" },
-                        { name: "งานนโยบายและแผนฯ"},
-                        { name: "หน่วยเทคโนโลยีสารสนเทศ"},
-                        { name: "งานบริการการศึกษาฯ"},
-                        { name: "หน่วยพัฒนาคุณภาพ นศ."},
-                        { name: "ผช.คณบดี (สื่อสารองค์กร)"},
-                        { name: "ผช.คณบดี (กายภาพ)"},
-                        { name: "ผช.คณบดี (LE)"},
-                        { name: "เลขานุการคณะ"},
-                        { name: "ศูนย์วิจัยศูนย์บริการ"},
-                    ]
+    const jobTitles = [
+        { name: "งานบริหารทั่วไป" },
+        { name: "งานการเงิน การคลังพัสดุ" },
+        { name: "งานบริหารงานวิจัยฯ" },
+        { name: "งานนโยบายและแผนฯ" },
+        { name: "หน่วยเทคโนโลยีสารสนเทศ" },
+        { name: "งานบริการการศึกษาฯ" },
+        { name: "หน่วยพัฒนาคุณภาพ นศ." },
+        { name: "ผช.คณบดี (สื่อสารองค์กร)" },
+        { name: "ผช.คณบดี (กายภาพ)" },
+        { name: "ผช.คณบดี (LE)" },
+        { name: "เลขานุการคณะ" },
+        { name: "ศูนย์วิจัยศูนย์บริการ" },
+    ];
     const jobTitleRecords: Record<string, any> = {};
     for (let i = 0; i < jobTitles.length; i++) {
         const jobTitle = jobTitles[i];
@@ -119,18 +130,18 @@ async function main() {
 
     // Seed Categories
     const categories = [
-        { 
-            name: "CMUPA", 
+        {
+            name: "CMUPA",
             description: "test test test 123",
             user_id: userRecords["user1"].user_id,
         },
-        { 
-            name: "HR", 
+        {
+            name: "HR",
             description: "HR KPIs",
             user_id: userRecords["user2"].user_id,
         },
-        { 
-            name: "Academic", 
+        {
+            name: "Academic",
             description: "Academic KPIs",
             user_id: userRecords["user3"].user_id,
         },
@@ -260,7 +271,7 @@ async function main() {
             name: "จำนวนนวัตกรรมสิ่งแวดล้อม",
             unit: "เล่ม",
             target_value: 25,
-            main_indicator_id: mainIndicatorRecords["main2"].indicator_id, 
+            main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
             tracking_frequency: "ราย 3 เดือน",
@@ -271,7 +282,7 @@ async function main() {
             name: "จำนวนนวัตกรรมสด้านอาหารและสุขภาพและการดูแลผู้สูงอายุ",
             unit: "เล่ม",
             target_value: 25,
-            main_indicator_id: mainIndicatorRecords["main2"].indicator_id, 
+            main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
             tracking_frequency: "ราย 3 เดือน",
@@ -282,7 +293,7 @@ async function main() {
             name: "จำนวนหลักสูตรหรือโปรแกรมที่เปิด/ปรับปรุง เช่น หลักสูตรแบบพหุศาสตร์, หลักสูตรที่พัฒนาร่วมกับกับภาคอุตสาหกรรม/ภาคเอกชน, หลักสูตรควบปริญญาตรี-โท (5ปี)",
             unit: "เล่ม",
             target_value: 25,
-            main_indicator_id: mainIndicatorRecords["main4"].indicator_id, 
+            main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
             tracking_frequency: "รายภาคการศึกษา",
@@ -293,7 +304,7 @@ async function main() {
             name: "จำนวนหลักสูตร/โปรแกรมที่เปิดใหม่/ปรับปรุงเป็นหลักสูตรนานาชาติในระดับปริญญาตรี",
             unit: "เล่ม",
             target_value: 25,
-            main_indicator_id: mainIndicatorRecords["main4"].indicator_id, 
+            main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
             tracking_frequency: "รายภาคการศึกษา",
@@ -304,7 +315,7 @@ async function main() {
             name: "จำนวนหลักสูตร/โครงการปริญญาคู่ร่วมกับมหาวิยาลัยชั้นนำของโลกที่เพิ่มขึ้น",
             unit: "เล่ม",
             target_value: 25,
-            main_indicator_id: mainIndicatorRecords["main4"].indicator_id, 
+            main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
             tracking_frequency: "รายภาคการศึกษา",
@@ -355,44 +366,44 @@ async function main() {
             // Main indicators
             {
                 indicator_id: mainIndicatorRecords["main1"].indicator_id,
-                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main2"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main3"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main4"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main5"].indicator_id,
-                jobtitle_id: jobTitleRecords["job4"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main6"].indicator_id,
-                jobtitle_id: jobTitleRecords["job7"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job7"].jobtitle_id,
             },
             // Sub-indicators
             {
                 indicator_id: subIndicatorRecords["sub1"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: subIndicatorRecords["sub2"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: subIndicatorRecords["sub3"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: subIndicatorRecords["sub4"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
             {
                 indicator_id: subIndicatorRecords["sub5"].indicator_id,
@@ -400,7 +411,7 @@ async function main() {
             },
             {
                 indicator_id: subIndicatorRecords["sub6"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id, 
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
         ],
     });
