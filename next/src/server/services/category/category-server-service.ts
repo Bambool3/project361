@@ -19,6 +19,8 @@ export class CategoryServerService {
                 id: category.category_id.toString(),
                 name: category.name,
                 description: category.description,
+                created_at: category.created_at.toISOString(),
+                updated_at: category.updated_at?.toISOString(),
                 indicators:
                     category.indicators?.map((indicator: any) => ({
                         id: indicator.indicator_id.toString(),
@@ -59,6 +61,8 @@ export class CategoryServerService {
                 id: category.category_id.toString(),
                 name: category.name,
                 description: category.description || "",
+                created_at: category.created_at.toISOString(),
+                updated_at: category.updated_at?.toISOString(),
                 indicators:
                     category.indicators?.map((indicator: any) => ({
                         id: indicator.indicator_id.toString(),
@@ -97,6 +101,8 @@ export class CategoryServerService {
                 id: category.category_id.toString(),
                 name: category.name,
                 description: category.description || "",
+                created_at: category.created_at.toISOString(),
+                updated_at: category.updated_at?.toISOString(),
                 indicators:
                     category.indicators?.map((indicator: any) => ({
                         id: indicator.indicator_id.toString(),
@@ -143,17 +149,9 @@ export class CategoryServerService {
                 id: newCategory.category_id.toString(),
                 name: newCategory.name,
                 description: newCategory.description || "",
-                indicators:
-                    newCategory.indicators?.map((indicator: any) => ({
-                        id: indicator.indicator_id.toString(),
-                        name: indicator.name,
-                        unit: indicator.unit || "",
-                        target_value: indicator.target_value || 0,
-                        main_indicator_id:
-                            indicator.main_indicator_id?.toString() || "",
-                        responsible_user_id: indicator.user_id.toString(),
-                        category_id: indicator.category_id.toString(),
-                    })) || [],
+                created_at: newCategory.created_at.toISOString(),
+                updated_at: newCategory.updated_at?.toISOString(),
+                indicators: [],
             };
         } catch (error) {
             console.error("Error creating category in database:", error);
@@ -189,6 +187,8 @@ export class CategoryServerService {
                 id: updatedCategory.category_id.toString(),
                 name: updatedCategory.name,
                 description: updatedCategory.description || "",
+                created_at: updatedCategory.created_at.toISOString(),
+                updated_at: updatedCategory.updated_at?.toISOString(),
                 indicators:
                     updatedCategory.indicators?.map((indicator: any) => ({
                         id: indicator.indicator_id.toString(),

@@ -493,25 +493,15 @@ export default function RoleTableSection({
                                                         py: 2.5,
                                                     }}
                                                 >
-                                                    <Box
+                                                    <Typography
+                                                        variant="body2"
                                                         sx={{
-                                                            width: 24,
-                                                            height: 24,
-                                                            borderRadius: "50%",
-                                                            backgroundColor:
-                                                                "#8b5cf6",
-                                                            color: "white",
-                                                            display: "flex",
-                                                            alignItems:
-                                                                "center",
-                                                            justifyContent:
-                                                                "center",
-                                                            fontSize: "0.75rem",
                                                             fontWeight: "600",
+                                                            color: "#374151",
                                                         }}
                                                     >
                                                         {orderNumber}
-                                                    </Box>
+                                                    </Typography>
                                                 </TableCell>
 
                                                 {/* Name Column */}
@@ -524,8 +514,7 @@ export default function RoleTableSection({
                                                     <Typography
                                                         variant="body2"
                                                         sx={{
-                                                            fontWeight: "600",
-                                                            color: "#1e293b",
+                                                            color: "#374151",
                                                         }}
                                                     >
                                                         {role.name}
@@ -541,19 +530,17 @@ export default function RoleTableSection({
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    <Chip
-                                                        label={`${
-                                                            role.employeeCount ||
-                                                            0
-                                                        } คน`}
-                                                        size="small"
+                                                    <Typography
+                                                        variant="body2"
                                                         sx={{
-                                                            backgroundColor:
-                                                                "#f1f5f9",
-                                                            color: "#475569",
-                                                            fontWeight: "600",
+                                                            color: "#374151",
+                                                            fontWeight: "500",
                                                         }}
-                                                    />
+                                                    >
+                                                        {role.employeeCount ||
+                                                            0}{" "}
+                                                        คน
+                                                    </Typography>
                                                 </TableCell>
 
                                                 {/* Manage Column */}

@@ -13,6 +13,8 @@ export type Category = {
     name: string;
     description: string;
     indicators: Indicator[];
+    created_at: string;
+    updated_at?: string;
 };
 
 export interface KPI {
