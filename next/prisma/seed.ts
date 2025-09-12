@@ -13,8 +13,24 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const prisma = new PrismaClient();
 
+// Helper function to create normalized dates at midnight UTC
+const createNormalizedDate = (dateString: string): Date => {
+    const date = new Date(dateString);
+    return new Date(
+        Date.UTC(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            0,
+            0,
+            0,
+            0
+        )
+    );
+};
+
 async function main() {
-    // Clean up existing data
+    // Clean up existing data (in correct order due to foreign key constraints)
     await prisma.responsibleJobTitle.deleteMany({});
     await prisma.indicator.deleteMany({});
     await prisma.category.deleteMany({});
@@ -24,7 +40,40 @@ async function main() {
     await prisma.role.deleteMany({});
     await prisma.jobTitle.deleteMany({});
 
+    // Only delete periods and frequencies if tables exist
+    try {
+        await prisma.period.deleteMany({});
+    } catch (error) {
+        console.log("Periods table doesn't exist yet, skipping cleanup");
+    }
+
+    try {
+        await prisma.frequency.deleteMany({});
+    } catch (error) {
+        console.log("Frequencies table doesn't exist yet, skipping cleanup");
+    }
+
     console.log("Seeding database...");
+
+    // Seed Frequencies
+    const frequencies = [
+        { name: "รายเดือน" },
+        { name: "ราย 3 เดือน" },
+        { name: "รายภาคการศึกษา" },
+        { name: "รายปีการศึกษา" },
+        { name: "รายปีงบประมาณ" },
+        { name: "Monthly" },
+        { name: "Quarterly" },
+        { name: "Semester" },
+        { name: "Annually" },
+    ];
+    const frequencyRecords: Record<string, any> = {};
+    for (let i = 0; i < frequencies.length; i++) {
+        const frequency = frequencies[i];
+        frequencyRecords[`freq${i + 1}`] = await prisma.frequency.create({
+            data: frequency,
+        });
+    }
 
     // Seed Job Titles
     const jobTitles = [
@@ -129,21 +178,28 @@ async function main() {
     });
 
     // Seed Categories
+    const currentDate = new Date();
     const categories = [
         {
             name: "CMUPA",
             description: "test test test 123",
             user_id: userRecords["user1"].user_id,
+            created_at: currentDate,
+            updated_at: currentDate,
         },
         {
             name: "HR",
             description: "HR KPIs",
             user_id: userRecords["user2"].user_id,
+            created_at: currentDate,
+            updated_at: currentDate,
         },
         {
             name: "Academic",
             description: "Academic KPIs",
             user_id: userRecords["user3"].user_id,
+            created_at: currentDate,
+            updated_at: currentDate,
         },
     ];
     const categoryRecords: Record<string, any> = {};
@@ -163,7 +219,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "ราย 3 เดือน",
+            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
             status: "Active",
             date: new Date(),
         },
@@ -174,7 +230,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "ราย 3 เดือน",
+            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
             status: "Active",
             date: new Date(),
         },
@@ -185,7 +241,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "ราย 3 เดือน",
+            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
             status: "Active",
             date: new Date(),
         },
@@ -196,7 +252,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายภาคการศึกษา",
+            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
             status: "Active",
             date: new Date(),
         },
@@ -207,7 +263,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายปีงบประมาณ",
+            frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีงบประมาณ
             status: "Active",
             date: new Date(),
         },
@@ -218,7 +274,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายปีการศึกษา",
+            frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีการศึกษา
             status: "Active",
             date: new Date(),
         },
@@ -229,7 +285,7 @@ async function main() {
             main_indicator_id: null, // This is a main indicator
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            tracking_frequency: "Quarterly",
+            frequency_id: frequencyRecords["freq7"].frequency_id, // Quarterly
             status: "Active",
             date: new Date(),
         },
@@ -240,7 +296,7 @@ async function main() {
             main_indicator_id: null, // This is a main indicator
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            tracking_frequency: "Annually",
+            frequency_id: frequencyRecords["freq9"].frequency_id, // Annually
             status: "Active",
             date: new Date(),
         },
@@ -263,7 +319,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "ราย 3 เดือน",
+            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
             status: "Active",
             date: new Date(),
         },
@@ -274,7 +330,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "ราย 3 เดือน",
+            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
             status: "Active",
             date: new Date(),
         },
@@ -285,7 +341,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "ราย 3 เดือน",
+            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
             status: "Active",
             date: new Date(),
         },
@@ -296,7 +352,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายภาคการศึกษา",
+            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
             status: "Active",
             date: new Date(),
         },
@@ -307,7 +363,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายภาคการศึกษา",
+            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
             status: "Active",
             date: new Date(),
         },
@@ -318,7 +374,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายภาคการศึกษา",
+            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
             status: "Active",
             date: new Date(),
         },
@@ -326,10 +382,10 @@ async function main() {
             name: "HR Training Completion",
             unit: "sessions",
             target_value: 40,
-            main_indicator_id: mainIndicatorRecords["main2"].indicator_id, // Sub-indicator of HR main indicator
+            main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // Sub-indicator of HR main indicator
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            tracking_frequency: "Monthly",
+            frequency_id: frequencyRecords["freq6"].frequency_id, // Monthly
             status: "Active",
             date: new Date(),
         },
@@ -337,10 +393,10 @@ async function main() {
             name: "Student Research Projects",
             unit: "projects",
             target_value: 30,
-            main_indicator_id: mainIndicatorRecords["main3"].indicator_id, // Sub-indicator of Academic main indicator
+            main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // Sub-indicator of Academic main indicator
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            tracking_frequency: "Semester",
+            frequency_id: frequencyRecords["freq8"].frequency_id, // Semester
             status: "Active",
             date: new Date(),
         },
@@ -353,12 +409,6 @@ async function main() {
             data: indicator,
         });
     }
-
-    // Combine all indicators for responsible person seeding
-    const allIndicators = {
-        ...mainIndicatorRecords,
-        ...subIndicatorRecords,
-    };
 
     // Seed Responsible Persons (Link indicators to job titles)
     await prisma.responsibleJobTitle.createMany({
@@ -388,6 +438,14 @@ async function main() {
                 indicator_id: mainIndicatorRecords["main6"].indicator_id,
                 jobtitle_id: jobTitleRecords["job7"].jobtitle_id,
             },
+            {
+                indicator_id: mainIndicatorRecords["main7"].indicator_id,
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
+            },
+            {
+                indicator_id: mainIndicatorRecords["main8"].indicator_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
             // Sub-indicators
             {
                 indicator_id: subIndicatorRecords["sub1"].indicator_id,
@@ -413,7 +471,72 @@ async function main() {
                 indicator_id: subIndicatorRecords["sub6"].indicator_id,
                 jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
+            {
+                indicator_id: subIndicatorRecords["sub7"].indicator_id,
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub8"].indicator_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
         ],
+    });
+
+    // Seed some sample periods for different frequencies
+    const samplePeriods = [
+        // Monthly periods for 2024
+        {
+            start_date: createNormalizedDate("2024-01-01"),
+            end_date: createNormalizedDate("2024-01-31"),
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+        },
+        {
+            start_date: createNormalizedDate("2024-01-01"),
+            end_date: createNormalizedDate("2024-01-31"),
+            frequency_id: frequencyRecords["freq6"].frequency_id, // Monthly
+        },
+        // Quarterly periods
+        {
+            start_date: createNormalizedDate("2024-01-01"),
+            end_date: createNormalizedDate("2024-03-31"),
+            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
+        },
+        {
+            start_date: createNormalizedDate("2024-01-01"),
+            end_date: createNormalizedDate("2024-03-31"),
+            frequency_id: frequencyRecords["freq7"].frequency_id, // Quarterly
+        },
+        // Academic semester periods
+        {
+            start_date: createNormalizedDate("2024-08-01"),
+            end_date: createNormalizedDate("2024-12-31"),
+            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
+        },
+        {
+            start_date: createNormalizedDate("2024-08-01"),
+            end_date: createNormalizedDate("2024-12-31"),
+            frequency_id: frequencyRecords["freq8"].frequency_id, // Semester
+        },
+        // Annual periods
+        {
+            start_date: createNormalizedDate("2024-01-01"),
+            end_date: createNormalizedDate("2024-12-31"),
+            frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีการศึกษา
+        },
+        {
+            start_date: createNormalizedDate("2024-10-01"),
+            end_date: createNormalizedDate("2025-09-30"),
+            frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีงบประมาณ
+        },
+        {
+            start_date: createNormalizedDate("2024-01-01"),
+            end_date: createNormalizedDate("2024-12-31"),
+            frequency_id: frequencyRecords["freq9"].frequency_id, // Annually
+        },
+    ];
+
+    await prisma.period.createMany({
+        data: samplePeriods,
     });
 
     console.log("Database Seeded Successfully!");
