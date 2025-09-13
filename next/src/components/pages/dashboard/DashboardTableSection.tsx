@@ -124,7 +124,7 @@ export default function DashboardTableSection({
     };
 
     const handleRowClick = (categoryId: string) => {
-        router.push(`/management?categoryId=${categoryId}`);
+        router.push(`/admin/management?categoryId=${categoryId}`);
     };
 
     const handleAddCategory = () => {
