@@ -34,9 +34,9 @@ async function main() {
         { name: "รายไตรมาส", periods_in_year: 4 },
         { name: "รายภาคการศึกษา", periods_in_year: 2 },
         { name: "รายปีงบประมาณ", periods_in_year: 1 },
-        { name: "รายปีการศึกษา", periods_in_year: 1 }
+        { name: "รายปีการศึกษา", periods_in_year: 1 },
     ];
-    
+
     const frequencyRecords: Record<string, any> = {};
     for (let i = 0; i < frequencies.length; i++) {
         const frequency = frequencies[i];
@@ -47,8 +47,21 @@ async function main() {
 
     // Seed Periods for each frequency
     const currentYear = new Date().getFullYear();
-    
-    // Create periods for quarterly frequency (freq2 - ราย 3 เดือน)
+
+    // Create periods for monthly frequency (freq1 - รายเดือน)
+    const monthlyPeriods = [];
+    for (let m = 1; m <= 12; m++) {
+        const start = new Date(currentYear, m - 1, 1);
+        const end = new Date(currentYear, m, 0);
+        monthlyPeriods.push({
+            start_date: start,
+            end_date: end,
+            frequency_id: frequencyRecords["freq1"].frequency_id,
+        });
+    }
+    await prisma.period.createMany({ data: monthlyPeriods });
+
+    // Create periods for quarterly frequency (freq2 - รายไตรมาส)
     await prisma.period.createMany({
         data: [
             {
@@ -102,7 +115,7 @@ async function main() {
                 start_date: new Date(`${currentYear}-06-01`),
                 end_date: new Date(`${currentYear + 1}-05-31`),
                 frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
-            }
+            },
         ],
     });
 
@@ -131,9 +144,9 @@ async function main() {
 
     // Seed Roles
     const roles = [
-        { name: "Administrator" },
-        { name: "Staff" },
-        { name: "Manager" },
+        { name: "ผู้ดูแลระบบ" },
+        { name: "ฝ่ายแผน" },
+        { name: "บุคลากร" },
     ];
     const roleRecords: Record<string, any> = {};
     for (let i = 0; i < roles.length; i++) {
@@ -146,20 +159,20 @@ async function main() {
     // Seed Users
     const users = [
         {
-            first_name: "Admin",
-            last_name: "User",
+            first_name: "แอดมิน",
+            last_name: "ดูแลระบบ",
             email: "admin@gmail.com",
             password: await bcrypt.hash("10", 10),
         },
         {
-            first_name: "Alice",
-            last_name: "Staff",
+            first_name: "อลิซ",
+            last_name: "ฝ่ายแผน",
             email: "alice@gmail.com",
             password: await bcrypt.hash("11", 10),
         },
         {
-            first_name: "Bob",
-            last_name: "Manager",
+            first_name: "บ๊อบ",
+            last_name: "บุคลากร",
             email: "bob@gmail.com",
             password: await bcrypt.hash("12", 10),
         },
@@ -181,11 +194,11 @@ async function main() {
             },
             {
                 user_id: userRecords["user2"].user_id,
-                role_id: roleRecords["role2"].role_id, // Staff role
+                role_id: roleRecords["role2"].role_id,
             },
             {
                 user_id: userRecords["user3"].user_id,
-                role_id: roleRecords["role3"].role_id, // Manager role
+                role_id: roleRecords["role3"].role_id,
             },
         ],
     });
@@ -416,7 +429,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // Sub-indicator of HR main indicator
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            frequency_id: frequencyRecords["freq1"].frequency_id, 
+            frequency_id: frequencyRecords["freq1"].frequency_id,
             status: "Active",
             date: new Date(),
         },
@@ -427,7 +440,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // Sub-indicator of Academic main indicator
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            frequency_id: frequencyRecords["freq3"].frequency_id, 
+            frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
             date: new Date(),
         },
