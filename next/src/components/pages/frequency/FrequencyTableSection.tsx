@@ -2,70 +2,53 @@
 
 import CustomModal from "@/components/ui/custom-modal";
 import ConfirmModal from "@/components/ui/confirm-modal";
-import { Employee, JobTitle, EmployeeFormData, Role } from "@/types/employee";
-
+import { Frequency, FrequencyFormData } from "@/types/frequency";
+import { useMemo, useState } from "react";
 import {
-    Box,
+    Alert,
+    Button,
     Card,
     CardContent,
-    Typography,
+    Chip,
+    CircularProgress,
+    IconButton,
+    InputAdornment,
+    Snackbar,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
-    TableRow,
-    IconButton,
-    Chip,
-    Alert,
-    CircularProgress,
     TablePagination,
-    Snackbar,
-    Tooltip,
-    Avatar,
-    Button,
+    TableRow,
     TextField,
-    InputAdornment,
+    Tooltip,
+    Typography,
     FormControl,
     InputLabel,
     Select,
     MenuItem,
 } from "@mui/material";
-import {
-    Edit,
-    Trash2,
-    User,
-    Search,
-    Plus,
-    Download,
-    Upload,
-} from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
-import EmployeeAddEdit from "./EmployeeAdd&Edit";
-import { EmployeeService } from "@/server/services/employee/employee-client-service";
+import { Calendar, Edit, Plus, Search, Trash2 } from "lucide-react";
+import { Box } from "@mui/material";
+import FrequencyAddEdit from "./FrequencyAdd&Edit";
+import FrequencyAddEditV2 from "./FrequencyAdd&EditV2";
 
-interface EmployeeTableSectionProps {
-    employees: Employee[];
-    jobTitles: JobTitle[];
+interface FrequencyTableSectionProps {
+    frequencies: Frequency[];
     loading: boolean;
     error: string | null;
     onRefresh?: () => void;
 }
 
-export default function EmployeeTableSection({
-    employees,
-    jobTitles,
+export default function FrequencyTableSection({
+    frequencies,
     loading,
     error,
     onRefresh,
-}: EmployeeTableSectionProps) {
+}: FrequencyTableSectionProps) {
     // Search and filter states
     const [searchTerm, setSearchTerm] = useState<string>("");
-    const [selectedDepartment, setSelectedDepartment] = useState<string>("");
-
-    // Data states for form
-    const [roles, setRoles] = useState<Role[]>([]);
-    const [loadingRoles, setLoadingRoles] = useState<boolean>(true);
 
     // Pagination
     const [page, setPage] = useState<number>(0);
@@ -74,13 +57,11 @@ export default function EmployeeTableSection({
     // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
-        null
-    );
+    const [selectedFrequency, setSelectedFrequency] =
+        useState<Frequency | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(
-        null
-    );
+    const [frequencyToDelete, setFrequencyToDelete] =
+        useState<Frequency | null>(null);
 
     // Alert states
     const [alertOpen, setAlertOpen] = useState(false);
@@ -99,23 +80,6 @@ export default function EmployeeTableSection({
         setAlertOpen(true);
     };
 
-    useEffect(() => {
-        const fetchRoles = async () => {
-            try {
-                setLoadingRoles(true);
-                const rolesData = await EmployeeService.getRoles();
-                setRoles(rolesData);
-            } catch (error) {
-                console.error("Error fetching roles:", error);
-                showAlert("ไม่สามารถโหลดข้อมูลตำแหน่งได้", "error");
-            } finally {
-                setLoadingRoles(false);
-            }
-        };
-
-        fetchRoles();
-    }, []);
-
     const handleCloseAlert = (
         event?: React.SyntheticEvent | Event,
         reason?: string
@@ -126,31 +90,21 @@ export default function EmployeeTableSection({
         setAlertOpen(false);
     };
 
-    // Filter employees based on search term and department
-    const filteredEmployees = useMemo(() => {
-        return employees.filter((employee) => {
-            const matchesSearch =
-                employee.first_name
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()) ||
-                employee.last_name
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()) ||
-                employee.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-            const matchesJobTitle =
-                !selectedDepartment ||
-                employee.job_titles.some((jt) => jt.id === selectedDepartment);
-
-            return matchesSearch && matchesJobTitle;
+    // Filter frequencies based on search term only
+    const filteredFrequencies = useMemo(() => {
+        return frequencies.filter((frequency) => {
+            const matchesSearch = frequency.name
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase());
+            return matchesSearch;
         });
-    }, [employees, searchTerm, selectedDepartment]);
+    }, [frequencies, searchTerm]);
 
     // Paginated data
-    const paginatedEmployees = useMemo(() => {
+    const paginatedFrequencies = useMemo(() => {
         const startIndex = page * rowsPerPage;
-        return filteredEmployees.slice(startIndex, startIndex + rowsPerPage);
-    }, [filteredEmployees, page, rowsPerPage]);
+        return filteredFrequencies.slice(startIndex, startIndex + rowsPerPage);
+    }, [filteredFrequencies, page, rowsPerPage]);
 
     const handleChangePage = (event: unknown, newPage: number) => {
         setPage(newPage);
@@ -168,134 +122,123 @@ export default function EmployeeTableSection({
         setPage(0);
     };
 
-    const handleDepartmentChange = (event: any) => {
-        setSelectedDepartment(event.target.value);
-        setPage(0);
-    };
-
-    const handleAddEmployee = () => {
+    const handleAddFrequency = () => {
         setIsAddModalOpen(true);
     };
 
-    const handleAddEmployeeSubmit = async (formData: EmployeeFormData) => {
+    const handleAddFrequencySubmit = async (formData: FrequencyFormData) => {
         try {
-            const statusCode = await EmployeeService.createEmployeeWithStatus(
-                formData
-            );
+            const response = await fetch("/api/frequency", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
 
-            if (statusCode === 201) {
+            if (response.status === 201) {
                 setIsAddModalOpen(false);
-                showAlert("เพิ่มบุคลากรสำเร็จ!", "success");
+                showAlert("เพิ่มความถี่สำเร็จ!", "success");
                 if (onRefresh) {
                     onRefresh();
                 }
-            } else if (statusCode === 400) {
+            } else if (response.status === 400) {
                 showAlert(
                     "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
                     "error"
                 );
-            } else if (statusCode === 409) {
-                showAlert("บุคลากรคนนี้มีอยู่ในระบบแล้ว", "warning");
-            } else if (statusCode === 500) {
-                showAlert(
-                    "เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง",
-                    "error"
-                );
+            } else if (response.status === 409) {
+                showAlert("ความถี่นี้มีอยู่ในระบบแล้ว", "warning");
             } else {
-                showAlert("เกิดข้อผิดพลาดในการเพิ่มบุคลากร", "error");
+                showAlert("เกิดข้อผิดพลาดในการเพิ่มความถี่", "error");
             }
         } catch (error) {
-            console.error("Error creating employee:", error);
+            console.error("Error adding frequency:", error);
             showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
         }
     };
 
-    const handleEditEmployee = (employeeId: string) => {
-        const employee = employees.find((emp) => emp.id === employeeId);
-        if (employee) {
-            setSelectedEmployee(employee);
+    const handleEditFrequency = async (frequencyId: number) => {
+        try {
+            const response = await fetch(`/api/frequency/${frequencyId}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch frequency details");
+            }
+            const frequency = await response.json();
+            console.log("Loaded frequency for edit:", frequency);
+            console.log("Number of periods:", frequency.periods?.length || 0);
+            setSelectedFrequency(frequency);
             setIsEditModalOpen(true);
+        } catch (error) {
+            console.error("Error fetching frequency for edit:", error);
+            showAlert("เกิดข้อผิดพลาดในการโหลดข้อมูลความถี่", "error");
         }
     };
 
-    const handleEditEmployeeSubmit = async (formData: EmployeeFormData) => {
-        if (!selectedEmployee) return;
+    const handleEditFrequencySubmit = async (formData: FrequencyFormData) => {
+        if (!selectedFrequency) return;
 
         try {
-            const statusCode = await EmployeeService.updateEmployeeWithStatus(
-                selectedEmployee.id,
-                formData
+            const response = await fetch(
+                `/api/frequency/${selectedFrequency.frequency_id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                }
             );
 
-            if (statusCode === 200) {
+            if (response.status === 200) {
                 setIsEditModalOpen(false);
-                setSelectedEmployee(null);
-                showAlert("แก้ไขข้อมูลบุคลากรสำเร็จ!", "success");
+                setSelectedFrequency(null);
+                showAlert("แก้ไขความถี่สำเร็จ!", "success");
                 if (onRefresh) {
                     onRefresh();
                 }
-            } else if (statusCode === 400) {
+            } else if (response.status === 400) {
                 showAlert(
                     "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
                     "error"
                 );
-            } else if (statusCode === 404) {
-                showAlert("ไม่พบบุคลากรที่ต้องการแก้ไข", "error");
-            } else if (statusCode === 409) {
-                showAlert(
-                    "อีเมลนี้มีอยู่ในระบบแล้ว กรุณาเปลี่ยนอีเมล",
-                    "warning"
-                );
-            } else if (statusCode === 500) {
-                showAlert(
-                    "เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง",
-                    "error"
-                );
+            } else if (response.status === 404) {
+                showAlert("ไม่พบความถี่ที่ต้องการแก้ไข", "error");
             } else {
-                showAlert("เกิดข้อผิดพลาดในการแก้ไขบุคลากร", "error");
+                showAlert("เกิดข้อผิดพลาดในการแก้ไขความถี่", "error");
             }
         } catch (error) {
-            console.error("Error updating employee:", error);
+            console.error("Error editing frequency:", error);
             showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
         }
     };
 
-    const handleExportExcel = () => {
-        // TODO
-        showAlert("ฟีเจอร์ส่งออก Excel จะพัฒนาในอนาคต", "info");
-    };
-
-    const handleImportExcel = () => {
-        // TODO
-        showAlert("ฟีเจอร์นำเข้า Excel จะพัฒนาในอนาคต", "info");
-    };
-
-    const handleDeleteEmployee = (employeeId: string) => {
-        const employee = employees.find((emp) => emp.id === employeeId);
-        if (employee) {
-            setEmployeeToDelete(employee);
+    const handleDeleteFrequency = (frequencyId: number) => {
+        const frequency = frequencies.find(
+            (f) => f.frequency_id === frequencyId
+        );
+        if (frequency) {
+            setFrequencyToDelete(frequency);
             setIsDeleteModalOpen(true);
         }
     };
 
-    const handleDeleteEmployeeConfirm = async () => {
-        if (!employeeToDelete) return;
+    const handleConfirmDelete = async () => {
+        if (!frequencyToDelete) return;
 
         try {
             const response = await fetch(
-                `/api/employee/${employeeToDelete.id}`,
+                `/api/frequency/${frequencyToDelete.frequency_id}`,
                 {
                     method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
                 }
             );
 
-            if (response.ok) {
-                setIsDeleteModalOpen(false);
-                setEmployeeToDelete(null);
-                showAlert("ลบบุคลากรสำเร็จ!", "success");
+            setIsDeleteModalOpen(false);
+            setFrequencyToDelete(null);
+
+            if (response.status === 200) {
+                showAlert("ลบความถี่สำเร็จ!", "success");
                 if (onRefresh) {
                     onRefresh();
                 }
@@ -303,22 +246,29 @@ export default function EmployeeTableSection({
                 const data = await response.json();
                 showAlert(
                     data.error ||
-                        "ไม่สามารถลบบุคลากรที่มีตัวชี้วัดที่เกี่ยวข้องได้",
+                        "ไม่สามารถลบความถี่ที่มีตัวชี้วัดที่เกี่ยวข้องได้",
                     "warning"
                 );
             } else if (response.status === 404) {
-                showAlert("ไม่พบบุคลากรที่ต้องการลบ", "error");
+                showAlert("ไม่พบความถี่ที่ต้องการลบ", "error");
             } else {
-                showAlert("เกิดข้อผิดพลาดในการลบบุคลากร", "error");
+                showAlert("เกิดข้อผิดพลาดในการลบความถี่", "error");
             }
         } catch (error) {
-            console.error("Error deleting employee:", error);
+            console.error("Error deleting frequency:", error);
             showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
         }
     };
 
-    const getInitials = (firstName: string, lastName: string) => {
-        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    const formatDateRange = (periods: any[]) => {
+        if (!periods || periods.length === 0) return "ไม่มีข้อมูล";
+        if (periods.length === 1) {
+            const period = periods[0];
+            return `${new Date(period.start_date).toLocaleDateString(
+                "th-TH"
+            )} - ${new Date(period.end_date).toLocaleDateString("th-TH")}`;
+        }
+        return `${periods.length} ช่วงเวลา`;
     };
 
     if (loading) {
@@ -395,7 +345,7 @@ export default function EmployeeTableSection({
                                 gap: 2,
                             }}
                         >
-                            <User size={24} color="#3b82f6" />
+                            <Calendar size={24} color="#3b82f6" />
                             <Typography
                                 variant="h6"
                                 sx={{
@@ -403,7 +353,7 @@ export default function EmployeeTableSection({
                                     color: "#1e293b",
                                 }}
                             >
-                                บุคลากรทั้งหมด ({filteredEmployees.length})
+                                รายการความถี่ ({filteredFrequencies.length})
                             </Typography>
                         </Box>
 
@@ -417,10 +367,10 @@ export default function EmployeeTableSection({
                         >
                             {/* Search Bar */}
                             <TextField
-                                placeholder="ค้นหาบุคลากร..."
-                                size="small"
+                                placeholder="ค้นหาความถี่..."
                                 value={searchTerm}
                                 onChange={handleSearch}
+                                size="small"
                                 sx={{
                                     width: { xs: "100%", sm: "200px" },
                                     "& .MuiOutlinedInput-root": {
@@ -443,44 +393,9 @@ export default function EmployeeTableSection({
                                 }}
                             />
 
-                            {/* Department Dropdown */}
-                            <FormControl size="small" sx={{ minWidth: 150 }}>
-                                <InputLabel id="department-select-label">
-                                    หน่วยงาน
-                                </InputLabel>
-                                <Select
-                                    labelId="department-select-label"
-                                    value={selectedDepartment}
-                                    label="หน่วยงาน"
-                                    onChange={handleDepartmentChange}
-                                    sx={{
-                                        borderRadius: "12px",
-                                        backgroundColor: "#f8fafc",
-                                        "&:hover .MuiOutlinedInput-notchedOutline":
-                                            {
-                                                borderColor: "#8b5cf6",
-                                            },
-                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                            {
-                                                borderColor: "#8b5cf6",
-                                            },
-                                    }}
-                                >
-                                    <MenuItem value="">ทั้งหมด</MenuItem>
-                                    {jobTitles.map((jobTitle) => (
-                                        <MenuItem
-                                            key={jobTitle.id}
-                                            value={jobTitle.id}
-                                        >
-                                            {jobTitle.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            {/* Action Buttons */}
+                            {/* Add Frequency Button */}
                             <Tooltip
-                                title="ส่งออกข้อมูล Excel"
+                                title="เพิ่มความถี่ใหม่"
                                 arrow
                                 placement="top"
                                 componentsProps={{
@@ -502,92 +417,7 @@ export default function EmployeeTableSection({
                                 }}
                             >
                                 <Button
-                                    onClick={handleExportExcel}
-                                    startIcon={<Upload size={18} />}
-                                    sx={{
-                                        backgroundColor: "#f59e0b",
-                                        color: "white",
-                                        textTransform: "none",
-                                        fontWeight: 600,
-                                        px: 2,
-                                        py: 1,
-                                        borderRadius: "12px",
-                                        "&:hover": {
-                                            backgroundColor: "#d97706",
-                                        },
-                                    }}
-                                >
-                                    ส่งออก
-                                </Button>
-                            </Tooltip>
-
-                            <Tooltip
-                                title="นำเข้าข้อมูล Excel"
-                                arrow
-                                placement="top"
-                                componentsProps={{
-                                    tooltip: {
-                                        sx: {
-                                            backgroundColor: "#1e293b",
-                                            color: "white",
-                                            borderRadius: "8px",
-                                            boxShadow:
-                                                "0 4px 12px rgba(0,0,0,0.15)",
-                                            fontSize: "0.875rem",
-                                        },
-                                    },
-                                    arrow: {
-                                        sx: {
-                                            color: "#1e293b",
-                                        },
-                                    },
-                                }}
-                            >
-                                <Button
-                                    onClick={handleImportExcel}
-                                    startIcon={<Download size={18} />}
-                                    sx={{
-                                        backgroundColor: "#10b981",
-
-                                        color: "white",
-                                        textTransform: "none",
-                                        fontWeight: 600,
-                                        px: 2,
-                                        py: 1,
-                                        borderRadius: "12px",
-                                        "&:hover": {
-                                            backgroundColor: "#059669",
-                                        },
-                                    }}
-                                >
-                                    นำเข้า
-                                </Button>
-                            </Tooltip>
-
-                            <Tooltip
-                                title="เพิ่มบุคลากรใหม่"
-                                arrow
-                                placement="top"
-                                componentsProps={{
-                                    tooltip: {
-                                        sx: {
-                                            backgroundColor: "#1e293b",
-                                            color: "white",
-                                            borderRadius: "8px",
-                                            boxShadow:
-                                                "0 4px 12px rgba(0,0,0,0.15)",
-                                            fontSize: "0.875rem",
-                                        },
-                                    },
-                                    arrow: {
-                                        sx: {
-                                            color: "#1e293b",
-                                        },
-                                    },
-                                }}
-                            >
-                                <Button
-                                    onClick={handleAddEmployee}
+                                    onClick={handleAddFrequency}
                                     startIcon={<Plus size={18} />}
                                     sx={{
                                         backgroundColor: "#8b5cf6",
@@ -602,7 +432,7 @@ export default function EmployeeTableSection({
                                         },
                                     }}
                                 >
-                                    เพิ่มบุคลากร
+                                    เพิ่มความถี่
                                 </Button>
                             </Tooltip>
                         </Box>
@@ -621,7 +451,7 @@ export default function EmployeeTableSection({
                                             py: 2,
                                         }}
                                     >
-                                        ชื่อ-นามสกุล
+                                        ลำดับ
                                     </TableCell>
                                     <TableCell
                                         sx={{
@@ -631,18 +461,7 @@ export default function EmployeeTableSection({
                                             py: 2,
                                         }}
                                     >
-                                        อีเมล
-                                    </TableCell>
-                                    <TableCell
-                                        sx={{
-                                            fontWeight: "bold",
-                                            color: "#475569",
-                                            border: "none",
-                                            py: 2,
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        หน่วยงาน
+                                        ชื่อความถี่
                                     </TableCell>
                                     <TableCell
                                         sx={{
@@ -653,7 +472,18 @@ export default function EmployeeTableSection({
                                             textAlign: "center",
                                         }}
                                     >
-                                        ตำแหน่ง
+                                        ช่วงเวลา
+                                    </TableCell>
+                                    <TableCell
+                                        sx={{
+                                            fontWeight: "bold",
+                                            color: "#475569",
+                                            border: "none",
+                                            py: 2,
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        จำนวนตัวชี้วัด
                                     </TableCell>
                                     <TableCell
                                         sx={{
@@ -669,28 +499,27 @@ export default function EmployeeTableSection({
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {paginatedEmployees.length === 0 ? (
+                                {paginatedFrequencies.length === 0 ? (
                                     <TableRow>
                                         <TableCell
                                             colSpan={5}
                                             sx={{ textAlign: "center", py: 4 }}
                                         >
                                             <Typography color="#64748b">
-                                                {searchTerm ||
-                                                selectedDepartment
-                                                    ? "ไม่พบบุคลากรที่ค้นหา"
-                                                    : "ไม่มีข้อมูลบุคลากร"}
+                                                {searchTerm
+                                                    ? "ไม่พบความถี่ที่ค้นหา"
+                                                    : "ไม่มีข้อมูลความถี่"}
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    paginatedEmployees.map(
-                                        (employee, index) => {
-                                            const actualIndex =
-                                                page * rowsPerPage + index;
+                                    paginatedFrequencies.map(
+                                        (frequency, index) => {
+                                            const orderNumber =
+                                                page * rowsPerPage + index + 1;
                                             return (
                                                 <TableRow
-                                                    key={employee.id}
+                                                    key={frequency.frequency_id}
                                                     sx={{
                                                         "&:hover": {
                                                             backgroundColor:
@@ -700,70 +529,7 @@ export default function EmployeeTableSection({
                                                             "1px solid #f1f5f9",
                                                     }}
                                                 >
-                                                    {/* Name Column */}
-                                                    <TableCell
-                                                        sx={{
-                                                            border: "none",
-                                                            py: 2.5,
-                                                        }}
-                                                    >
-                                                        <Box
-                                                            sx={{
-                                                                display: "flex",
-                                                                alignItems:
-                                                                    "center",
-                                                                gap: 2,
-                                                            }}
-                                                        >
-                                                            <Avatar
-                                                                sx={{
-                                                                    width: 40,
-                                                                    height: 40,
-                                                                    backgroundColor:
-                                                                        "#8b5cf6",
-                                                                    color: "white",
-                                                                    fontSize:
-                                                                        "0.875rem",
-                                                                    fontWeight:
-                                                                        "600",
-                                                                }}
-                                                            >
-                                                                {getInitials(
-                                                                    employee.first_name,
-                                                                    employee.last_name
-                                                                )}
-                                                            </Avatar>
-                                                            <Box>
-                                                                <Typography
-                                                                    sx={{
-                                                                        fontWeight:
-                                                                            "600",
-                                                                        color: "#1e293b",
-                                                                    }}
-                                                                >
-                                                                    {
-                                                                        employee.first_name
-                                                                    }{" "}
-                                                                    {
-                                                                        employee.last_name
-                                                                    }
-                                                                </Typography>
-                                                                <Typography
-                                                                    sx={{
-                                                                        fontSize:
-                                                                            "0.75rem",
-                                                                        color: "#64748b",
-                                                                    }}
-                                                                >
-                                                                    ID:{" "}
-                                                                    {actualIndex +
-                                                                        1}
-                                                                </Typography>
-                                                            </Box>
-                                                        </Box>
-                                                    </TableCell>
-
-                                                    {/* Email Column */}
+                                                    {/* Order Number Column */}
                                                     <TableCell
                                                         sx={{
                                                             border: "none",
@@ -771,66 +537,35 @@ export default function EmployeeTableSection({
                                                         }}
                                                     >
                                                         <Typography
+                                                            variant="body2"
                                                             sx={{
-                                                                color: "#64748b",
-                                                                fontSize:
-                                                                    "0.875rem",
+                                                                fontWeight:
+                                                                    "600",
+                                                                color: "#374151",
                                                             }}
                                                         >
-                                                            {employee.email}
+                                                            {orderNumber}
                                                         </Typography>
                                                     </TableCell>
 
-                                                    {/* Job Title Column */}
+                                                    {/* Name Column */}
                                                     <TableCell
                                                         sx={{
                                                             border: "none",
                                                             py: 2.5,
-                                                            textAlign: "center",
                                                         }}
                                                     >
-                                                        {employee.job_titles
-                                                            .length > 0 ? (
-                                                            employee.job_titles.map(
-                                                                (
-                                                                    jobTitle,
-                                                                    index
-                                                                ) => (
-                                                                    <Chip
-                                                                        key={
-                                                                            jobTitle.id
-                                                                        }
-                                                                        label={
-                                                                            jobTitle.name
-                                                                        }
-                                                                        size="small"
-                                                                        sx={{
-                                                                            backgroundColor:
-                                                                                "#f1f5f9",
-                                                                            color: "#475569",
-                                                                            fontWeight:
-                                                                                "600",
-                                                                            margin: "2px",
-                                                                        }}
-                                                                    />
-                                                                )
-                                                            )
-                                                        ) : (
-                                                            <Chip
-                                                                label="ไม่ได้ระบุตำแหน่ง"
-                                                                size="small"
-                                                                sx={{
-                                                                    backgroundColor:
-                                                                        "#fee2e2",
-                                                                    color: "#dc2626",
-                                                                    fontWeight:
-                                                                        "600",
-                                                                }}
-                                                            />
-                                                        )}
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: "#374151",
+                                                            }}
+                                                        >
+                                                            {frequency.name}
+                                                        </Typography>
                                                     </TableCell>
 
-                                                    {/* Role Column */}
+                                                    {/* Periods Column */}
                                                     <TableCell
                                                         sx={{
                                                             border: "none",
@@ -838,45 +573,38 @@ export default function EmployeeTableSection({
                                                             textAlign: "center",
                                                         }}
                                                     >
-                                                        {employee.roles.length >
-                                                        0 ? (
-                                                            employee.roles.map(
-                                                                (
-                                                                    role,
-                                                                    index
-                                                                ) => (
-                                                                    <Chip
-                                                                        key={
-                                                                            role.id
-                                                                        }
-                                                                        label={
-                                                                            role.name
-                                                                        }
-                                                                        size="small"
-                                                                        sx={{
-                                                                            backgroundColor:
-                                                                                "#f1f5f9",
-                                                                            color: "#475569",
-                                                                            fontWeight:
-                                                                                "600",
-                                                                            margin: "2px",
-                                                                        }}
-                                                                    />
-                                                                )
-                                                            )
-                                                        ) : (
-                                                            <Chip
-                                                                label="ไม่ได้ระบุบทบาท"
-                                                                size="small"
-                                                                sx={{
-                                                                    backgroundColor:
-                                                                        "#fee2e2",
-                                                                    color: "#dc2626",
-                                                                    fontWeight:
-                                                                        "600",
-                                                                }}
-                                                            />
-                                                        )}
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: "#374151",
+                                                            }}
+                                                        >
+                                                            {formatDateRange(
+                                                                frequency.periods
+                                                            )}
+                                                        </Typography>
+                                                    </TableCell>
+
+                                                    {/* Indicator Count Column */}
+                                                    <TableCell
+                                                        sx={{
+                                                            border: "none",
+                                                            py: 2.5,
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: "#374151",
+                                                                fontWeight:
+                                                                    "500",
+                                                            }}
+                                                        >
+                                                            {frequency.indicatorCount ||
+                                                                0}{" "}
+                                                            ตัวชี้วัด
+                                                        </Typography>
                                                     </TableCell>
 
                                                     {/* Manage Column */}
@@ -896,7 +624,7 @@ export default function EmployeeTableSection({
                                                             }}
                                                         >
                                                             <Tooltip
-                                                                title="แก้ไขข้อมูลบุคลากร"
+                                                                title="แก้ไขข้อมูลความถี่"
                                                                 arrow
                                                                 placement="top"
                                                                 componentsProps={{
@@ -922,8 +650,8 @@ export default function EmployeeTableSection({
                                                             >
                                                                 <IconButton
                                                                     onClick={() =>
-                                                                        handleEditEmployee(
-                                                                            employee.id
+                                                                        handleEditFrequency(
+                                                                            frequency.frequency_id
                                                                         )
                                                                     }
                                                                     size="small"
@@ -945,7 +673,7 @@ export default function EmployeeTableSection({
                                                                 </IconButton>
                                                             </Tooltip>
                                                             <Tooltip
-                                                                title="ลบบุคลากรออกจากระบบ"
+                                                                title="ลบความถี่ออกจากระบบ"
                                                                 arrow
                                                                 placement="top"
                                                                 componentsProps={{
@@ -971,8 +699,8 @@ export default function EmployeeTableSection({
                                                             >
                                                                 <IconButton
                                                                     onClick={() =>
-                                                                        handleDeleteEmployee(
-                                                                            employee.id
+                                                                        handleDeleteFrequency(
+                                                                            frequency.frequency_id
                                                                         )
                                                                     }
                                                                     size="small"
@@ -1005,7 +733,7 @@ export default function EmployeeTableSection({
                     </TableContainer>
 
                     {/* Pagination */}
-                    {filteredEmployees.length > 0 && (
+                    {filteredFrequencies.length > 0 && (
                         <Box
                             sx={{
                                 borderTop: "1px solid #f1f5f9",
@@ -1014,7 +742,7 @@ export default function EmployeeTableSection({
                         >
                             <TablePagination
                                 component="div"
-                                count={filteredEmployees.length}
+                                count={filteredFrequencies.length}
                                 page={page}
                                 onPageChange={handleChangePage}
                                 rowsPerPage={rowsPerPage}
@@ -1045,47 +773,51 @@ export default function EmployeeTableSection({
                 </CardContent>
             </Card>
 
-            {/* Add Employee Modal */}
+            {/* Add Frequency Modal */}
             <CustomModal
                 open={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
-                title="เพิ่มบุคลากรใหม่"
+                title="เพิ่มความถี่ใหม่"
                 maxWidth="md"
                 showActions={false}
             >
-                <EmployeeAddEdit
-                    jobTitles={jobTitles}
-                    roles={roles}
-                    onSubmit={handleAddEmployeeSubmit}
+                {/* <FrequencyAddEdit
+                    onSubmit={handleAddFrequencySubmit}
                     onCancel={() => setIsAddModalOpen(false)}
-                    loading={loadingRoles}
+                /> */}
+                <FrequencyAddEditV2
+                    onSubmit={handleAddFrequencySubmit}
+                    onCancel={() => setIsAddModalOpen(false)}
                 />
             </CustomModal>
 
-            {/* Edit Employee Modal */}
+            {/* Edit Frequency Modal */}
             <CustomModal
                 open={isEditModalOpen}
                 onClose={() => {
                     setIsEditModalOpen(false);
-                    setSelectedEmployee(null);
+                    setSelectedFrequency(null);
                 }}
-                title="แก้ไขข้อมูลบุคลากร"
+                title="แก้ไขข้อมูลความถี่"
                 maxWidth="md"
                 showActions={false}
             >
-                {selectedEmployee && (
-                    <EmployeeAddEdit
-                        initialData={selectedEmployee}
-                        jobTitles={jobTitles}
-                        roles={roles}
-                        onSubmit={handleEditEmployeeSubmit}
-                        onCancel={() => {
-                            setIsEditModalOpen(false);
-                            setSelectedEmployee(null);
-                        }}
-                        loading={loadingRoles}
-                    />
-                )}
+                {/* <FrequencyAddEdit
+                    frequency={selectedFrequency}
+                    onSubmit={handleEditFrequencySubmit}
+                    onCancel={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedFrequency(null);
+                    }}
+                /> */}
+                <FrequencyAddEditV2
+                    frequency={selectedFrequency}
+                    onSubmit={handleEditFrequencySubmit}
+                    onCancel={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedFrequency(null);
+                    }}
+                />
             </CustomModal>
 
             {/* Delete Confirmation Modal */}
@@ -1093,21 +825,17 @@ export default function EmployeeTableSection({
                 open={isDeleteModalOpen}
                 onClose={() => {
                     setIsDeleteModalOpen(false);
-                    setEmployeeToDelete(null);
+                    setFrequencyToDelete(null);
                 }}
-                onConfirm={handleDeleteEmployeeConfirm}
-                title="ยืนยันการลบบุคลากร"
-                message={
-                    employeeToDelete
-                        ? `คุณแน่ใจหรือไม่ที่จะลบบุคลากร "${employeeToDelete.first_name} ${employeeToDelete.last_name}" ออกจากระบบ?`
-                        : ""
-                }
+                onConfirm={handleConfirmDelete}
+                title="ยืนยันการลบความถี่"
+                message={`คุณแน่ใจหรือไม่ที่จะลบความถี่ "${frequencyToDelete?.name}" ออกจากระบบ?`}
                 confirmText="ลบ"
                 cancelText="ยกเลิก"
                 severity="error"
             />
 
-            {/* Snackbar for notifications */}
+            {/* Alert Snackbar */}
             <Snackbar
                 open={alertOpen}
                 autoHideDuration={6000}

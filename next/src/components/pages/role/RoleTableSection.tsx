@@ -115,43 +115,43 @@ export default function RoleTableSection({
         setPage(0);
     };
 
-    const handleAddRole = () => {
-        setIsAddModalOpen(true);
-    };
+    // const handleAddRole = () => {
+    //     setIsAddModalOpen(true);
+    // };
 
-    const handleAddRoleSubmit = async (formData: RoleFormData) => {
-        try {
-            const response = await fetch("/api/role", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
+    // const handleAddRoleSubmit = async (formData: RoleFormData) => {
+    //     try {
+    //         const response = await fetch("/api/role", {
+    //             method: "POST",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //             },
+    //             body: JSON.stringify(formData),
+    //         });
 
-            if (response.status === 201) {
-                setIsAddModalOpen(false);
-                showAlert("เพิ่มตำแหน่งสำเร็จ!", "success");
-                if (onRefresh) {
-                    onRefresh();
-                }
-            } else if (response.status === 400) {
-                showAlert(
-                    "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
-                    "error"
-                );
-            } else if (response.status === 409) {
-                showAlert("ตำแหน่งนี้มีอยู่ในระบบแล้ว", "warning");
-            } else if (response.status === 500) {
-                showAlert("เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์", "error");
-            } else {
-                showAlert("เกิดข้อผิดพลาดที่ไม่คาดคิด", "error");
-            }
-        } catch (error) {
-            console.error("Error adding role:", error);
-            showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
-        }
-    };
+    //         if (response.status === 201) {
+    //             setIsAddModalOpen(false);
+    //             showAlert("เพิ่มตำแหน่งสำเร็จ!", "success");
+    //             if (onRefresh) {
+    //                 onRefresh();
+    //             }
+    //         } else if (response.status === 400) {
+    //             showAlert(
+    //                 "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
+    //                 "error"
+    //             );
+    //         } else if (response.status === 409) {
+    //             showAlert("ตำแหน่งนี้มีอยู่ในระบบแล้ว", "warning");
+    //         } else if (response.status === 500) {
+    //             showAlert("เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์", "error");
+    //         } else {
+    //             showAlert("เกิดข้อผิดพลาดที่ไม่คาดคิด", "error");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error adding role:", error);
+    //         showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+    //     }
+    // };
 
     const handleEditRole = (roleId: string) => {
         const role = roles.find((j) => j.id === roleId);
@@ -198,47 +198,47 @@ export default function RoleTableSection({
         }
     };
 
-    const handleDeleteRole = (roleId: string) => {
-        const role = roles.find((j) => j.id === roleId);
-        if (role) {
-            setRoleToDelete(role);
-            setIsDeleteModalOpen(true);
-        }
-    };
+    // const handleDeleteRole = (roleId: string) => {
+    //     const role = roles.find((j) => j.id === roleId);
+    //     if (role) {
+    //         setRoleToDelete(role);
+    //         setIsDeleteModalOpen(true);
+    //     }
+    // };
 
-    const handleConfirmDelete = async () => {
-        if (!roleToDelete) return;
+    // const handleConfirmDelete = async () => {
+    //     if (!roleToDelete) return;
 
-        try {
-            const response = await fetch(`/api/role/${roleToDelete.id}`, {
-                method: "DELETE",
-            });
+    //     try {
+    //         const response = await fetch(`/api/role/${roleToDelete.id}`, {
+    //             method: "DELETE",
+    //         });
 
-            setIsDeleteModalOpen(false);
-            setRoleToDelete(null);
+    //         setIsDeleteModalOpen(false);
+    //         setRoleToDelete(null);
 
-            if (response.status === 200) {
-                showAlert("ลบหตำแหน่งสำเร็จ!", "success");
-                if (onRefresh) {
-                    onRefresh();
-                }
-            } else if (response.status === 400) {
-                const data = await response.json();
-                showAlert(
-                    data.error ||
-                        "ไม่สามารถลบหตำแหน่งที่มีบุคลากรที่เกี่ยวข้องได้",
-                    "warning"
-                );
-            } else if (response.status === 404) {
-                showAlert("ไม่พบหตำแหน่งที่ต้องการลบ", "error");
-            } else {
-                showAlert("เกิดข้อผิดพลาดในการลบหตำแหน่ง", "error");
-            }
-        } catch (error) {
-            console.error("Error deleting role:", error);
-            showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
-        }
-    };
+    //         if (response.status === 200) {
+    //             showAlert("ลบหตำแหน่งสำเร็จ!", "success");
+    //             if (onRefresh) {
+    //                 onRefresh();
+    //             }
+    //         } else if (response.status === 400) {
+    //             const data = await response.json();
+    //             showAlert(
+    //                 data.error ||
+    //                     "ไม่สามารถลบหตำแหน่งที่มีบุคลากรที่เกี่ยวข้องได้",
+    //                 "warning"
+    //             );
+    //         } else if (response.status === 404) {
+    //             showAlert("ไม่พบหตำแหน่งที่ต้องการลบ", "error");
+    //         } else {
+    //             showAlert("เกิดข้อผิดพลาดในการลบหตำแหน่ง", "error");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error deleting role:", error);
+    //         showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+    //     }
+    // };
 
     if (loading) {
         return (
@@ -363,7 +363,7 @@ export default function RoleTableSection({
                             />
 
                             {/* Add Role Button */}
-                            <Tooltip
+                            {/*<Tooltip
                                 title="เพิ่มตำแหน่งใหม่"
                                 arrow
                                 placement="top"
@@ -403,7 +403,7 @@ export default function RoleTableSection({
                                 >
                                     เพิ่มตำแหน่ง
                                 </Button>
-                            </Tooltip>
+                            </Tooltip>*/}
                         </Box>
                     </Box>
 
@@ -493,25 +493,15 @@ export default function RoleTableSection({
                                                         py: 2.5,
                                                     }}
                                                 >
-                                                    <Box
+                                                    <Typography
+                                                        variant="body2"
                                                         sx={{
-                                                            width: 24,
-                                                            height: 24,
-                                                            borderRadius: "50%",
-                                                            backgroundColor:
-                                                                "#8b5cf6",
-                                                            color: "white",
-                                                            display: "flex",
-                                                            alignItems:
-                                                                "center",
-                                                            justifyContent:
-                                                                "center",
-                                                            fontSize: "0.75rem",
                                                             fontWeight: "600",
+                                                            color: "#374151",
                                                         }}
                                                     >
                                                         {orderNumber}
-                                                    </Box>
+                                                    </Typography>
                                                 </TableCell>
 
                                                 {/* Name Column */}
@@ -524,8 +514,7 @@ export default function RoleTableSection({
                                                     <Typography
                                                         variant="body2"
                                                         sx={{
-                                                            fontWeight: "600",
-                                                            color: "#1e293b",
+                                                            color: "#374151",
                                                         }}
                                                     >
                                                         {role.name}
@@ -541,19 +530,17 @@ export default function RoleTableSection({
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    <Chip
-                                                        label={`${
-                                                            role.employeeCount ||
-                                                            0
-                                                        } คน`}
-                                                        size="small"
+                                                    <Typography
+                                                        variant="body2"
                                                         sx={{
-                                                            backgroundColor:
-                                                                "#f1f5f9",
-                                                            color: "#475569",
-                                                            fontWeight: "600",
+                                                            color: "#374151",
+                                                            fontWeight: "500",
                                                         }}
-                                                    />
+                                                    >
+                                                        {role.employeeCount ||
+                                                            0}{" "}
+                                                        คน
+                                                    </Typography>
                                                 </TableCell>
 
                                                 {/* Manage Column */}
@@ -618,7 +605,7 @@ export default function RoleTableSection({
                                                                 />
                                                             </IconButton>
                                                         </Tooltip>
-                                                        <Tooltip
+                                                        {/* <Tooltip
                                                             title="ลบตำแหน่งออกจากระบบ"
                                                             arrow
                                                             placement="top"
@@ -663,7 +650,7 @@ export default function RoleTableSection({
                                                                     size={16}
                                                                 />
                                                             </IconButton>
-                                                        </Tooltip>
+                                                        </Tooltip> */}
                                                     </Box>
                                                 </TableCell>
                                             </TableRow>
@@ -716,7 +703,7 @@ export default function RoleTableSection({
             </Card>
 
             {/* Add Role Modal */}
-            <CustomModal
+            {/* <CustomModal
                 open={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 title="เพิ่มตำแหน่งใหม่"
@@ -727,7 +714,7 @@ export default function RoleTableSection({
                     onSubmit={handleAddRoleSubmit}
                     onCancel={() => setIsAddModalOpen(false)}
                 />
-            </CustomModal>
+            </CustomModal> */}
 
             {/* Edit Role Modal */}
             <CustomModal
@@ -751,7 +738,7 @@ export default function RoleTableSection({
             </CustomModal>
 
             {/* Delete Confirmation Modal */}
-            <ConfirmModal
+            {/* <ConfirmModal
                 open={isDeleteModalOpen}
                 onClose={() => {
                     setIsDeleteModalOpen(false);
@@ -763,7 +750,7 @@ export default function RoleTableSection({
                 confirmText="ลบ"
                 cancelText="ยกเลิก"
                 severity="error"
-            />
+            /> */}
 
             {/* Alert Snackbar */}
             <Snackbar
