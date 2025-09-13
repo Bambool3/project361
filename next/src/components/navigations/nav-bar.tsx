@@ -185,7 +185,6 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             : {
                                   maxWidth: "1280px",
                                   mx: "auto",
-                                  px: { sm: 3, lg: 4 },
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "space-between",
