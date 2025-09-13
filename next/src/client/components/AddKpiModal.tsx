@@ -1,10 +1,10 @@
 "use client";
-
-import { useState } from "react";
+import { Select, MenuItem } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, ChevronDown, ChevronUp, Crosshair } from "lucide-react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
-import { Plus, Trash2, ChevronDown, ChevronUp, Crosshair } from "lucide-react";
 
 // Zod Schema
 const subKpiSchema = z.object({
@@ -17,8 +17,8 @@ const mainKpiSchema = z.object({
   name: z.string().min(2, "กรุณากรอกชื่อตัวชี้วัด").max(50),
   target: z.string().min(1, "กรุณากรอกเป้าหมาย"),
   format: z.string(),
-  year: z.string(),
-  department: z.string(),
+  frequency: z.string().min(1, "กรุณาเลือกรอบการรายงาน"),
+  jobtitle: z.string().min(1, "กรุณาเลือกหน่วยงาน"),
   subKpis: z.array(subKpiSchema),
 });
 
@@ -30,9 +30,17 @@ interface AddKpiModalProps {
   onSubmit: (data: FormData) => Promise<void>;
 }
 
+interface Frequency {
+  frequency_id: number;
+  name: string;
+}
+
+interface JobTitle {
+  jobtitle_id: number;
+  name: string;
+}
+
 const kpiFormats = ["1,234", "$1,234.56", "15%"];
-const kpiYears = ["รายวัน", "รายสัปดาห์", "รายเดือน", "รายไตรมาส", "รายปี"];
-const departments = ["ฝ่ายที่ 1", "ฝ่ายที่ 2", "ฝ่ายที่ 3"];
 
 export default function AddKpiModal({
   isOpen,
@@ -40,7 +48,35 @@ export default function AddKpiModal({
   onSubmit,
 }: AddKpiModalProps) {
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
+  const [frequencies, setFrequencies] = useState<Frequency[]>([]);
+  const [jobtitles, setJobTitle] = useState<JobTitle[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // ดีงข้อมูล ความถี่,แผนก
+  useEffect(() => {
+    Promise.all([
+      fetch("http://localhost:3000/api/frequency").then((res) => res.json()),
+      fetch("http://localhost:3000/api/jobTitle").then((res) => res.json()),
+    ])
+      .then(([freqData, jobData]) => {
+        setFrequencies(
+          freqData.map((f: any) => ({
+            frequency_id: f.frequency_id.toString(),
+            name: f.name,
+          }))
+        );
+        setJobTitle(
+          jobData.map((j: any) => ({
+            jobtitle_id: j.id,
+            name: j.jobTitle_name,
+          }))
+        );
+        setLoading(false);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  // ค่าเริ่มต้น
   const {
     control,
     handleSubmit,
@@ -52,12 +88,27 @@ export default function AddKpiModal({
       name: "",
       target: "",
       format: kpiFormats[0],
-      year: kpiYears[0],
-      department: departments[0],
+      frequency: "",
+      jobtitle: "",
       subKpis: [],
     },
   });
 
+  // ตั้ง ค่าเริ่มต้นหลัง หลัง fetch
+  useEffect(() => {
+    if (!loading && frequencies.length > 0 && jobtitles.length > 0) {
+      reset({
+        name: "",
+        target: "",
+        format: kpiFormats[0],
+        frequency: frequencies[0].frequency_id.toString(),
+        jobtitle: jobtitles[0].jobtitle_id.toString(),
+        subKpis: [],
+      });
+    }
+  }, [loading, frequencies, jobtitles, reset]);
+
+  // จัดการ เพิ่ม ลด ของ sub indicators
   const { fields, append, remove } = useFieldArray({
     control,
     name: "subKpis",
@@ -65,19 +116,16 @@ export default function AddKpiModal({
 
   if (!isOpen) return null;
 
+  // submit
   const submitForm = async (data: FormData) => {
-    // แสดงข้อมูลใน alert
     alert(JSON.stringify(data, null, 2));
-
-    // เรียก onSubmit ตามปกติ
     await onSubmit(data);
-
-    // รีเซ็ต form
     reset();
     setExpandedIndexes([]);
     onClose();
   };
 
+  // สลับการขยาย sub indicators
   const toggleExpand = (idx: number) => {
     setExpandedIndexes((prev) =>
       prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
@@ -86,18 +134,13 @@ export default function AddKpiModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-
-      {/* Modal */}
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl m-4 z-50 overflow-auto max-h-[90vh] transition-all duration-300">
         <form onSubmit={handleSubmit(submitForm)}>
           <div className="p-6 sm:p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               เพิ่มตัวชี้วัด
             </h2>
-
-            {/* Main KPI */}
             <div className="flex flex-row flex-wrap gap-4 mb-8">
               {/* Name */}
               <Controller
@@ -151,6 +194,7 @@ export default function AddKpiModal({
               />
 
               {/* Format */}
+
               <Controller
                 name="format"
                 control={control}
@@ -159,56 +203,121 @@ export default function AddKpiModal({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       รูปแบบข้อมูล
                     </label>
-                    <select
+                    <Select
                       {...field}
-                      className="px-4 py-2 border border-gray-300 rounded-lg w-full"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      displayEmpty
+                      variant="outlined"
+                      MenuProps={{ disablePortal: true }}
+                      sx={{
+                        width: "100%",
+                        borderRadius: "0.5rem",
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#d1d5db",
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#8b5cf6",
+                        },
+                        "& .MuiSelect-select": { px: 2, py: 1.1 },
+                      }}
                     >
                       {kpiFormats.map((f) => (
-                        <option key={f}>{f}</option>
+                        <MenuItem key={f} value={f}>
+                          {f}
+                        </MenuItem>
                       ))}
-                    </select>
+                    </Select>
+                    {errors.frequency && (
+                      <span className="text-red-500 text-xs">
+                        {errors.frequency.message}
+                      </span>
+                    )}
                   </div>
                 )}
               />
-
-              {/* Year */}
+              {/* Frequency */}
               <Controller
-                name="year"
+                name="frequency"
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       รอบการรายงาน
                     </label>
-                    <select
+                    <Select
                       {...field}
-                      className="px-4 py-2 border border-gray-300 rounded-lg w-full"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      displayEmpty
+                      variant="outlined"
+                      MenuProps={{ disablePortal: true }}
+                      sx={{
+                        width: "100%",
+                        borderRadius: "0.5rem",
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#d1d5db",
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#8b5cf6",
+                        },
+                        "& .MuiSelect-select": { px: 2, py: 1.1 },
+                      }}
                     >
-                      {kpiYears.map((y) => (
-                        <option key={y}>{y}</option>
+                      {frequencies.map((f) => (
+                        <MenuItem key={f.frequency_id} value={f.frequency_id}>
+                          {f.name}
+                        </MenuItem>
                       ))}
-                    </select>
+                    </Select>
+                    {errors.frequency && (
+                      <span className="text-red-500 text-xs">
+                        {errors.frequency.message}
+                      </span>
+                    )}
                   </div>
                 )}
               />
 
-              {/* Department */}
+              {/* JobTitle */}
               <Controller
-                name="department"
+                name="jobtitle"
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-col flex-1 min-w-[140px] max-w-[200px]">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ฝ่ายที่รับผิดชอบ
+                      หน่วยงาน
                     </label>
-                    <select
+                    <Select
                       {...field}
-                      className="px-4 py-2 border border-gray-300 rounded-lg w-full"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      displayEmpty
+                      variant="outlined"
+                      MenuProps={{ disablePortal: true }}
+                      sx={{
+                        width: "100%",
+                        borderRadius: "0.5rem",
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#d1d5db",
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#8b5cf6",
+                        },
+                        "& .MuiSelect-select": { px: 2, py: 1.1 },
+                      }}
                     >
-                      {departments.map((d) => (
-                        <option key={d}>{d}</option>
+                      {jobtitles.map((j) => (
+                        <MenuItem key={j.jobtitle_id} value={j.jobtitle_id}>
+                          {j.name}
+                        </MenuItem>
                       ))}
-                    </select>
+                    </Select>
+                    {errors.jobtitle && (
+                      <span className="text-red-500 text-xs">
+                        {errors.jobtitle.message}
+                      </span>
+                    )}
                   </div>
                 )}
               />
@@ -225,7 +334,6 @@ export default function AddKpiModal({
               >
                 <Plus className="w-4 h-4" /> เพิ่มตัวชี้วัดย่อย
               </button>
-
               {fields.length === 0 ? (
                 <div className="text-gray-500 text-sm mb-2">
                   ยังไม่มีตัวชี้วัดย่อย
@@ -257,10 +365,9 @@ export default function AddKpiModal({
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
-
                       {expandedIndexes.includes(idx) && (
                         <div className="flex flex-row flex-wrap items-end bg-gray-100 border-l-4 border-purple-400 p-4 mt-2 rounded-lg gap-4">
-                          {/* ชื่อ Sub-KPI */}
+                          {/* Sub-KPI Name */}
                           <Controller
                             name={`subKpis.${idx}.name`}
                             control={control}
@@ -271,7 +378,6 @@ export default function AddKpiModal({
                                 </label>
                                 <input
                                   {...field}
-                                  type="text"
                                   placeholder="ชื่อตัวชี้วัด"
                                   className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
                                   required
@@ -284,8 +390,7 @@ export default function AddKpiModal({
                               </div>
                             )}
                           />
-
-                          {/* เป้าหมาย Sub-KPI */}
+                          {/* Sub-KPI Target */}
                           <Controller
                             name={`subKpis.${idx}.target`}
                             control={control}
@@ -296,7 +401,6 @@ export default function AddKpiModal({
                                 </label>
                                 <input
                                   {...field}
-                                  type="text"
                                   placeholder="เป้าหมาย"
                                   className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
                                   required
