@@ -153,50 +153,50 @@ export default function RoleTableSection({
     //     }
     // };
 
-    const handleEditRole = (roleId: string) => {
-        const role = roles.find((j) => j.id === roleId);
-        if (role) {
-            setSelectedRole(role);
-            setIsEditModalOpen(true);
-        }
-    };
+    // const handleEditRole = (roleId: string) => {
+    //     const role = roles.find((j) => j.id === roleId);
+    //     if (role) {
+    //         setSelectedRole(role);
+    //         setIsEditModalOpen(true);
+    //     }
+    // };
 
-    const handleEditRoleSubmit = async (formData: RoleFormData) => {
-        if (!selectedRole) return;
+    // const handleEditRoleSubmit = async (formData: RoleFormData) => {
+    //     if (!selectedRole) return;
 
-        try {
-            const response = await fetch(`/api/role/${selectedRole.id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
+    //     try {
+    //         const response = await fetch(`/api/role/${selectedRole.id}`, {
+    //             method: "PUT",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //             },
+    //             body: JSON.stringify(formData),
+    //         });
 
-            if (response.status === 200) {
-                setIsEditModalOpen(false);
-                setSelectedRole(null);
-                showAlert("แก้ไขตำแหน่งสำเร็จ!", "success");
-                if (onRefresh) {
-                    onRefresh();
-                }
-            } else if (response.status === 400) {
-                showAlert(
-                    "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
-                    "error"
-                );
-            } else if (response.status === 404) {
-                showAlert("ไม่พบตำแหน่งที่ต้องการแก้ไข", "error");
-            } else if (response.status === 409) {
-                showAlert("ชื่อตำแหน่งนี้มีอยู่ในระบบแล้ว", "warning");
-            } else {
-                showAlert("เกิดข้อผิดพลาดในการแก้ไขตำแหน่ง", "error");
-            }
-        } catch (error) {
-            console.error("Error editing role:", error);
-            showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
-        }
-    };
+    //         if (response.status === 200) {
+    //             setIsEditModalOpen(false);
+    //             setSelectedRole(null);
+    //             showAlert("แก้ไขตำแหน่งสำเร็จ!", "success");
+    //             if (onRefresh) {
+    //                 onRefresh();
+    //             }
+    //         } else if (response.status === 400) {
+    //             showAlert(
+    //                 "ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง",
+    //                 "error"
+    //             );
+    //         } else if (response.status === 404) {
+    //             showAlert("ไม่พบตำแหน่งที่ต้องการแก้ไข", "error");
+    //         } else if (response.status === 409) {
+    //             showAlert("ชื่อตำแหน่งนี้มีอยู่ในระบบแล้ว", "warning");
+    //         } else {
+    //             showAlert("เกิดข้อผิดพลาดในการแก้ไขตำแหน่ง", "error");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error editing role:", error);
+    //         showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+    //     }
+    // };
 
     // const handleDeleteRole = (roleId: string) => {
     //     const role = roles.find((j) => j.id === roleId);
@@ -443,7 +443,7 @@ export default function RoleTableSection({
                                     >
                                         จำนวนบุคลากร
                                     </TableCell>
-                                    <TableCell
+                                    {/* <TableCell
                                         sx={{
                                             fontWeight: "bold",
                                             color: "#475569",
@@ -453,7 +453,7 @@ export default function RoleTableSection({
                                         }}
                                     >
                                         จัดการ
-                                    </TableCell>
+                                    </TableCell> */}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -522,7 +522,6 @@ export default function RoleTableSection({
                                                 </TableCell>
 
                                                 {/* Employee Count Column */}
-
                                                 <TableCell
                                                     sx={{
                                                         border: "none",
@@ -544,13 +543,14 @@ export default function RoleTableSection({
                                                 </TableCell>
 
                                                 {/* Manage Column */}
-                                                <TableCell
+                                                {/* <TableCell
                                                     sx={{
                                                         border: "none",
                                                         py: 2.5,
                                                         textAlign: "center",
                                                     }}
                                                 >
+                                                    
                                                     <Box
                                                         sx={{
                                                             display: "flex",
@@ -605,7 +605,7 @@ export default function RoleTableSection({
                                                                 />
                                                             </IconButton>
                                                         </Tooltip>
-                                                        {/* <Tooltip
+                                                        <Tooltip
                                                             title="ลบตำแหน่งออกจากระบบ"
                                                             arrow
                                                             placement="top"
@@ -650,9 +650,9 @@ export default function RoleTableSection({
                                                                     size={16}
                                                                 />
                                                             </IconButton>
-                                                        </Tooltip> */}
+                                                        </Tooltip>
                                                     </Box>
-                                                </TableCell>
+                                                </TableCell> */}
                                             </TableRow>
                                         );
                                     })
@@ -717,7 +717,7 @@ export default function RoleTableSection({
             </CustomModal> */}
 
             {/* Edit Role Modal */}
-            <CustomModal
+            {/* <CustomModal
                 open={isEditModalOpen}
                 onClose={() => {
                     setIsEditModalOpen(false);
@@ -735,7 +735,7 @@ export default function RoleTableSection({
                         setSelectedRole(null);
                     }}
                 />
-            </CustomModal>
+            </CustomModal> */}
 
             {/* Delete Confirmation Modal */}
             {/* <ConfirmModal
