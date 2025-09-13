@@ -1,0 +1,10 @@
+import EmployeeDashboardDetail from "@/components/pages/dashboard/EmployeeDashboardDetail";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "หน้าหลัก | Chiang Mai University",
+};
+
+export default function Page() {
+    return <EmployeeDashboardDetail />;
+}

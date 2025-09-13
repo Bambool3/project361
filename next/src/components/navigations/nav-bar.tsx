@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import React from "react";
 import {
     LayoutGrid,
@@ -38,24 +38,39 @@ interface NavBarProps {
     onClose: () => void;
 }
 
-const navItems = [
-    { name: "หน้าหลัก", icon: LayoutGrid, path: "/dashboard" },
-    { name: "ตัวชี้วัด", icon: Goal, path: "/management" },
-    { name: "สถิติ", icon: PieChart, path: "/stat" },
-];
-
-const managementItems = [
-    { name: "ตำแหน่ง", icon: Crown, path: "/role" },
-    { name: "หน่วยงาน", icon: Building2, path: "/job" },
-    { name: "บุคลากร", icon: Users, path: "/employee" },
-    { name: "ความถี่", icon: Clock, path: "/frequency" },
-];
-
 export default function NavBar({ isOpen, onClose }: NavBarProps) {
     const pathname = usePathname();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
     const isTablet = useMediaQuery(theme.breakpoints.between("sm", "lg"));
+    const { data: session } = useSession();
+    const userRole = session?.user?.role || "ผู้ใช้";
+
+    const navItems = [];
+    const managementItems = [];
+
+    if (userRole === "ผู้ดูแลระบบ" || userRole === "ฝ่ายแผน") {
+        navItems.push(
+            { name: "หน้าหลัก", icon: LayoutGrid, path: "/admin/dashboard" },
+            { name: "ตัวชี้วัด", icon: Goal, path: "/admin/management" },
+            { name: "สถิติ", icon: PieChart, path: "/admin/stat" }
+        );
+        managementItems.push(
+            { name: "ตำแหน่ง", icon: Crown, path: "/admin/role" },
+            { name: "หน่วยงาน", icon: Building2, path: "/admin/job" },
+            { name: "บุคลากร", icon: Users, path: "/admin/employee" },
+            { name: "ความถี่", icon: Clock, path: "/admin/frequency" }
+        );
+    } else if (userRole === "บุคลากร") {
+        navItems.push(
+            {
+                name: "หน้าหลัก",
+                icon: LayoutGrid,
+                path: "/employee/dashboard",
+            },
+            { name: "ตัวชี้วัด", icon: Goal, path: "/employee/kpi" }
+        );
+    }
 
     // State for dropdown
     const [mobileManagementDropdownOpen, setMobileManagementDropdownOpen] =
@@ -252,202 +267,213 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             );
                         })}
 
-                        {/* Management Dropdown */}
-                        {isMobile ? (
-                            // Mobile dropdown
-                            <Box>
-                                <Button
-                                    onClick={handleMobileManagementToggle}
-                                    startIcon={<PenLine size={18} />}
-                                    endIcon={
-                                        mobileManagementDropdownOpen ? (
-                                            <ChevronUp size={16} />
-                                        ) : (
-                                            <ChevronDown size={16} />
-                                        )
-                                    }
-                                    sx={{
-                                        color: isManagementActive
-                                            ? "#2575fc"
-                                            : "rgba(255,255,255,0.92)",
-                                        backgroundColor: isManagementActive
-                                            ? "white"
-                                            : "transparent",
-                                        justifyContent: "flex-start",
-                                        textTransform: "none",
-                                        fontWeight: 600,
-                                        fontSize: "0.9rem",
-                                        px: 2,
-                                        py: 1.25,
-                                        borderRadius: 3,
-                                        minHeight: 44,
-                                        width: "100%",
-                                        transition: "all 0.2s ease-in-out",
-                                        "&:hover": {
-                                            backgroundColor: isManagementActive
-                                                ? "white"
-                                                : "rgba(255,255,255,0.14)",
+                        {userRole === "ผู้ดูแลระบบ" ||
+                        userRole === "ฝ่ายแผน" ? (
+                            isMobile ? (
+                                // Mobile dropdown
+                                <Box>
+                                    <Button
+                                        onClick={handleMobileManagementToggle}
+                                        startIcon={<PenLine size={18} />}
+                                        endIcon={
+                                            mobileManagementDropdownOpen ? (
+                                                <ChevronUp size={16} />
+                                            ) : (
+                                                <ChevronDown size={16} />
+                                            )
+                                        }
+                                        sx={{
                                             color: isManagementActive
                                                 ? "#2575fc"
-                                                : "#fff",
-                                            transform: "translateX(4px)",
-                                        },
-                                    }}
-                                >
-                                    จัดการ
-                                </Button>
+                                                : "rgba(255,255,255,0.92)",
+                                            backgroundColor: isManagementActive
+                                                ? "white"
+                                                : "transparent",
+                                            justifyContent: "flex-start",
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            fontSize: "0.9rem",
+                                            px: 2,
+                                            py: 1.25,
+                                            borderRadius: 3,
+                                            minHeight: 44,
+                                            width: "100%",
+                                            transition: "all 0.2s ease-in-out",
+                                            "&:hover": {
+                                                backgroundColor:
+                                                    isManagementActive
+                                                        ? "white"
+                                                        : "rgba(255,255,255,0.14)",
+                                                color: isManagementActive
+                                                    ? "#2575fc"
+                                                    : "#fff",
+                                                transform: "translateX(4px)",
+                                            },
+                                        }}
+                                    >
+                                        จัดการ
+                                    </Button>
 
-                                <Collapse in={mobileManagementDropdownOpen}>
-                                    <Box sx={{ pl: 2, pt: 1 }}>
+                                    <Collapse in={mobileManagementDropdownOpen}>
+                                        <Box sx={{ pl: 2, pt: 1 }}>
+                                            {managementItems.map((item) => {
+                                                const IconComponent = item.icon;
+                                                const isActive =
+                                                    pathname === item.path;
+
+                                                return (
+                                                    <Button
+                                                        key={item.name}
+                                                        component={Link}
+                                                        href={item.path}
+                                                        onClick={onClose}
+                                                        startIcon={
+                                                            <IconComponent
+                                                                size={16}
+                                                            />
+                                                        }
+                                                        sx={{
+                                                            color: isActive
+                                                                ? "#2575fc"
+                                                                : "rgba(255,255,255,0.8)",
+                                                            backgroundColor:
+                                                                isActive
+                                                                    ? "white"
+                                                                    : "transparent",
+                                                            justifyContent:
+                                                                "flex-start",
+                                                            textTransform:
+                                                                "none",
+                                                            fontWeight: 500,
+                                                            fontSize: "0.85rem",
+                                                            px: 2,
+                                                            py: 1,
+                                                            borderRadius: 2,
+                                                            minHeight: 36,
+                                                            width: "100%",
+                                                            mb: 0.5,
+                                                            transition:
+                                                                "all 0.2s ease-in-out",
+                                                            "&:hover": {
+                                                                backgroundColor:
+                                                                    isActive
+                                                                        ? "rgba(255,255,255,0.2)"
+                                                                        : "rgba(255,255,255,0.1)",
+                                                                transform:
+                                                                    "translateX(2px)",
+                                                            },
+                                                        }}
+                                                    >
+                                                        {item.name}
+                                                    </Button>
+                                                );
+                                            })}
+                                        </Box>
+                                    </Collapse>
+                                </Box>
+                            ) : (
+                                // Desktop dropdown
+                                <>
+                                    <Button
+                                        onClick={handleDesktopMenuClick}
+                                        startIcon={<PenLine size={22} />}
+                                        endIcon={<ChevronDown size={16} />}
+                                        sx={{
+                                            color: isManagementActive
+                                                ? "#2575fc"
+                                                : "rgba(255,255,255,0.92)",
+                                            backgroundColor: isManagementActive
+                                                ? "white"
+                                                : "transparent",
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            fontSize: "1.05rem",
+                                            px: 2.5,
+                                            py: 1,
+                                            borderRadius: 3,
+                                            transition: "all 0.2s ease-in-out",
+                                            "&:hover": {
+                                                backgroundColor:
+                                                    isManagementActive
+                                                        ? "white"
+                                                        : "rgba(255,255,255,0.14)",
+                                                color: isManagementActive
+                                                    ? "#2575fc"
+                                                    : "#fff",
+                                            },
+                                        }}
+                                    >
+                                        จัดการ
+                                    </Button>
+
+                                    <Menu
+                                        anchorEl={desktopAnchorEl}
+                                        open={desktopMenuOpen}
+                                        onClose={handleDesktopMenuClose}
+                                        TransitionComponent={Fade}
+                                        sx={{
+                                            "& .MuiPaper-root": {
+                                                backgroundColor: "white",
+                                                borderRadius: "12px",
+                                                boxShadow:
+                                                    "0 8px 32px rgba(0,0,0,0.12)",
+                                                border: "1px solid rgba(0,0,0,0.08)",
+                                                minWidth: "180px",
+                                                mt: 1,
+                                            },
+                                        }}
+                                    >
                                         {managementItems.map((item) => {
                                             const IconComponent = item.icon;
                                             const isActive =
                                                 pathname === item.path;
 
                                             return (
-                                                <Button
+                                                <MenuItem
                                                     key={item.name}
                                                     component={Link}
                                                     href={item.path}
-                                                    onClick={onClose}
-                                                    startIcon={
-                                                        <IconComponent
-                                                            size={16}
-                                                        />
+                                                    onClick={
+                                                        handleDesktopMenuClose
                                                     }
                                                     sx={{
                                                         color: isActive
                                                             ? "#2575fc"
-                                                            : "rgba(255,255,255,0.8)",
+                                                            : "#374151",
                                                         backgroundColor:
                                                             isActive
-                                                                ? "white"
+                                                                ? "#f0f9ff"
                                                                 : "transparent",
-                                                        justifyContent:
-                                                            "flex-start",
-                                                        textTransform: "none",
-                                                        fontWeight: 500,
-                                                        fontSize: "0.85rem",
                                                         px: 2,
-                                                        py: 1,
-                                                        borderRadius: 2,
-                                                        minHeight: 36,
-                                                        width: "100%",
-                                                        mb: 0.5,
-                                                        transition:
-                                                            "all 0.2s ease-in-out",
+                                                        py: 1.5,
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: 1.5,
+                                                        fontSize: "0.95rem",
+                                                        fontWeight: isActive
+                                                            ? 600
+                                                            : 500,
                                                         "&:hover": {
                                                             backgroundColor:
                                                                 isActive
-                                                                    ? "rgba(255,255,255,0.2)"
-                                                                    : "rgba(255,255,255,0.1)",
-                                                            transform:
-                                                                "translateX(2px)",
+                                                                    ? "#e0f2fe"
+                                                                    : "#f8fafc",
+                                                            color: isActive
+                                                                ? "#1e40af"
+                                                                : "#1f2937",
                                                         },
                                                     }}
                                                 >
+                                                    <IconComponent size={18} />
                                                     {item.name}
-                                                </Button>
+                                                </MenuItem>
                                             );
                                         })}
-                                    </Box>
-                                </Collapse>
-                            </Box>
+                                    </Menu>
+                                </>
+                            )
                         ) : (
-                            // Desktop dropdown
-                            <>
-                                <Button
-                                    onClick={handleDesktopMenuClick}
-                                    startIcon={<PenLine size={22} />}
-                                    endIcon={<ChevronDown size={16} />}
-                                    sx={{
-                                        color: isManagementActive
-                                            ? "#2575fc"
-                                            : "rgba(255,255,255,0.92)",
-                                        backgroundColor: isManagementActive
-                                            ? "white"
-                                            : "transparent",
-                                        textTransform: "none",
-                                        fontWeight: 600,
-                                        fontSize: "1.05rem",
-                                        px: 2.5,
-                                        py: 1,
-                                        borderRadius: 3,
-                                        transition: "all 0.2s ease-in-out",
-                                        "&:hover": {
-                                            backgroundColor: isManagementActive
-                                                ? "white"
-                                                : "rgba(255,255,255,0.14)",
-                                            color: isManagementActive
-                                                ? "#2575fc"
-                                                : "#fff",
-                                        },
-                                    }}
-                                >
-                                    จัดการ
-                                </Button>
-
-                                <Menu
-                                    anchorEl={desktopAnchorEl}
-                                    open={desktopMenuOpen}
-                                    onClose={handleDesktopMenuClose}
-                                    TransitionComponent={Fade}
-                                    sx={{
-                                        "& .MuiPaper-root": {
-                                            backgroundColor: "white",
-                                            borderRadius: "12px",
-                                            boxShadow:
-                                                "0 8px 32px rgba(0,0,0,0.12)",
-                                            border: "1px solid rgba(0,0,0,0.08)",
-                                            minWidth: "180px",
-                                            mt: 1,
-                                        },
-                                    }}
-                                >
-                                    {managementItems.map((item) => {
-                                        const IconComponent = item.icon;
-                                        const isActive = pathname === item.path;
-
-                                        return (
-                                            <MenuItem
-                                                key={item.name}
-                                                component={Link}
-                                                href={item.path}
-                                                onClick={handleDesktopMenuClose}
-                                                sx={{
-                                                    color: isActive
-                                                        ? "#2575fc"
-                                                        : "#374151",
-                                                    backgroundColor: isActive
-                                                        ? "#f0f9ff"
-                                                        : "transparent",
-                                                    px: 2,
-                                                    py: 1.5,
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: 1.5,
-                                                    fontSize: "0.95rem",
-                                                    fontWeight: isActive
-                                                        ? 600
-                                                        : 500,
-                                                    "&:hover": {
-                                                        backgroundColor:
-                                                            isActive
-                                                                ? "#e0f2fe"
-                                                                : "#f8fafc",
-                                                        color: isActive
-                                                            ? "#1e40af"
-                                                            : "#1f2937",
-                                                    },
-                                                }}
-                                            >
-                                                <IconComponent size={18} />
-                                                {item.name}
-                                            </MenuItem>
-                                        );
-                                    })}
-                                </Menu>
-                            </>
+                            <></>
                         )}
                     </Box>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getSession, signIn, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Lock, Mail } from "lucide-react";
 import {
@@ -39,6 +39,8 @@ export default function LoginForm() {
     const [alertSeverity, setAlertSeverity] = useState<
         "error" | "success" | "warning" | "info"
     >("error");
+
+    const { data: session, status, update } = useSession();
 
     const {
         control,
@@ -79,8 +81,17 @@ export default function LoginForm() {
         if (response?.error) {
             showAlert(response.error);
             setIsLoading(false);
-        } else {
-            r.push("/dashboard");
+        } else if (response?.ok) {
+            const newSession = await getSession();
+            const userRole = newSession?.user?.role;
+
+            if (userRole === "ผู้ดูแลระบบ" || userRole === "ฝ่ายแผน") {
+                r.push("/admin/dashboard");
+            } else if (userRole === "บุคลากร") {
+                r.push("/employee/dashboard");
+            } else {
+                r.push("/");
+            }
         }
     }
 

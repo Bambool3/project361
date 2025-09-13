@@ -22,7 +22,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
     const { data: session } = useSession();
 
-    const userRole = session?.user?.role || "User";
+    const userRole = session?.user?.role || "ผู้ใช้";
 
     // const handleHelpClick = () => {
     //     alert("Help clicked! Add help functionality here.");
