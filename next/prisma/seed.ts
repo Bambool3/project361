@@ -13,24 +13,8 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const prisma = new PrismaClient();
 
-// Helper function to create normalized dates at midnight UTC
-const createNormalizedDate = (dateString: string): Date => {
-    const date = new Date(dateString);
-    return new Date(
-        Date.UTC(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate(),
-            0,
-            0,
-            0,
-            0
-        )
-    );
-};
-
 async function main() {
-    // Clean up existing data
+    // Clean up existing data in correct order (respecting foreign key constraints)
     await prisma.responsibleJobTitle.deleteMany({});
     await prisma.indicator.deleteMany({});
     await prisma.category.deleteMany({});
@@ -39,8 +23,88 @@ async function main() {
     await prisma.user.deleteMany({});
     await prisma.role.deleteMany({});
     await prisma.jobTitle.deleteMany({});
+    await prisma.period.deleteMany({});
+    await prisma.frequency.deleteMany({});
 
     console.log("Seeding database...");
+
+    // Seed Frequencies first (since indicators depend on them)
+    const frequencies = [
+        { name: "รายเดือน", periods_in_year: 12 },
+        { name: "รายไตรมาส", periods_in_year: 4 },
+        { name: "รายภาคการศึกษา", periods_in_year: 2 },
+        { name: "รายปีงบประมาณ", periods_in_year: 1 },
+        { name: "รายปีการศึกษา", periods_in_year: 1 }
+    ];
+    
+    const frequencyRecords: Record<string, any> = {};
+    for (let i = 0; i < frequencies.length; i++) {
+        const frequency = frequencies[i];
+        frequencyRecords[`freq${i + 1}`] = await prisma.frequency.create({
+            data: frequency,
+        });
+    }
+
+    // Seed Periods for each frequency
+    const currentYear = new Date().getFullYear();
+    
+    // Create periods for quarterly frequency (freq2 - ราย 3 เดือน)
+    await prisma.period.createMany({
+        data: [
+            {
+                start_date: new Date(`${currentYear}-01-01`),
+                end_date: new Date(`${currentYear}-03-31`),
+                frequency_id: frequencyRecords["freq2"].frequency_id,
+            },
+            {
+                start_date: new Date(`${currentYear}-04-01`),
+                end_date: new Date(`${currentYear}-06-30`),
+                frequency_id: frequencyRecords["freq2"].frequency_id,
+            },
+            {
+                start_date: new Date(`${currentYear}-07-01`),
+                end_date: new Date(`${currentYear}-09-30`),
+                frequency_id: frequencyRecords["freq2"].frequency_id,
+            },
+            {
+                start_date: new Date(`${currentYear}-10-01`),
+                end_date: new Date(`${currentYear}-12-31`),
+                frequency_id: frequencyRecords["freq2"].frequency_id,
+            },
+        ],
+    });
+
+    // Create periods for semester frequency (freq3 - รายภาคการศึกษา)
+    await prisma.period.createMany({
+        data: [
+            {
+                start_date: new Date(`${currentYear}-06-01`),
+                end_date: new Date(`${currentYear}-10-31`),
+                frequency_id: frequencyRecords["freq3"].frequency_id,
+            },
+            {
+                start_date: new Date(`${currentYear}-11-01`),
+                end_date: new Date(`${currentYear + 1}-03-31`),
+                frequency_id: frequencyRecords["freq3"].frequency_id,
+            },
+        ],
+    });
+
+    // Create periods for annual frequencies
+    await prisma.period.createMany({
+        data: [
+            {
+                start_date: new Date(`${currentYear}-10-01`),
+                end_date: new Date(`${currentYear + 1}-09-30`),
+                frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
+            },
+            {
+                start_date: new Date(`${currentYear}-06-01`),
+                end_date: new Date(`${currentYear + 1}-05-31`),
+                frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
+            }
+        ],
+    });
 
     // Seed Job Titles
     const jobTitles = [
@@ -144,22 +208,29 @@ async function main() {
         ],
     });
 
-    // Seed Categories
+    // Seed Categories (with required timestamps)
+    const now = new Date();
     const categories = [
         {
             name: "CMUPA",
             description: "test test test 123",
             user_id: userRecords["user1"].user_id,
+            created_at: now,
+            updated_at: now,
         },
         {
             name: "HR",
             description: "HR KPIs",
             user_id: userRecords["user2"].user_id,
+            created_at: now,
+            updated_at: now,
         },
         {
             name: "Academic",
             description: "Academic KPIs",
             user_id: userRecords["user3"].user_id,
+            created_at: now,
+            updated_at: now,
         },
     ];
     const categoryRecords: Record<string, any> = {};
@@ -223,7 +294,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายปีงบประมาณ",
+            frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
             status: "Active",
             date: new Date(),
         },
@@ -234,7 +305,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            tracking_frequency: "รายปีการศึกษา",
+            frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
             status: "Active",
             date: new Date(),
         },
@@ -245,7 +316,7 @@ async function main() {
             main_indicator_id: null, // This is a main indicator
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            tracking_frequency: "Quarterly",
+            frequency_id: frequencyRecords["freq4"].frequency_id, // Quarterly
             status: "Active",
             date: new Date(),
         },
@@ -256,7 +327,7 @@ async function main() {
             main_indicator_id: null, // This is a main indicator
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            tracking_frequency: "Annually",
+            frequency_id: frequencyRecords["freq4"].frequency_id, // Annually
             status: "Active",
             date: new Date(),
         },
@@ -345,7 +416,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // Sub-indicator of HR main indicator
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            tracking_frequency: "Monthly",
+            frequency_id: frequencyRecords["freq1"].frequency_id, 
             status: "Active",
             date: new Date(),
         },
@@ -356,7 +427,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // Sub-indicator of Academic main indicator
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            tracking_frequency: "Semester",
+            frequency_id: frequencyRecords["freq3"].frequency_id, 
             status: "Active",
             date: new Date(),
         },
@@ -406,6 +477,14 @@ async function main() {
                 indicator_id: mainIndicatorRecords["main6"].indicator_id,
                 jobtitle_id: jobTitleRecords["job7"].jobtitle_id,
             },
+            {
+                indicator_id: mainIndicatorRecords["main7"].indicator_id,
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
+            },
+            {
+                indicator_id: mainIndicatorRecords["main8"].indicator_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+            },
             // Sub-indicators
             {
                 indicator_id: subIndicatorRecords["sub1"].indicator_id,
@@ -431,64 +510,15 @@ async function main() {
                 indicator_id: subIndicatorRecords["sub6"].indicator_id,
                 jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
+            {
+                indicator_id: subIndicatorRecords["sub7"].indicator_id,
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub8"].indicator_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+            },
         ],
-    });
-
-    // Seed some sample periods for different frequencies
-    const samplePeriods = [
-        // Monthly periods for 2024
-        {
-            start_date: createNormalizedDate("2024-01-01"),
-            end_date: createNormalizedDate("2024-01-31"),
-            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
-        },
-        {
-            start_date: createNormalizedDate("2024-01-01"),
-            end_date: createNormalizedDate("2024-01-31"),
-            frequency_id: frequencyRecords["freq3"].frequency_id, // Monthly
-        },
-        // Quarterly periods
-        {
-            start_date: new Date("2024-01-01"),
-            end_date: new Date("2024-03-31"),
-            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
-        },
-        {
-            start_date: new Date("2024-01-01"),
-            end_date: new Date("2024-03-31"),
-            frequency_id: frequencyRecords["freq4"].frequency_id, // Quarterly
-        },
-        // Academic semester periods
-        {
-            start_date: new Date("2024-08-01"),
-            end_date: new Date("2024-12-31"),
-            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
-        },
-        {
-            start_date: new Date("2024-08-01"),
-            end_date: new Date("2024-12-31"),
-            frequency_id: frequencyRecords["freq4"].frequency_id, // Semester
-        },
-        // Annual periods
-        {
-            start_date: new Date("2024-01-01"),
-            end_date: new Date("2024-12-31"),
-            frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีการศึกษา
-        },
-        {
-            start_date: new Date("2024-10-01"),
-            end_date: new Date("2025-09-30"),
-            frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีงบประมาณ
-        },
-        {
-            start_date: new Date("2024-01-01"),
-            end_date: new Date("2024-12-31"),
-            frequency_id: frequencyRecords["freq3"].frequency_id, // Annually
-        },
-    ];
-
-    await prisma.period.createMany({
-        data: samplePeriods,
     });
 
     console.log("Database Seeded Successfully!");
