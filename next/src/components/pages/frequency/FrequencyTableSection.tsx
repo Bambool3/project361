@@ -32,6 +32,7 @@ import {
 import { Calendar, Edit, Plus, Search, Trash2 } from "lucide-react";
 import { Box } from "@mui/material";
 import FrequencyAddEdit from "./FrequencyAdd&Edit";
+import FrequencyAddEditV2 from "./FrequencyAdd&EditV2";
 
 interface FrequencyTableSectionProps {
     frequencies: Frequency[];
@@ -780,7 +781,11 @@ export default function FrequencyTableSection({
                 maxWidth="md"
                 showActions={false}
             >
-                <FrequencyAddEdit
+                {/* <FrequencyAddEdit
+                    onSubmit={handleAddFrequencySubmit}
+                    onCancel={() => setIsAddModalOpen(false)}
+                /> */}
+                <FrequencyAddEditV2
                     onSubmit={handleAddFrequencySubmit}
                     onCancel={() => setIsAddModalOpen(false)}
                 />
@@ -797,7 +802,15 @@ export default function FrequencyTableSection({
                 maxWidth="md"
                 showActions={false}
             >
-                <FrequencyAddEdit
+                {/* <FrequencyAddEdit
+                    frequency={selectedFrequency}
+                    onSubmit={handleEditFrequencySubmit}
+                    onCancel={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedFrequency(null);
+                    }}
+                /> */}
+                <FrequencyAddEditV2
                     frequency={selectedFrequency}
                     onSubmit={handleEditFrequencySubmit}
                     onCancel={() => {

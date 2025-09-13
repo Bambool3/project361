@@ -9,6 +9,7 @@ export interface Frequency {
     frequency_id: number;
     name: string;
     periods: FrequencyPeriod[];
+    periods_in_year?: number;
     indicatorCount?: number;
 }
 
@@ -18,6 +19,7 @@ export interface FrequencyFormData {
         startDate: Date;
         endDate: Date;
     }[];
+    periods_in_year?: number;
 }
 
 export interface FrequencyFilter {
