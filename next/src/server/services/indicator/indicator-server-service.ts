@@ -14,6 +14,7 @@ export class IndicatorServerService {
               jobtitle: true, // ดึง id และ name ของ jobtitle
             },
           },
+          frequency: true,
         },
       });
       console.log("indicators=", indicators);
@@ -32,14 +33,17 @@ export class IndicatorServerService {
         unit: indicator.unit,
         target_value: indicator.target_value,
         main_indicator_id: indicator.main_indicator_id,
-        responsible_user_id: indicator.responsible_user_id,
         responsible_jobtitles: indicator.responsible_jobtitle.map((r) => ({
           in_id: r.indicator_id,
           id: r.jobtitle.jobtitle_id,
           name: r.jobtitle.name,
         })),
         category_id: indicator.category_id,
-        frequency: indicator.tracking_frequency,
+        frequency: {
+          frequency_id: indicator.frequency.frequency_id,
+          name: indicator.frequency.name,
+          periods_in_year: indicator.frequency.periods_in_year,
+        }, // ✅ ดึงข้อมูลความถี่
         sub_indicators: subIndicators
           .filter((sub) => sub.main_indicator_id === indicator.indicator_id)
           .map((sub) => ({

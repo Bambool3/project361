@@ -437,7 +437,7 @@ export default function ManagementTable({
                           fontSize: "0.875rem",
                         }}
                       >
-                        {kpi.frequency || "-"}
+                        {kpi.frequency.name || "-"}
                       </TableCell>
                       <TableCell
                         sx={{

@@ -20,6 +20,12 @@ export type SubIndicator = {
   target_value?: number | null;
 };
 
+export type Frequency = {
+  frequency_id: number;
+  name: string;
+  periods_in_year: number;
+};
+
 export type Indicator = {
   id: string;
   name: string;
@@ -29,6 +35,6 @@ export type Indicator = {
   responsible_user_id?: number | null;
   responsible_jobtitles: ResponsibleJobtitle[];
   category_id: number;
-  frequency?: string | null;
+  frequency: Frequency;
   sub_indicators: SubIndicator[];
 };
