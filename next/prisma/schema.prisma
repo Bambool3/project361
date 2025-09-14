@@ -85,7 +85,7 @@ model Indicator {
   indicator_id        Int      @id @default(autoincrement())
   name                String
   target_value        Float?
-  unit                String?
+  unit_id             Int
   frequency_id        Int
   date                DateTime?
   status              String?
@@ -95,13 +95,14 @@ model Indicator {
   position            Int
 
   // --- Corrected Self-Relation ---
-  main_indicator      Indicator?            @relation("MainSubIndicators", fields: [main_indicator_id], references: [indicator_id])
+  main_indicator      Indicator?            @relation("MainSubIndicators", fields: [main_indicator_id], references: [indicator_id], onDelete: Cascade)
   sub_indicators      Indicator[]           @relation("MainSubIndicators")
 
   // Relations
   category           Category             @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
   user               User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   frequency          Frequency            @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
+  unit               Unit                 @relation(fields: [unit_id], references: [unit_id], onDelete: Cascade)
   responsible_jobtitle ResponsibleJobTitle[]
   indicator_data      IndicatorData[] 
 
@@ -162,4 +163,14 @@ model IndicatorData {
 
   @@unique([indicator_id, period_id]) // ensure one record per indicator per period
   @@map("indicator_data")
+}
+
+model Unit {
+  unit_id    Int      @id @default(autoincrement())
+  name       String 
+
+  // Relations
+  indicators Indicator[]
+
+  @@map("units")
 }
