@@ -92,6 +92,7 @@ model Indicator {
   main_indicator_id   Int?
   category_id         Int
   user_id             Int
+  position            Int
 
   // --- Corrected Self-Relation ---
   main_indicator      Indicator?            @relation("MainSubIndicators", fields: [main_indicator_id], references: [indicator_id])
@@ -102,6 +103,9 @@ model Indicator {
   user               User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   frequency          Frequency            @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
   responsible_jobtitle ResponsibleJobTitle[]
+  indicator_data      IndicatorData[] 
+
+  @@unique([category_id, position, main_indicator_id], map: "indicator_position_unique")
 
   @@map("indicators")
 }
@@ -139,5 +143,23 @@ model Period {
   // Relations
   frequency Frequency @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
   
+  indicator_data IndicatorData[]
+  
   @@map("periods")
+}
+
+model IndicatorData {
+  indicatordata_id Int      @id @default(autoincrement())
+  indicator_id     Int
+  period_id        Int
+  actual_value     Float?
+  created_at       DateTime @default(now())
+  updated_at       DateTime? @updatedAt
+
+  // Relations
+  indicator Indicator @relation(fields: [indicator_id], references: [indicator_id], onDelete: Cascade)
+  period    Period    @relation(fields: [period_id], references: [period_id], onDelete: Cascade)
+
+  @@unique([indicator_id, period_id]) // ensure one record per indicator per period
+  @@map("indicator_data")
 }
