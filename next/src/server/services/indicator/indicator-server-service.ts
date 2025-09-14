@@ -54,5 +54,21 @@ export class IndicatorServerService {
     }
   }
 
-  // เพิ่ม method อื่นๆ
+  static async deleteIndicator(indicatorId: string) {
+    try {
+      const deletedIndicator = await prisma.indicator.delete({
+        where: { indicator_id: parseInt(indicatorId) },
+      });
+      return {
+        success: true,
+        data: deletedIndicator,
+      };
+    } catch (error: any) {
+      console.error("❌ Error deleting indicator:", error);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
 }

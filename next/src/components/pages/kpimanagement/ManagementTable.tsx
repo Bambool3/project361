@@ -1,6 +1,6 @@
 "use client";
 
-import { Indicator } from "@/types/category";
+import { Indicator } from "@/types/management";
 import React, { useState } from "react";
 import {
   Box,
@@ -32,6 +32,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import AddKpiModal from "@/client/components/AddKpiModal";
+import ConfirmModal from "@/components/ui/confirm-modal";
 
 interface ManagementTableProps {
   indicators: Indicator[];
@@ -49,7 +50,10 @@ export default function ManagementTable({
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setModalOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // เก็บ id ของ KPI ที่ expand อยู่
-
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [indicatorToDelete, setIndicatorToDelete] = useState<Indicator | null>(
+    null
+  );
   const filteredKpi = indicators.filter(
     (kpi) =>
       kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -78,14 +82,47 @@ export default function ManagementTable({
   const handleEdit = (id: string) => {
     alert(`แก้ไขตัวชี้วัด ID: ${id}`);
   };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm("คุณแน่ใจหรือไม่ที่จะลบตัวชี้วัดนี้?")) {
-      alert(`ลบตัวชี้วัด ID: ${id}`);
-      if (onRefresh) onRefresh();
+  const handleDelete = (id: string) => {
+    const indicator = indicators.find((indicator) => indicator.id === id);
+    if (indicator) {
+      setIndicatorToDelete(indicator);
+      setIsDeleteModalOpen(true);
     }
   };
 
+  const handleDeleteIndicatorConfirm = async () => {
+    if (!indicatorToDelete) return;
+
+    try {
+      const response = await fetch(
+        `/api/category-indicators/${indicatorToDelete.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        setIsDeleteModalOpen(false);
+        setIndicatorToDelete(null);
+        alert("ลบตัวชี้วัดสำเร็จ!");
+        // showAlert("ลบตัวชี้วัดสำเร็จ!", "success");
+        if (onRefresh) {
+          onRefresh();
+        }
+      } else if (response.status === 404) {
+        alert("ไม่พบตัวชี้วัดที่ต้องการลบ");
+        // showAlert("ไม่พบตัวชี้วัดที่ต้องการลบ", "error");
+      } else {
+        // showAlert("เกิดข้อผิดพลาดในการลบตัวชี้วัด", "error");
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      // showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+    }
+  };
   if (loading) {
     return (
       <Card
@@ -528,6 +565,56 @@ export default function ManagementTable({
           </Table>
         </TableContainer>
       </CardContent>
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setIndicatorToDelete(null);
+        }}
+        onConfirm={handleDeleteIndicatorConfirm}
+        title="ยืนยันการลบตัวชี้วัด"
+        message="คุณต้องการลบตัวชี้วัดนี้หรือไม่? การดำเนินการนี้ไม่สามารถยกเลิกได้"
+        confirmText="ลบตัวชี้วัด"
+        cancelText="ยกเลิก"
+        severity="error"
+      >
+        {indicatorToDelete && (
+          <Box
+            sx={{
+              backgroundColor: "#fef2f2",
+              padding: 2,
+              borderRadius: "12px",
+              border: "1px solid #fecaca",
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: "600",
+                color: "#991b1b",
+                mb: 1,
+              }}
+            >
+              ชื่อตัวชี้วัด: {indicatorToDelete.name}
+            </Typography>
+            {indicatorToDelete.sub_indicators &&
+              indicatorToDelete.sub_indicators.length > 0 && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#dc2626",
+                    mt: 1.5,
+                    fontWeight: "600",
+                  }}
+                >
+                  ⚠️ คำเตือน: ตัวชี้วัดนี้มี{" "}
+                  {indicatorToDelete.sub_indicators.length} ตัวชี้วัดย่อย
+                </Typography>
+              )}
+          </Box>
+        )}
+      </ConfirmModal>
       <AddKpiModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </Card>
   );
