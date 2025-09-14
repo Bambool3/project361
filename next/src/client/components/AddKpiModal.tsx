@@ -1,5 +1,6 @@
 "use client";
-import { Select, MenuItem } from "@mui/material";
+import { Indicator } from "@/types/management";
+import { Select, MenuItem, Checkbox } from "@mui/material";
 import { useState, useEffect } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, Crosshair } from "lucide-react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
@@ -18,7 +19,7 @@ const mainKpiSchema = z.object({
   target: z.string().min(1, "กรุณากรอกเป้าหมาย"),
   format: z.string(),
   frequency: z.string().min(1, "กรุณาเลือกรอบการรายงาน"),
-  jobtitle: z.string().min(1, "กรุณาเลือกหน่วยงาน"),
+  jobtitle: z.array(z.string().min(1, "กรุณาเลือกหน่วยงาน")),
   subKpis: z.array(subKpiSchema),
 });
 
@@ -28,10 +29,12 @@ interface AddKpiModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: FormData) => Promise<void>;
+  mode?: "add" | "edit"; // บอกว่า modal ใช้โหมดไหน
+  initialData?: Indicator | null; // ข้อมูลเริ่มต้น (ใช้ตอน edit)
 }
 
 interface Frequency {
-  frequency_id: number;
+  frequency_id: string;
   name: string;
 }
 
@@ -45,8 +48,10 @@ const kpiFormats = ["1,234", "$1,234.56", "15%"];
 export default function AddKpiModal({
   isOpen,
   onClose,
-  onSubmit,
+  mode = "add",
+  initialData,
 }: AddKpiModalProps) {
+  const isEdit = mode === "edit";
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
   const [frequencies, setFrequencies] = useState<Frequency[]>([]);
   const [jobtitles, setJobTitle] = useState<JobTitle[]>([]);
@@ -89,24 +94,46 @@ export default function AddKpiModal({
       target: "",
       format: kpiFormats[0],
       frequency: "",
-      jobtitle: "",
+      jobtitle: [],
       subKpis: [],
     },
   });
 
-  // ตั้ง ค่าเริ่มต้นหลัง หลัง fetch
   useEffect(() => {
-    if (!loading && frequencies.length > 0 && jobtitles.length > 0) {
+    if (loading) return; // รอให้โหลด frequencies และ jobtitles เสร็จ
+
+    const defaultFrequency = frequencies[0]?.frequency_id?.toString() || "";
+    const defaultJobtitle = jobtitles[0]?.jobtitle_id?.toString() || "";
+
+    if (isEdit && initialData) {
+      reset({
+        name: initialData.name || "",
+        target: initialData.target_value?.toString() || "",
+        format: initialData.unit || kpiFormats[0],
+        frequency:
+          initialData.frequency?.frequency_id?.toString() || defaultFrequency,
+        jobtitle: initialData.responsible_jobtitles?.map((j) =>
+          j.id.toString()
+        ) || [defaultJobtitle],
+        subKpis:
+          initialData.sub_indicators?.map((s) => ({
+            id: s.id.toString(),
+            name: s.name,
+            target: s.target_value?.toString() || "",
+          })) || [],
+      });
+    } else {
+      // กรณี Add
       reset({
         name: "",
         target: "",
         format: kpiFormats[0],
-        frequency: frequencies[0].frequency_id.toString(),
-        jobtitle: jobtitles[0].jobtitle_id.toString(),
+        frequency: defaultFrequency,
+        jobtitle: [defaultJobtitle],
         subKpis: [],
       });
     }
-  }, [loading, frequencies, jobtitles, reset]);
+  }, [initialData, isEdit, loading, frequencies, jobtitles, reset]);
 
   // จัดการ เพิ่ม ลด ของ sub indicators
   const { fields, append, remove } = useFieldArray({
@@ -139,7 +166,7 @@ export default function AddKpiModal({
         <form onSubmit={handleSubmit(submitForm)}>
           <div className="p-6 sm:p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              เพิ่มตัวชี้วัด
+              {isEdit ? "แก้ไขตัวชี้วัด" : "เพิ่มตัวชี้วัด"}
             </h2>
             <div className="flex flex-row flex-wrap gap-4 mb-8">
               {/* Name */}
@@ -290,11 +317,22 @@ export default function AddKpiModal({
                     </label>
                     <Select
                       {...field}
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      multiple
+                      value={Array.isArray(field.value) ? field.value : []}
+                      onChange={(e) =>
+                        field.onChange(e.target.value as string[])
+                      }
                       displayEmpty
                       variant="outlined"
                       MenuProps={{ disablePortal: true }}
+                      renderValue={(selected) =>
+                        jobtitles
+                          .filter((j) =>
+                            selected.includes(j.jobtitle_id.toString())
+                          )
+                          .map((j) => j.name)
+                          .join(", ")
+                      }
                       sx={{
                         width: "100%",
                         borderRadius: "0.5rem",
@@ -309,6 +347,13 @@ export default function AddKpiModal({
                     >
                       {jobtitles.map((j) => (
                         <MenuItem key={j.jobtitle_id} value={j.jobtitle_id}>
+                          <Checkbox
+                            checked={
+                              Array.isArray(field.value) &&
+                              field.value.includes(j.jobtitle_id.toString())
+                            }
+                            size="small"
+                          />
                           {j.name}
                         </MenuItem>
                       ))}
@@ -355,7 +400,7 @@ export default function AddKpiModal({
                           )}
                         </button>
                         <span className="font-semibold text-gray-900">
-                          {sub.name || "ชื่อ Sub-KPI"}
+                          {sub.name || "ชื่อตัวชี้วัดย่อย"}
                         </span>
                         <button
                           type="button"
@@ -427,7 +472,7 @@ export default function AddKpiModal({
                 type="submit"
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md font-semibold"
               >
-                บันทึกตัวชี้วัด
+                {isEdit ? "บันทึกการแก้ไข" : "บันทึกตัวชี้วัด"}
               </button>
               <button
                 type="button"

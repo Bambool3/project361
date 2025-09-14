@@ -54,6 +54,7 @@ export default function ManagementTable({
   const [indicatorToDelete, setIndicatorToDelete] = useState<Indicator | null>(
     null
   );
+  const [selectedToEdit, setSelectedToEdit] = useState<Indicator | null>(null);
   const filteredKpi = indicators.filter(
     (kpi) =>
       kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,12 +77,18 @@ export default function ManagementTable({
   };
 
   const handleAddKpi = () => {
+    setSelectedToEdit(null);
     setModalOpen(true);
   };
 
   const handleEdit = (id: string) => {
-    alert(`แก้ไขตัวชี้วัด ID: ${id}`);
+    const indicator = indicators.find((indicator) => indicator.id === id);
+    if (indicator) {
+      setSelectedToEdit(indicator);
+      setModalOpen(true);
+    }
   };
+
   const handleDelete = (id: string) => {
     const indicator = indicators.find((indicator) => indicator.id === id);
     if (indicator) {
@@ -615,7 +622,15 @@ export default function ManagementTable({
           </Box>
         )}
       </ConfirmModal>
-      <AddKpiModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
+      <AddKpiModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedToEdit(null);
+        }}
+        mode={selectedToEdit ? "edit" : "add"}
+        initialData={selectedToEdit}
+      />
     </Card>
   );
 }
