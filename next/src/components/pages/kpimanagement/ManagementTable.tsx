@@ -58,7 +58,7 @@ export default function ManagementTable({
   const filteredKpi = indicators.filter(
     (kpi) =>
       kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      kpi.unit?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      kpi.unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       kpi.target_value?.toString().includes(searchTerm)
   );
 
@@ -422,7 +422,7 @@ export default function ManagementTable({
                           fontSize: "0.875rem",
                         }}
                       >
-                        {kpi.unit}
+                        {kpi.unit.name}
                       </TableCell>
                       <TableCell
                         sx={{

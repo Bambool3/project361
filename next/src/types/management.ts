@@ -26,10 +26,15 @@ export type Frequency = {
   periods_in_year: number;
 };
 
+export type Unit = {
+  unit_id: number;
+  name: string;
+};
+
 export type Indicator = {
   id: string;
   name: string;
-  unit?: string | null;
+  unit: Unit;
   target_value?: number | null;
   main_indicator_id?: number | null;
   responsible_user_id?: number | null;

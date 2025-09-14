@@ -15,6 +15,7 @@ export class IndicatorServerService {
             },
           },
           frequency: true,
+          unit: true,
         },
       });
       console.log("indicators=", indicators);
@@ -30,7 +31,7 @@ export class IndicatorServerService {
       return mainIndicators.map((indicator: any) => ({
         id: indicator.indicator_id.toString(),
         name: indicator.name,
-        unit: indicator.unit,
+        unit: { unit_id: indicator.unit.unit_id, name: indicator.unit.name },
         target_value: indicator.target_value,
         main_indicator_id: indicator.main_indicator_id,
         responsible_jobtitles: indicator.responsible_jobtitle.map((r) => ({
