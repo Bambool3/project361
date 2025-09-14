@@ -26,6 +26,7 @@ async function main() {
     await prisma.jobTitle.deleteMany({});
     await prisma.period.deleteMany({});
     await prisma.frequency.deleteMany({});
+    await prisma.unit.deleteMany({});
 
     console.log("Seeding database...");
 
@@ -254,13 +255,54 @@ async function main() {
             data: category,
         });
     }
+    // Seed Units
+    const units = [
+        // หน่วยบุคคล / จำนวนคน
+        { name: "คน" },
+        { name: "ครอบครัว" },
+        { name: "นักเรียน" },
+        { name: "ครู" },
+        { name: "เจ้าหน้าที่" },
+
+        // หน่วยกิจกรรม / ครั้ง
+        { name: "ครั้ง" },
+        { name: "กิจกรรม" },
+        { name: "โครงการ" },
+        { name: "ชั่วโมง" }, // เวลาที่ใช้
+
+        // หน่วยการศึกษา / งานวิจัย
+        { name: "เล่ม" },
+        { name: "ชุด" },
+        { name: "ห้องเรียน" },
+        { name: "หลักสูตร" },
+        { name: "งานวิจัย" },
+        { name: "บทความ" },
+
+        // หน่วยการเงิน / งบประมาณ
+        { name: "บาท" },
+        { name: "ล้านบาท" },
+
+        // หน่วยทั่วไป / KPI
+        { name: "ร้อยละ" },
+        { name: "เครื่อง" },
+        { name: "หน่วย" },  
+    ];
+    
+    const unitRecords: Record<string, any> = {};
+    for (let i = 0; i < units.length; i++) {
+        const unit = units[i];
+        unitRecords[`unit${i + 1}`] = await prisma.unit.create({
+            data: unit,
+        });
+    }
+  
 
     // First, create main indicators (without main_indicator_id)
     // Position is unique per category for main indicators
     const mainIndicators = [
         {
             name: "ร้อยละบทความวิจัยได้รับการตีพิมพ์ตอบรับให้ตีพิมพ์ในฐานข้อมูล Scopus ที่สอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)",
-            unit: "ร้อยละ",
+            unit_id: unitRecords["unit18"].unit_id,
             target_value: 100,
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
@@ -272,7 +314,7 @@ async function main() {
         },
         {
             name: "จำนวนต้นแบบนวัตกรรมที่พัฒนาขึ้นด้วยความเชี่ยวชาญของมหาวิทยาลัยและตอบสนองความต้องการของผู้ใช้จริง",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 50,
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
@@ -284,7 +326,7 @@ async function main() {
         },
         {
             name: "จำนวนธุรกิจเกิดใหม่ (Startup/Spinoff) หรือจำนวน Technology Licensing หรือจำนวนผลงานที่บ่มเพาะ CMU-RL 8–9 ด้านสังคม เศรษฐกิจ พลังงาน อาหาร สุขภาพ และการดูแลผู้สูงอายุ",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 50,
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
@@ -296,7 +338,7 @@ async function main() {
         },
         {
             name: "จำนวนหลักสูตรที่มีการบูรณาการการเรียนรู้ หรือมีส่วนร่วมกับผู้ใช้บัณฑิต เพื่อเพิ่มขีดความสามารถในการแข่งขันและตอบสนองความต้องการของตลาดในอนาคต",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 50,
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
@@ -308,7 +350,7 @@ async function main() {
         },
         {
             name: "ผลประเมินคุณภาพองค์กรตามแนวทางเกณฑ์คุณภาพการศึกษาเพื่อการดำเนินการที่เป็นเลิศ",
-            unit: "ร้อยละ",
+            unit_id: unitRecords["unit18"].unit_id,
             target_value: 50,
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
@@ -320,7 +362,7 @@ async function main() {
         },
         {
             name: "ร้อยละของบัณฑิตที่ได้ทำงานหรือศึกษาต่อภายใน 1 ปีหลังสำเร็จการศึกษาซึ่งได้รับการตอบรับเข้าทำงานในบริษัทข้ามชาติ องค์กรระหว่างประเทศหรือศึกษาต่อต่างประเทศ",
-            unit: "ร้อยละ",
+            unit_id: unitRecords["unit18"].unit_id,
             target_value: 100,
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
@@ -332,7 +374,7 @@ async function main() {
         },
         {
             name: "HR Efficiency",
-            unit: "points",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 80,
             main_indicator_id: null,
             user_id: userRecords["user2"].user_id,
@@ -344,7 +386,7 @@ async function main() {
         },
         {
             name: "Academic Publications",
-            unit: "papers",
+            unit_id: unitRecords["unit18"].unit_id,
             target_value: 60,
             main_indicator_id: null,
             user_id: userRecords["user3"].user_id,
@@ -369,7 +411,7 @@ async function main() {
     const subIndicators = [
         {
             name: "จำนวนผลงานวิจัย CMU-RL 4-7",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 50,
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
@@ -381,7 +423,7 @@ async function main() {
         },
         {
             name: "จำนวนนวัตกรรมสิ่งแวดล้อม",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 25,
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
@@ -393,7 +435,7 @@ async function main() {
         },
         {
             name: "จำนวนนวัตกรรมด้านอาหารและสุขภาพและการดูแลผู้สูงอายุ",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 25,
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
@@ -405,7 +447,7 @@ async function main() {
         },
         {
             name: "จำนวนหลักสูตรหรือโปรแกรมที่เปิด/ปรับปรุง เช่น หลักสูตรแบบพหุศาสตร์, หลักสูตรที่พัฒนาร่วมกับภาคอุตสาหกรรม/ภาคเอกชน, หลักสูตรควบปริญญาตรี-โท (5ปี)",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 25,
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
@@ -417,7 +459,7 @@ async function main() {
         },
         {
             name: "จำนวนหลักสูตร/โปรแกรมที่เปิดใหม่/ปรับปรุงเป็นหลักสูตรนานาชาติในระดับปริญญาตรี",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 25,
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
@@ -429,7 +471,7 @@ async function main() {
         },
         {
             name: "จำนวนหลักสูตร/โครงการปริญญาคู่ร่วมกับมหาวิทยาลัยชั้นนำของโลกที่เพิ่มขึ้น",
-            unit: "เล่ม",
+            unit_id: unitRecords["unit10"].unit_id,
             target_value: 25,
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
@@ -441,7 +483,7 @@ async function main() {
         },
         {
             name: "HR Training Completion",
-            unit: "sessions",
+            unit_id: unitRecords["unit12"].unit_id,
             target_value: 40,
             main_indicator_id: mainIndicatorRecords["main7"].indicator_id,
             user_id: userRecords["user2"].user_id,
@@ -453,7 +495,7 @@ async function main() {
         },
         {
             name: "Student Research Projects",
-            unit: "projects",
+            unit_id: unitRecords["unit8"].unit_id,
             target_value: 30,
             main_indicator_id: mainIndicatorRecords["main8"].indicator_id,
             user_id: userRecords["user3"].user_id,
