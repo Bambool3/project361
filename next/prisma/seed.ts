@@ -16,6 +16,7 @@ const prisma = new PrismaClient();
 async function main() {
     // Clean up existing data in correct order (respecting foreign key constraints)
     await prisma.responsibleJobTitle.deleteMany({});
+    await prisma.indicatorData.deleteMany({});
     await prisma.indicator.deleteMany({});
     await prisma.category.deleteMany({});
     await prisma.userJobTitle.deleteMany({});
@@ -255,6 +256,7 @@ async function main() {
     }
 
     // First, create main indicators (without main_indicator_id)
+    // Position is unique per category for main indicators
     const mainIndicators = [
         {
             name: "ร้อยละบทความวิจัยได้รับการตีพิมพ์ตอบรับให้ตีพิมพ์ในฐานข้อมูล Scopus ที่สอดคล้องกับเป้าหมายการพัฒนาที่ยั่งยืน (SDGs)",
@@ -263,9 +265,10 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
+            frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 1, // First indicator in CMUPA category
         },
         {
             name: "จำนวนต้นแบบนวัตกรรมที่พัฒนาขึ้นด้วยความเชี่ยวชาญของมหาวิทยาลัยและตอบสนองความต้องการของผู้ใช้จริง",
@@ -274,9 +277,10 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
+            frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 2, // Second indicator in CMUPA category
         },
         {
             name: "จำนวนธุรกิจเกิดใหม่ (Startup/Spinoff) หรือจำนวน Technology Licensing หรือจำนวนผลงานที่บ่มเพาะ CMU-RL 8–9 ด้านสังคม เศรษฐกิจ พลังงาน อาหาร สุขภาพ และการดูแลผู้สูงอายุ",
@@ -285,9 +289,10 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
+            frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 3, // Third indicator in CMUPA category
         },
         {
             name: "จำนวนหลักสูตรที่มีการบูรณาการการเรียนรู้ หรือมีส่วนร่วมกับผู้ใช้บัณฑิต เพื่อเพิ่มขีดความสามารถในการแข่งขันและตอบสนองความต้องการของตลาดในอนาคต",
@@ -296,9 +301,10 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
+            frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 4, // Fourth indicator in CMUPA category
         },
         {
             name: "ผลประเมินคุณภาพองค์กรตามแนวทางเกณฑ์คุณภาพการศึกษาเพื่อการดำเนินการที่เป็นเลิศ",
@@ -307,9 +313,10 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
+            frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 5, // Fifth indicator in CMUPA category
         },
         {
             name: "ร้อยละของบัณฑิตที่ได้ทำงานหรือศึกษาต่อภายใน 1 ปีหลังสำเร็จการศึกษาซึ่งได้รับการตอบรับเข้าทำงานในบริษัทข้ามชาติ องค์กรระหว่างประเทศหรือศึกษาต่อต่างประเทศ",
@@ -318,31 +325,34 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
+            frequency_id: frequencyRecords["freq5"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 6, // Sixth indicator in CMUPA category
         },
         {
             name: "HR Efficiency",
             unit: "points",
             target_value: 80,
-            main_indicator_id: null, // This is a main indicator
+            main_indicator_id: null,
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            frequency_id: frequencyRecords["freq4"].frequency_id, // Quarterly
+            frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 1, // First indicator in HR category
         },
         {
             name: "Academic Publications",
             unit: "papers",
             target_value: 60,
-            main_indicator_id: null, // This is a main indicator
+            main_indicator_id: null,
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            frequency_id: frequencyRecords["freq4"].frequency_id, // Annually
+            frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 1, // First indicator in Academic category
         },
     ];
 
@@ -355,6 +365,7 @@ async function main() {
     }
 
     // Then create sub-indicators that reference main indicators
+    // Position is unique per parent (main_indicator_id) for sub-indicators
     const subIndicators = [
         {
             name: "จำนวนผลงานวิจัย CMU-RL 4-7",
@@ -363,9 +374,10 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
+            frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 1, // First sub-indicator under main2
         },
         {
             name: "จำนวนนวัตกรรมสิ่งแวดล้อม",
@@ -374,9 +386,10 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
+            frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 2, // Second sub-indicator under main2
         },
         {
             name: "จำนวนนวัตกรรมด้านอาหารและสุขภาพและการดูแลผู้สูงอายุ",
@@ -385,9 +398,10 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id, // ราย 3 เดือน
+            frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 3, // Third sub-indicator under main2
         },
         {
             name: "จำนวนหลักสูตรหรือโปรแกรมที่เปิด/ปรับปรุง เช่น หลักสูตรแบบพหุศาสตร์, หลักสูตรที่พัฒนาร่วมกับภาคอุตสาหกรรม/ภาคเอกชน, หลักสูตรควบปริญญาตรี-โท (5ปี)",
@@ -396,9 +410,10 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
+            frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 1, // First sub-indicator under main4
         },
         {
             name: "จำนวนหลักสูตร/โปรแกรมที่เปิดใหม่/ปรับปรุงเป็นหลักสูตรนานาชาติในระดับปริญญาตรี",
@@ -407,9 +422,10 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
+            frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 2, // Second sub-indicator under main4
         },
         {
             name: "จำนวนหลักสูตร/โครงการปริญญาคู่ร่วมกับมหาวิทยาลัยชั้นนำของโลกที่เพิ่มขึ้น",
@@ -418,31 +434,34 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main4"].indicator_id,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
+            frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 3, // Third sub-indicator under main4
         },
         {
             name: "HR Training Completion",
             unit: "sessions",
             target_value: 40,
-            main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // Sub-indicator of HR main indicator
+            main_indicator_id: mainIndicatorRecords["main7"].indicator_id,
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 1, // First sub-indicator under main7 (HR Efficiency)
         },
         {
             name: "Student Research Projects",
             unit: "projects",
             target_value: 30,
-            main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // Sub-indicator of Academic main indicator
+            main_indicator_id: mainIndicatorRecords["main8"].indicator_id,
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
             frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
             date: new Date(),
+            position: 1, // First sub-indicator under main8 (Academic Publications)
         },
     ];
 
