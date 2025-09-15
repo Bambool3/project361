@@ -112,11 +112,11 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-                backgroundColor: "var(--color-purple)",
+                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                 color: "#fff",
                 boxShadow: isMobile
-                    ? "0 4px 24px rgba(0,0,0,0.12)"
-                    : "0 2px 8px rgba(0,0,0,0.08)",
+                    ? "0 4px 24px rgba(99, 102, 241, 0.25)"
+                    : "0 2px 8px rgba(99, 102, 241, 0.25)",
                 borderRadius: isMobile ? "0 16px 16px 0" : "0 0 16px 16px",
                 overflow: "hidden",
             }}
@@ -143,7 +143,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             fontSize: { xs: "1.25rem", sm: "1.5rem" },
                         }}
                     >
-                        CMUPA
+                        KPI Tracking
                     </Typography>
                     <IconButton
                         onClick={onClose}
@@ -244,7 +244,8 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                         py: { xs: 1.25, sm: 1.5, lg: 1 },
                                         borderRadius: 3,
                                         minHeight: { xs: 44, sm: 48 },
-                                        transition: "all 0.2s ease-in-out",
+                                        transition:
+                                            "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                                         "&:hover": {
                                             backgroundColor: isActive
                                                 ? "white"
@@ -254,7 +255,10 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                 : "#fff",
                                             transform: isMobile
                                                 ? "translateX(4px)"
-                                                : "none",
+                                                : "translateY(-1px)",
+                                            // boxShadow: isActive
+                                            //     ? "0 4px 12px rgba(37, 117, 252, 0.35)"
+                                            //     : "0 4px 12px rgba(255, 255, 255, 0.15)",
                                         },
                                         "&:active": {
                                             transform: "scale(0.98)",
@@ -297,7 +301,8 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                             borderRadius: 3,
                                             minHeight: 44,
                                             width: "100%",
-                                            transition: "all 0.2s ease-in-out",
+                                            transition:
+                                                "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                                             "&:hover": {
                                                 backgroundColor:
                                                     isManagementActive
@@ -307,6 +312,9 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                     ? "#2575fc"
                                                     : "#fff",
                                                 transform: "translateX(4px)",
+                                                // boxShadow: isManagementActive
+                                                //     ? "0 4px 12px rgba(37, 117, 252, 0.35)"
+                                                //     : "0 4px 12px rgba(255, 255, 255, 0.15)",
                                             },
                                         }}
                                     >
@@ -352,7 +360,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                             width: "100%",
                                                             mb: 0.5,
                                                             transition:
-                                                                "all 0.2s ease-in-out",
+                                                                "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                                                             "&:hover": {
                                                                 backgroundColor:
                                                                     isActive
@@ -360,6 +368,10 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                                         : "rgba(255,255,255,0.1)",
                                                                 transform:
                                                                     "translateX(2px)",
+                                                                // boxShadow:
+                                                                //     isActive
+                                                                //         ? "0 2px 8px rgba(37, 117, 252, 0.25)"
+                                                                //         : "0 2px 8px rgba(255, 255, 255, 0.1)",
                                                             },
                                                         }}
                                                     >
@@ -390,7 +402,8 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                             px: 2.5,
                                             py: 1,
                                             borderRadius: 3,
-                                            transition: "all 0.2s ease-in-out",
+                                            transition:
+                                                "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                                             "&:hover": {
                                                 backgroundColor:
                                                     isManagementActive
@@ -399,6 +412,10 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                 color: isManagementActive
                                                     ? "#2575fc"
                                                     : "#fff",
+                                                transform: "translateY(-1px)",
+                                                // boxShadow: isManagementActive
+                                                //     ? "0 4px 12px rgba(37, 117, 252, 0.35)"
+                                                //     : "0 4px 12px rgba(255, 255, 255, 0.15)",
                                             },
                                         }}
                                     >
@@ -415,8 +432,8 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                 backgroundColor: "white",
                                                 borderRadius: "12px",
                                                 boxShadow:
-                                                    "0 8px 32px rgba(0,0,0,0.12)",
-                                                border: "1px solid rgba(0,0,0,0.08)",
+                                                    "0 8px 32px rgba(99, 102, 241, 0.25)",
+                                                border: "1px solid rgba(99, 102, 241, 0.08)",
                                                 minWidth: "180px",
                                                 mt: 1,
                                             },
@@ -452,6 +469,8 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                         fontWeight: isActive
                                                             ? 600
                                                             : 500,
+                                                        transition:
+                                                            "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                                                         "&:hover": {
                                                             backgroundColor:
                                                                 isActive
@@ -460,6 +479,10 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                                             color: isActive
                                                                 ? "#1e40af"
                                                                 : "#1f2937",
+                                                            transform:
+                                                                "translateY(-1px)",
+                                                            boxShadow:
+                                                                "0 2px 8px rgba(99, 102, 241, 0.15)",
                                                         },
                                                     }}
                                                 >
@@ -494,9 +517,13 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                     "&:hover": {
                                         backgroundColor:
                                             "rgba(255,255,255,0.18)",
-                                        transform: "scale(1.05)",
+                                        transform:
+                                            "translateY(-1px) scale(1.05)",
+                                        // boxShadow:
+                                        //     "0 4px 12px rgba(255, 255, 255, 0.15)",
                                     },
-                                    transition: "all 0.2s ease-in-out",
+                                    transition:
+                                        "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                                 }}
                             >
                                 <Settings size={isTablet ? 20 : 22} />
@@ -516,9 +543,13 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                     minHeight: { sm: 36, lg: 40 },
                                     "&:hover": {
                                         backgroundColor: "#dc2626",
-                                        transform: "scale(1.02)",
+                                        transform:
+                                            "translateY(-1px) scale(1.02)",
+                                        // boxShadow:
+                                        //     "0 4px 12px rgba(220, 38, 38, 0.35)",
                                     },
-                                    transition: "all 0.2s ease-in-out",
+                                    transition:
+                                        "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                                 }}
                             >
                                 ออกจากระบบ
@@ -559,12 +590,15 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                                 maxWidth: "200px",
                                 "&:hover": {
                                     backgroundColor: "#dc2626",
-                                    transform: "scale(1.02)",
+                                    transform: "translateY(-1px) scale(1.02)",
+                                    boxShadow:
+                                        "0 4px 12px rgba(220, 38, 38, 0.35)",
                                 },
                                 "&:active": {
                                     transform: "scale(0.98)",
                                 },
-                                transition: "all 0.2s ease-in-out",
+                                transition:
+                                    "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                             }}
                         >
                             ออกจากระบบ
@@ -573,17 +607,22 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                             onClick={handleSettingsClick}
                             sx={{
                                 color: "#fff",
-                                backgroundColor: "rgba(255,255,255,0.10)",
+                                backgroundColor: "rgba(255,255,255,0.12)",
+                                borderRadius: "12px",
+                                border: "1px solid rgba(255,255,255,0.18)",
                                 width: { xs: 40, sm: 44 },
                                 height: { xs: 40, sm: 44 },
                                 "&:hover": {
-                                    backgroundColor: "rgba(255,255,255,0.18)",
-                                    transform: "scale(1.05)",
+                                    backgroundColor: "rgba(255,255,255,0.22)",
+                                    transform: "translateY(-1px) scale(1.05)",
+                                    boxShadow:
+                                        "0 4px 12px rgba(255, 255, 255, 0.15)",
                                 },
                                 "&:active": {
                                     transform: "scale(0.95)",
                                 },
-                                transition: "all 0.2s ease-in-out",
+                                transition:
+                                    "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                             }}
                         >
                             <Settings size={isTablet ? 20 : 22} />
@@ -606,8 +645,9 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                     "& .MuiDrawer-paper": {
                         width: { xs: 280, sm: 320 },
                         border: "none",
-                        backgroundColor: "var(--color-purple)",
-                        boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+                        background:
+                            "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                        boxShadow: "0 4px 24px rgba(99, 102, 241, 0.25)",
                     },
                     "& .MuiBackdrop-root": {
                         backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -627,9 +667,10 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                 component="nav"
                 sx={{
                     display: { xs: "none", lg: "block" },
-                    backgroundColor: "var(--color-purple)",
+                    background:
+                        "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                     width: "100%",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    boxShadow: "0 2px 8px rgba(99, 102, 241, 0.25)",
                     position: "sticky",
                     top: 0,
                     zIndex: theme.zIndex.appBar,

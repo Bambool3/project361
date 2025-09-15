@@ -16,11 +16,24 @@ import {
     Alert,
     Snackbar,
     CircularProgress,
+    keyframes,
 } from "@mui/material";
 import z from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+
+// Animations
+const fadeInUp = keyframes`
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const schema = z.object({
     email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง"),
@@ -103,7 +116,8 @@ export default function LoginForm() {
                 alignItems="center"
                 minHeight="100vh"
                 sx={{
-                    backgroundColor: "var(--color-purple)",
+                    background:
+                        "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                     px: { xs: 2, sm: 3, md: 0 },
                 }}
             >
@@ -316,6 +330,104 @@ export default function LoginForm() {
                         </Button>
                     </form>
                 </Paper>
+
+                {/* Decorative bubbles */}
+                <Box
+                    sx={{
+                        position: "absolute",
+                        bottom: "10%",
+                        right: "10%",
+                        width: 100,
+                        height: 100,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        animation: `${fadeInUp} 2s ease-out 0.5s both`,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: "15%",
+                        left: "15%",
+                        width: 60,
+                        height: 60,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.03)",
+                        animation: `${fadeInUp} 2s ease-out 1s both`,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: "25%",
+                        right: "20%",
+                        width: 80,
+                        height: 80,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.04)",
+                        animation: `${fadeInUp} 2s ease-out 1.5s both`,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        bottom: "30%",
+                        left: "10%",
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.06)",
+                        animation: `${fadeInUp} 2s ease-out 2s both`,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: "60%",
+                        left: "25%",
+                        width: 50,
+                        height: 50,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.035)",
+                        animation: `${fadeInUp} 2s ease-out 0.8s both`,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        bottom: "20%",
+                        right: "30%",
+                        width: 70,
+                        height: 70,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.045)",
+                        animation: `${fadeInUp} 2s ease-out 1.2s both`,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: "40%",
+                        right: "5%",
+                        width: 35,
+                        height: 35,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.055)",
+                        animation: `${fadeInUp} 2s ease-out 1.8s both`,
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "absolute",
+                        bottom: "50%",
+                        left: "5%",
+                        width: 55,
+                        height: 55,
+                        borderRadius: "50%",
+                        background: "rgba(255, 255, 255, 0.04)",
+                        animation: `${fadeInUp} 2s ease-out 0.3s both`,
+                    }}
+                />
             </Box>
 
             {/* Snackbar for alerts */}
