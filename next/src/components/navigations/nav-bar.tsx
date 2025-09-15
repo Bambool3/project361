@@ -49,7 +49,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
     const navItems = [];
     const managementItems = [];
 
-    if (userRole === "ผู้ดูแลระบบ" || userRole === "ฝ่ายแผน") {
+    if (userRole === "ผู้ดูแลระบบ") {
         navItems.push(
             { name: "หน้าหลัก", icon: LayoutGrid, path: "/admin/dashboard" },
             { name: "ตัวชี้วัด", icon: Goal, path: "/admin/management" },
@@ -61,6 +61,17 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
             { name: "บุคลากร", icon: Users, path: "/admin/employee" },
             { name: "ความถี่", icon: Clock, path: "/admin/frequency" }
         );
+    } else if (userRole === "ฝ่ายแผน") {
+        navItems.push(
+            { name: "หน้าหลัก", icon: LayoutGrid, path: "/admin/dashboard" },
+            { name: "ตัวชี้วัด", icon: Goal, path: "/admin/management" },
+            { name: "สถิติ", icon: PieChart, path: "/admin/stat" }
+        );
+        managementItems.push({
+            name: "ความถี่",
+            icon: Clock,
+            path: "/admin/frequency",
+        });
     } else if (userRole === "บุคลากร") {
         navItems.push(
             {
