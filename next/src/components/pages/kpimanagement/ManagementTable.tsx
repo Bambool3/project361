@@ -383,7 +383,7 @@ export default function ManagementTable({
                             gap: 1,
                           }}
                         >
-                          {kpi.sub_indicators?.length > 0 && (
+                          {/* {kpi.sub_indicators?.length > 0 && (
                             <IconButton
                               size="small"
                               onClick={() => toggleExpand(kpi.id)}
@@ -394,7 +394,7 @@ export default function ManagementTable({
                                 <ChevronRight size={16} />
                               )}
                             </IconButton>
-                          )}
+                          )} */}
                           <Typography
                             sx={{
                               fontWeight: "600",
@@ -403,9 +403,22 @@ export default function ManagementTable({
                             }}
                           >
                             {kpi.name}
+                            {kpi.sub_indicators?.length > 0 && (
+                              <IconButton
+                                size="small"
+                                onClick={() => toggleExpand(kpi.id)}
+                              >
+                                {expanded.has(kpi.id) ? (
+                                  <ChevronDown size={16} />
+                                ) : (
+                                  <ChevronRight size={16} />
+                                )}
+                              </IconButton>
+                            )}
                           </Typography>
                         </Box>
                       </TableCell>
+
                       <TableCell
                         sx={{
                           textAlign: "center",

@@ -17,7 +17,7 @@ const subKpiSchema = z.object({
 const mainKpiSchema = z.object({
   name: z.string().min(2, "กรุณากรอกชื่อตัวชี้วัด").max(50),
   target: z.string().min(1, "กรุณากรอกเป้าหมาย"),
-  format: z.string(),
+  unit: z.string().min(1, "กรุณาเลือกหน่วยของตัวชี้วัด"),
   frequency: z.string().min(1, "กรุณาเลือกรอบการรายงาน"),
   jobtitle: z.array(z.string().min(1, "กรุณาเลือกหน่วยงาน")),
   subKpis: z.array(subKpiSchema),
@@ -43,7 +43,12 @@ interface JobTitle {
   name: string;
 }
 
-const kpiFormats = ["1,234", "$1,234.56", "15%"];
+interface Unit {
+  unit_id: number;
+  name: string;
+}
+
+const kpiunits = ["1,234", "$1,234.56", "15%"];
 
 export default function AddKpiModal({
   isOpen,
@@ -56,14 +61,16 @@ export default function AddKpiModal({
   const [frequencies, setFrequencies] = useState<Frequency[]>([]);
   const [jobtitles, setJobTitle] = useState<JobTitle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [units, setUnit] = useState<Unit[]>([]);
 
   // ดีงข้อมูล ความถี่,แผนก
   useEffect(() => {
     Promise.all([
       fetch("http://localhost:3000/api/frequency").then((res) => res.json()),
       fetch("http://localhost:3000/api/jobTitle").then((res) => res.json()),
+      fetch("http://localhost:3000/api/unit").then((res) => res.json()),
     ])
-      .then(([freqData, jobData]) => {
+      .then(([freqData, jobData, unitData]) => {
         setFrequencies(
           freqData.map((f: any) => ({
             frequency_id: f.frequency_id.toString(),
@@ -74,6 +81,12 @@ export default function AddKpiModal({
           jobData.map((j: any) => ({
             jobtitle_id: j.id,
             name: j.jobTitle_name,
+          }))
+        );
+        setUnit(
+          unitData.map((u: any) => ({
+            unit_id: u.unit_id,
+            name: u.name,
           }))
         );
         setLoading(false);
@@ -92,7 +105,7 @@ export default function AddKpiModal({
     defaultValues: {
       name: "",
       target: "",
-      format: kpiFormats[0],
+      unit: "",
       frequency: "",
       jobtitle: [],
       subKpis: [],
@@ -104,12 +117,13 @@ export default function AddKpiModal({
 
     const defaultFrequency = frequencies[0]?.frequency_id?.toString() || "";
     const defaultJobtitle = jobtitles[0]?.jobtitle_id?.toString() || "";
+    const defaultUnit = units[0]?.unit_id?.toString() || "";
 
     if (isEdit && initialData) {
       reset({
         name: initialData.name || "",
         target: initialData.target_value?.toString() || "",
-        format: initialData.unit || kpiFormats[0],
+        unit: initialData.unit.unit_id?.toString() || defaultUnit,
         frequency:
           initialData.frequency?.frequency_id?.toString() || defaultFrequency,
         jobtitle: initialData.responsible_jobtitles?.map((j) =>
@@ -127,7 +141,7 @@ export default function AddKpiModal({
       reset({
         name: "",
         target: "",
-        format: kpiFormats[0],
+        unit: defaultUnit,
         frequency: defaultFrequency,
         jobtitle: [defaultJobtitle],
         subKpis: [],
@@ -220,10 +234,10 @@ export default function AddKpiModal({
                 )}
               />
 
-              {/* Format */}
+              {/* unit */}
 
               <Controller
-                name="format"
+                name="unit"
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
@@ -249,9 +263,9 @@ export default function AddKpiModal({
                         "& .MuiSelect-select": { px: 2, py: 1.1 },
                       }}
                     >
-                      {kpiFormats.map((f) => (
-                        <MenuItem key={f} value={f}>
-                          {f}
+                      {units.map((u) => (
+                        <MenuItem key={u.unit_id} value={u.unit_id}>
+                          {u.name}
                         </MenuItem>
                       ))}
                     </Select>
