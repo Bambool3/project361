@@ -35,6 +35,7 @@ const frequencySchema = z.object({
         .array(
             z
                 .object({
+                    name: z.string().min(1, "กรุณากรอกชื่อช่วงเวลา"),
                     startDate: z.date({ message: "กรุณาเลือกวันที่เริ่มต้น" }),
                     endDate: z.date({ message: "กรุณาเลือกวันที่สิ้นสุด" }),
                 })
@@ -107,6 +108,7 @@ export default function FrequencyAddEditV2({
             periods_in_year: 1,
             periods: [
                 {
+                    name: "",
                     startDate: normalizeToBangkokMidnight(new Date()),
                     endDate: normalizeToBangkokMidnight(new Date()),
                 },
@@ -128,6 +130,7 @@ export default function FrequencyAddEditV2({
                 periods:
                     frequency.periods?.length > 0
                         ? frequency.periods.map((period: any) => ({
+                              name: period.name || "",
                               startDate: new Date(
                                   period.start_date || period.startDate
                               ),
@@ -137,6 +140,7 @@ export default function FrequencyAddEditV2({
                           }))
                         : [
                               {
+                                  name: "",
                                   startDate: normalizeToBangkokMidnight(
                                       new Date()
                                   ),
@@ -152,6 +156,7 @@ export default function FrequencyAddEditV2({
                 periods_in_year: 1,
                 periods: [
                     {
+                        name: "",
                         startDate: normalizeToBangkokMidnight(new Date()),
                         endDate: normalizeToBangkokMidnight(new Date()),
                     },
@@ -172,6 +177,7 @@ export default function FrequencyAddEditV2({
         if (value > currentPeriods.length) {
             for (let i = currentPeriods.length; i < value; i++) {
                 append({
+                    name: "",
                     startDate: normalizeToBangkokMidnight(new Date()),
                     endDate: normalizeToBangkokMidnight(new Date()),
                 });
@@ -194,7 +200,7 @@ export default function FrequencyAddEditV2({
     };
 
     const checkPeriodOverlaps = (
-        periods: { startDate: Date; endDate: Date }[]
+        periods: { name: string; startDate: Date; endDate: Date }[]
     ) => {
         if (periods.length <= 1) return true;
         const sortedPeriods = [...periods].sort((a, b) =>
@@ -207,17 +213,21 @@ export default function FrequencyAddEditV2({
                     sortedPeriods[i + 1].startDate
                 ) >= 0
             ) {
+                const currentPeriod = sortedPeriods[i];
+                const nextPeriod = sortedPeriods[i + 1];
                 const currentStart =
-                    sortedPeriods[i].startDate.toLocaleDateString("th-TH");
+                    currentPeriod.startDate.toLocaleDateString("th-TH");
                 const currentEnd =
-                    sortedPeriods[i].endDate.toLocaleDateString("th-TH");
+                    currentPeriod.endDate.toLocaleDateString("th-TH");
                 const nextStart =
-                    sortedPeriods[i + 1].startDate.toLocaleDateString("th-TH");
-                const nextEnd =
-                    sortedPeriods[i + 1].endDate.toLocaleDateString("th-TH");
+                    nextPeriod.startDate.toLocaleDateString("th-TH");
+                const nextEnd = nextPeriod.endDate.toLocaleDateString("th-TH");
+
+                const currentName = currentPeriod.name || `ช่วงที่ ${i + 1}`;
+                const nextName = nextPeriod.name || `ช่วงที่ ${i + 2}`;
 
                 setSubmitError(
-                    `ช่วงเวลาซ้อนทับกัน: "${currentStart} - ${currentEnd}" กับ "${nextStart} - ${nextEnd}" กรุณาตรวจสอบวันที่ให้ถูกต้อง`
+                    `ช่วงเวลาซ้อนทับกัน: "${currentName} (${currentStart} - ${currentEnd})" กับ "${nextName} (${nextStart} - ${nextEnd})" กรุณาตรวจสอบวันที่ให้ถูกต้อง`
                 );
                 return false;
             }
@@ -484,6 +494,74 @@ export default function FrequencyAddEditV2({
                                     >
                                         ช่วงเวลาที่ {index + 1}
                                     </Typography>
+                                </Box>
+                            </Box>
+
+                            <Box
+                                sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "1fr",
+                                    gap: 2,
+                                    mb: 2,
+                                }}
+                            >
+                                <Box>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            display: "block",
+                                            fontWeight: "600",
+                                            color: "#6b7280",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        ชื่อช่วงเวลา *
+                                    </Typography>
+                                    <Controller
+                                        name={`periods.${index}.name` as const}
+                                        control={control}
+                                        render={({ field: nameField }) => (
+                                            <TextField
+                                                size="small"
+                                                fullWidth
+                                                disabled={isLoading}
+                                                placeholder="เช่น ไตรมาสที่ 1, มกราคม 2567, ปีการศึกษา 2567"
+                                                value={nameField.value}
+                                                onChange={(e) => {
+                                                    nameField.onChange(
+                                                        e.target.value
+                                                    );
+                                                    setSubmitError(null);
+                                                }}
+                                                error={
+                                                    !!errors.periods?.[index]
+                                                        ?.name
+                                                }
+                                                helperText={
+                                                    errors.periods?.[index]
+                                                        ?.name?.message
+                                                }
+                                                sx={{
+                                                    "& .MuiOutlinedInput-root":
+                                                        {
+                                                            backgroundColor:
+                                                                "white",
+                                                            borderRadius: "8px",
+                                                            "&:hover fieldset":
+                                                                {
+                                                                    borderColor:
+                                                                        "#8b5cf6",
+                                                                },
+                                                            "&.Mui-focused fieldset":
+                                                                {
+                                                                    borderColor:
+                                                                        "#8b5cf6",
+                                                                },
+                                                        },
+                                                }}
+                                            />
+                                        )}
+                                    />
                                 </Box>
                             </Box>
 

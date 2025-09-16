@@ -1,5 +1,6 @@
 export interface FrequencyPeriod {
     period_id: number;
+    name: string;
     start_date: string;
     end_date: string;
     frequency_id: number;
@@ -16,6 +17,7 @@ export interface Frequency {
 export interface FrequencyFormData {
     name: string;
     periods: {
+        name: string;
         startDate: Date;
         endDate: Date;
     }[];
@@ -36,6 +38,7 @@ export interface FrequencyStats {
 export interface StandardFrequencyTemplate {
     name: string;
     periods: {
+        name: string;
         startDate: Date;
         endDate: Date;
     }[];

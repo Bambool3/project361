@@ -14,6 +14,7 @@ const frequencySchema = z.object({
     periods: z
         .array(
             z.object({
+                name: z.string().min(1, "Period name is required"),
                 startDate: z.union([z.string(), z.date()]).transform((val) => {
                     if (typeof val === "string") {
                         return parseDateInputToBangkok(val);
@@ -73,6 +74,7 @@ export async function GET(
             name: frequency.name,
             periods: frequency.periods.map((period) => ({
                 period_id: period.period_id,
+                name: period.name,
                 start_date: period.start_date.toISOString(),
                 end_date: period.end_date.toISOString(),
                 frequency_id: period.frequency_id,
@@ -207,6 +209,7 @@ export async function PUT(
             await tx.period.createMany({
                 data: periods.map((period) => ({
                     frequency_id,
+                    name: period.name,
                     start_date: period.startDate,
                     end_date: period.endDate,
                 })),
@@ -239,6 +242,7 @@ export async function PUT(
             name: updatedFrequency.name,
             periods: updatedFrequency.periods.map((period) => ({
                 period_id: period.period_id,
+                name: period.name,
                 start_date: period.start_date.toISOString(),
                 end_date: period.end_date.toISOString(),
                 frequency_id: period.frequency_id,
