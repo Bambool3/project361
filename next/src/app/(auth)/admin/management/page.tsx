@@ -2,7 +2,7 @@ import ManagementDetails from "@/components/pages/kpimanagement/ManagementDetail
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "จัดการตัวชี้วัด | Chiang Mai University",
+    title: "ตัวชี้วัด | Chiang Mai University",
 };
 
 export default function Page() {
