@@ -137,6 +137,7 @@ model Frequency {
 
 model Period {
   period_id    Int      @id @default(autoincrement())
+  name         String
   start_date   DateTime
   end_date     DateTime
   frequency_id Int
