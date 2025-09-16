@@ -38,24 +38,26 @@ async function main() {
         { name: "รายปีงบประมาณ", periods_in_year: 1 },
         { name: "รายปีการศึกษา", periods_in_year: 1 },
     ];
-
     const frequencyRecords: Record<string, any> = {};
     for (let i = 0; i < frequencies.length; i++) {
-        const frequency = frequencies[i];
         frequencyRecords[`freq${i + 1}`] = await prisma.frequency.create({
-            data: frequency,
+            data: frequencies[i],
         });
     }
 
-    // Seed Periods for each frequency
+    // --- Periods ---
     const currentYear = new Date().getFullYear();
+    const monthNames = [
+        "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
+        "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"
+    ];
 
-    // Create periods for monthly frequency (freq1 - รายเดือน)
     const monthlyPeriods = [];
     for (let m = 1; m <= 12; m++) {
         const start = new Date(currentYear, m - 1, 1);
         const end = new Date(currentYear, m, 0);
         monthlyPeriods.push({
+            name: `${monthNames[m-1]} ${currentYear}`,
             start_date: start,
             end_date: end,
             frequency_id: frequencyRecords["freq1"].frequency_id,
@@ -63,25 +65,28 @@ async function main() {
     }
     await prisma.period.createMany({ data: monthlyPeriods });
 
-    // Create periods for quarterly frequency (freq2 - รายไตรมาส)
     await prisma.period.createMany({
         data: [
             {
+                name: `ไตรมาส 1/${currentYear}`,
                 start_date: new Date(`${currentYear}-01-01`),
                 end_date: new Date(`${currentYear}-03-31`),
                 frequency_id: frequencyRecords["freq2"].frequency_id,
             },
             {
+                name: `ไตรมาส 2/${currentYear}`,
                 start_date: new Date(`${currentYear}-04-01`),
                 end_date: new Date(`${currentYear}-06-30`),
                 frequency_id: frequencyRecords["freq2"].frequency_id,
             },
             {
+                name: `ไตรมาส 3/${currentYear}`,
                 start_date: new Date(`${currentYear}-07-01`),
                 end_date: new Date(`${currentYear}-09-30`),
                 frequency_id: frequencyRecords["freq2"].frequency_id,
             },
             {
+                name: `ไตรมาส 4/${currentYear}`,
                 start_date: new Date(`${currentYear}-10-01`),
                 end_date: new Date(`${currentYear}-12-31`),
                 frequency_id: frequencyRecords["freq2"].frequency_id,
@@ -89,15 +94,17 @@ async function main() {
         ],
     });
 
-    // Create periods for semester frequency (freq3 - รายภาคการศึกษา)
+    // Semester
     await prisma.period.createMany({
         data: [
             {
+                name: `เทอม 1/${currentYear}`,
                 start_date: new Date(`${currentYear}-06-01`),
                 end_date: new Date(`${currentYear}-10-31`),
                 frequency_id: frequencyRecords["freq3"].frequency_id,
             },
             {
+                name: `เทอม 2/${currentYear}`,
                 start_date: new Date(`${currentYear}-11-01`),
                 end_date: new Date(`${currentYear + 1}-03-31`),
                 frequency_id: frequencyRecords["freq3"].frequency_id,
@@ -105,18 +112,20 @@ async function main() {
         ],
     });
 
-    // Create periods for annual frequencies
+    // Annuals
     await prisma.period.createMany({
         data: [
             {
+                name: `ปีงบประมาณ ${currentYear}`,
                 start_date: new Date(`${currentYear}-10-01`),
                 end_date: new Date(`${currentYear + 1}-09-30`),
-                frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
+                frequency_id: frequencyRecords["freq4"].frequency_id,
             },
             {
+                name: `ปีการศึกษา ${currentYear}`,
                 start_date: new Date(`${currentYear}-06-01`),
                 end_date: new Date(`${currentYear + 1}-05-31`),
-                frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
+                frequency_id: frequencyRecords["freq5"].frequency_id,
             },
         ],
     });
