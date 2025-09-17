@@ -105,6 +105,7 @@ export default function ManagementMain() {
         loading={loading}
         error={error}
         onRefresh={() => loadIndicators(selectedCatId)}
+        categoryId={selectedCatId}
       />
     </Box>
   );

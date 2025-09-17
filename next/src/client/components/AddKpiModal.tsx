@@ -6,21 +6,30 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Crosshair } from "lucide-react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+  DroppableProvided,
+  DraggableProvided,
+} from "@hello-pangea/dnd";
 
 // Zod Schema
-const subKpiSchema = z.object({
+const sub_indicatorsSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "กรุณากรอกชื่อตัวชี้วัดย่อย"),
-  target: z.string().min(1, "กรุณากรอกเป้าหมายตัวชี้วัดย่อย"),
+  target_value: z.string().min(1, "กรุณากรอกเป้าหมายตัวชี้วัดย่อย"),
+  position: z.number(),
 });
 
 const mainKpiSchema = z.object({
-  name: z.string().min(2, "กรุณากรอกชื่อตัวชี้วัด").max(50),
-  target: z.string().min(1, "กรุณากรอกเป้าหมาย"),
-  unit: z.string().min(1, "กรุณาเลือกหน่วยของตัวชี้วัด"),
-  frequency: z.string().min(1, "กรุณาเลือกรอบการรายงาน"),
-  jobtitle: z.array(z.string().min(1, "กรุณาเลือกหน่วยงาน")),
-  subKpis: z.array(subKpiSchema),
+  name: z.string().min(2, "กรุณากรอกชื่อตัวชี้วัด").max(500),
+  target_value: z.string().min(1, "กรุณากรอกเป้าหมาย"),
+  unit_id: z.string().min(1, "กรุณาเลือกหน่วยของตัวชี้วัด"),
+  frequency_id: z.string().min(1, "กรุณาเลือกรอบการรายงาน"),
+  jobtitle_ids: z.array(z.string().min(1, "กรุณาเลือกหน่วยงาน")),
+  sub_indicators: z.array(sub_indicatorsSchema),
 });
 
 type FormData = z.infer<typeof mainKpiSchema>;
@@ -28,9 +37,14 @@ type FormData = z.infer<typeof mainKpiSchema>;
 interface AddKpiModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: FormData) => Promise<void>;
+  onSubmit: (
+    data: FormData,
+    mode: "add" | "edit",
+    categoryId: string
+  ) => Promise<void>;
   mode?: "add" | "edit"; // บอกว่า modal ใช้โหมดไหน
   initialData?: Indicator | null; // ข้อมูลเริ่มต้น (ใช้ตอน edit)
+  categoryId: string;
 }
 
 interface Frequency {
@@ -54,7 +68,9 @@ export default function AddKpiModal({
   isOpen,
   onClose,
   mode = "add",
+  onSubmit,
   initialData,
+  categoryId,
 }: AddKpiModalProps) {
   const isEdit = mode === "edit";
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
@@ -62,6 +78,8 @@ export default function AddKpiModal({
   const [jobtitles, setJobTitle] = useState<JobTitle[]>([]);
   const [loading, setLoading] = useState(true);
   const [units, setUnit] = useState<Unit[]>([]);
+  // เพิ่ม state สำหรับจัดการสถานะการ submit ด้านบนของ component
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ดีงข้อมูล ความถี่,แผนก
   useEffect(() => {
@@ -104,11 +122,11 @@ export default function AddKpiModal({
     resolver: zodResolver(mainKpiSchema),
     defaultValues: {
       name: "",
-      target: "",
-      unit: "",
-      frequency: "",
-      jobtitle: [],
-      subKpis: [],
+      target_value: "",
+      unit_id: "",
+      frequency_id: "",
+      jobtitle_ids: [],
+      sub_indicators: [],
     },
   });
 
@@ -122,48 +140,72 @@ export default function AddKpiModal({
     if (isEdit && initialData) {
       reset({
         name: initialData.name || "",
-        target: initialData.target_value?.toString() || "",
-        unit: initialData.unit.unit_id?.toString() || defaultUnit,
-        frequency:
+        target_value: initialData.target_value?.toString() || "",
+        unit_id: initialData.unit.unit_id?.toString() || defaultUnit,
+        frequency_id:
           initialData.frequency?.frequency_id?.toString() || defaultFrequency,
-        jobtitle: initialData.responsible_jobtitles?.map((j) =>
+        jobtitle_ids: initialData.responsible_jobtitles?.map((j) =>
           j.id.toString()
         ) || [defaultJobtitle],
-        subKpis:
-          initialData.sub_indicators?.map((s) => ({
+        sub_indicators:
+          initialData.sub_indicators?.map((s, i) => ({
             id: s.id.toString(),
             name: s.name,
-            target: s.target_value?.toString() || "",
+            target_value: s.target_value?.toString() || "",
+            position: i + 1, // เพิ่มตรงนี้
           })) || [],
       });
     } else {
       // กรณี Add
       reset({
         name: "",
-        target: "",
-        unit: defaultUnit,
-        frequency: defaultFrequency,
-        jobtitle: [defaultJobtitle],
-        subKpis: [],
+        target_value: "",
+        unit_id: defaultUnit,
+        frequency_id: defaultFrequency,
+        jobtitle_ids: [defaultJobtitle],
+        sub_indicators: [],
       });
     }
   }, [initialData, isEdit, loading, frequencies, jobtitles, reset]);
 
   // จัดการ เพิ่ม ลด ของ sub indicators
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control,
-    name: "subKpis",
+    name: "sub_indicators",
   });
 
   if (!isOpen) return null;
 
   // submit
   const submitForm = async (data: FormData) => {
-    alert(JSON.stringify(data, null, 2));
-    await onSubmit(data);
-    reset();
-    setExpandedIndexes([]);
-    onClose();
+    if (!data) return;
+    try {
+      const dataToSubmit = {
+        ...data,
+        sub_indicators: data.sub_indicators.map((s, i) => ({
+          ...s,
+          position: i + 1,
+        })),
+      };
+      alert(
+        JSON.stringify(
+          {
+            data: dataToSubmit,
+            mode: mode,
+            categoryId: categoryId,
+          },
+          null,
+          2
+        )
+      );
+      await onSubmit(dataToSubmit, mode, categoryId);
+      setExpandedIndexes([]);
+    } catch (error) {
+      console.error("Submission failed:", error); // แสดง error ใน console สำหรับนักพัฒนา
+      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง"); // แจ้งเตือนผู้ใช้
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // สลับการขยาย sub indicators
@@ -171,6 +213,15 @@ export default function AddKpiModal({
     setExpandedIndexes((prev) =>
       prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
     );
+  };
+
+  // Drag & Drop handler
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const fromIndex = result.source.index;
+    const toIndex = result.destination.index;
+    if (fromIndex === toIndex) return;
+    move(fromIndex, toIndex);
   };
 
   return (
@@ -213,7 +264,7 @@ export default function AddKpiModal({
 
               {/* Target */}
               <Controller
-                name="target"
+                name="target_value"
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
@@ -225,9 +276,9 @@ export default function AddKpiModal({
                       placeholder="ระบุเป้าหมาย"
                       className="px-4 py-2 border border-gray-300 rounded-lg w-full"
                     />
-                    {errors.target && (
+                    {errors.target_value && (
                       <span className="text-red-500 text-xs">
-                        {errors.target.message}
+                        {errors.target_value.message}
                       </span>
                     )}
                   </div>
@@ -237,7 +288,7 @@ export default function AddKpiModal({
               {/* unit */}
 
               <Controller
-                name="unit"
+                name="unit_id"
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
@@ -264,14 +315,14 @@ export default function AddKpiModal({
                       }}
                     >
                       {units.map((u) => (
-                        <MenuItem key={u.unit_id} value={u.unit_id}>
+                        <MenuItem key={u.unit_id} value={u.unit_id.toString()}>
                           {u.name}
                         </MenuItem>
                       ))}
                     </Select>
-                    {errors.frequency && (
+                    {errors.unit_id && (
                       <span className="text-red-500 text-xs">
-                        {errors.frequency.message}
+                        {errors.unit_id.message}
                       </span>
                     )}
                   </div>
@@ -279,7 +330,7 @@ export default function AddKpiModal({
               />
               {/* Frequency */}
               <Controller
-                name="frequency"
+                name="frequency_id"
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-col flex-1 min-w-[120px] max-w-[170px]">
@@ -311,9 +362,9 @@ export default function AddKpiModal({
                         </MenuItem>
                       ))}
                     </Select>
-                    {errors.frequency && (
+                    {errors.frequency_id && (
                       <span className="text-red-500 text-xs">
-                        {errors.frequency.message}
+                        {errors.frequency_id.message}
                       </span>
                     )}
                   </div>
@@ -322,7 +373,7 @@ export default function AddKpiModal({
 
               {/* JobTitle */}
               <Controller
-                name="jobtitle"
+                name="jobtitle_ids"
                 control={control}
                 render={({ field }) => (
                   <div className="flex flex-col flex-1 min-w-[140px] max-w-[200px]">
@@ -372,9 +423,9 @@ export default function AddKpiModal({
                         </MenuItem>
                       ))}
                     </Select>
-                    {errors.jobtitle && (
+                    {errors.jobtitle_ids && (
                       <span className="text-red-500 text-xs">
-                        {errors.jobtitle.message}
+                        {errors.jobtitle_ids.message}
                       </span>
                     )}
                   </div>
@@ -388,7 +439,12 @@ export default function AddKpiModal({
                 type="button"
                 className="flex items-center gap-1 text-sm text-purple-700 font-bold mb-2"
                 onClick={() =>
-                  append({ id: crypto.randomUUID(), name: "", target: "" })
+                  append({
+                    id: crypto.randomUUID(),
+                    name: "",
+                    target_value: "",
+                    position: fields.length + 1,
+                  })
                 }
               >
                 <Plus className="w-4 h-4" /> เพิ่มตัวชี้วัดย่อย
@@ -398,85 +454,117 @@ export default function AddKpiModal({
                   ยังไม่มีตัวชี้วัดย่อย
                 </div>
               ) : (
-                <div className="space-y-1">
-                  {fields.map((sub, idx) => (
-                    <div key={sub.id}>
-                      <div className="flex items-center">
-                        <button
-                          type="button"
-                          className="mr-2"
-                          onClick={() => toggleExpand(idx)}
-                        >
-                          {expandedIndexes.includes(idx) ? (
-                            <ChevronUp className="w-5 h-5" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5" />
-                          )}
-                        </button>
-                        <span className="font-semibold text-gray-900">
-                          {sub.name || "ชื่อตัวชี้วัดย่อย"}
-                        </span>
-                        <button
-                          type="button"
-                          className="ml-auto text-red-500"
-                          onClick={() => remove(idx)}
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <Droppable droppableId="subKpisDroppable">
+                    {(provided: DroppableProvided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="space-y-2"
+                      >
+                        {fields.map((sub, idx) => (
+                          <Draggable
+                            key={sub.id}
+                            draggableId={sub.id}
+                            index={idx}
+                          >
+                            {(provided: DraggableProvided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="p-3 border-2 border-purple-50 rounded-xl bg-white shadow-md hover:scale-101"
+                              >
+                                <div className="flex items-center">
+                                  <button
+                                    type="button"
+                                    className="mr-2"
+                                    onClick={() => toggleExpand(idx)}
+                                  >
+                                    {expandedIndexes.includes(idx) ? (
+                                      <ChevronUp className="w-5 h-5" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5" />
+                                    )}
+                                  </button>
+                                  <span className="font-semibold text-gray-900">
+                                    {sub.name || "ชื่อตัวชี้วัดย่อย"}
+                                  </span>
+                                  <span className="ml-3 text-xs text-gray-500">
+                                    (ตำแหน่ง {idx + 1})
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="ml-auto text-red-500"
+                                    onClick={() => remove(idx)}
+                                  >
+                                    <Trash2 className="w-5 h-5" />
+                                  </button>
+                                </div>
+
+                                {expandedIndexes.includes(idx) && (
+                                  <div className="flex flex-row flex-wrap items-end bg-gray-100 border-l-4 border-purple-400 p-4 mt-2 rounded-lg gap-4">
+                                    <Controller
+                                      name={`sub_indicators.${idx}.name`}
+                                      control={control}
+                                      render={({ field }) => (
+                                        <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
+                                          <label className="text-xs font-medium text-gray-700 mb-1">
+                                            ชื่อตัวชี้วัด
+                                          </label>
+                                          <input
+                                            {...field}
+                                            placeholder="ชื่อตัวชี้วัด"
+                                            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
+                                          />
+                                          {errors.sub_indicators?.[idx]
+                                            ?.name && (
+                                            <span className="text-red-500 text-xs">
+                                              {
+                                                errors.sub_indicators[idx]?.name
+                                                  ?.message
+                                              }
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                    />
+                                    <Controller
+                                      name={`sub_indicators.${idx}.target_value`}
+                                      control={control}
+                                      render={({ field }) => (
+                                        <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
+                                          <label className="text-xs font-medium text-gray-700 mb-1">
+                                            เป้าหมาย
+                                          </label>
+                                          <input
+                                            {...field}
+                                            placeholder="เป้าหมาย"
+                                            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
+                                          />
+                                          {errors.sub_indicators?.[idx]
+                                            ?.target_value && (
+                                            <span className="text-red-500 text-xs">
+                                              {
+                                                errors.sub_indicators[idx]
+                                                  ?.target_value?.message
+                                              }
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
                       </div>
-                      {expandedIndexes.includes(idx) && (
-                        <div className="flex flex-row flex-wrap items-end bg-gray-100 border-l-4 border-purple-400 p-4 mt-2 rounded-lg gap-4">
-                          {/* Sub-KPI Name */}
-                          <Controller
-                            name={`subKpis.${idx}.name`}
-                            control={control}
-                            render={({ field }) => (
-                              <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
-                                <label className="text-xs font-medium text-gray-700 mb-1">
-                                  ชื่อตัวชี้วัด
-                                </label>
-                                <input
-                                  {...field}
-                                  placeholder="ชื่อตัวชี้วัด"
-                                  className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
-                                  required
-                                />
-                                {errors.subKpis?.[idx]?.name && (
-                                  <span className="text-red-500 text-xs">
-                                    {errors.subKpis[idx]?.name?.message}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          />
-                          {/* Sub-KPI Target */}
-                          <Controller
-                            name={`subKpis.${idx}.target`}
-                            control={control}
-                            render={({ field }) => (
-                              <div className="flex flex-col flex-1 min-w-[200px] max-w-[280px]">
-                                <label className="text-xs font-medium text-gray-700 mb-1">
-                                  เป้าหมาย
-                                </label>
-                                <input
-                                  {...field}
-                                  placeholder="เป้าหมาย"
-                                  className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
-                                  required
-                                />
-                                {errors.subKpis?.[idx]?.target && (
-                                  <span className="text-red-500 text-xs">
-                                    {errors.subKpis[idx]?.target?.message}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
               )}
             </div>
 
