@@ -1,6 +1,6 @@
 "use client";
 import { Indicator } from "@/types/management";
-import { Select, MenuItem, Checkbox } from "@mui/material";
+import { Select, MenuItem, Checkbox, Button } from "@mui/material";
 import { useState, useEffect } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, Crosshair } from "lucide-react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
@@ -441,9 +441,11 @@ export default function AddKpiModal({
 
             {/* Sub-KPI */}
             <div className="mt-4">
-              <button
+              <Button
                 type="button"
-                className="flex items-center gap-1 text-sm text-purple-700 font-bold mb-2"
+                variant="text" // ปุ่มแบบไม่มี background
+                color="primary"
+                size="small"
                 onClick={() =>
                   append({
                     id: crypto.randomUUID(),
@@ -452,9 +454,20 @@ export default function AddKpiModal({
                     position: fields.length + 1,
                   })
                 }
+                startIcon={<Plus className="w-4 h-4" />}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  mb: 2,
+                  color: "#7C3AED", // text-purple-700
+                  "&:hover": {
+                    backgroundColor: "#f9f3ffff", // ไม่มี background ตอน hover
+                    color: "#5B21B6", // text-purple-900
+                  },
+                }}
               >
-                <Plus className="w-4 h-4" /> เพิ่มตัวชี้วัดย่อย
-              </button>
+                เพิ่มตัวชี้วัดย่อย
+              </Button>
               {fields.length === 0 ? (
                 <div className="text-gray-500 text-sm mb-2">
                   ยังไม่มีตัวชี้วัดย่อย
@@ -576,23 +589,51 @@ export default function AddKpiModal({
 
             {/* Buttons */}
             <div className="flex gap-2 mt-6">
-              <button
+              <Button
                 type="submit"
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md font-semibold"
+                variant="contained"
+                sx={{
+                  backgroundColor: "#8b5cf6",
+                  color: "white",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderRadius: "12px",
+                  "&:hover": {
+                    backgroundColor: "#7c3aed",
+                  },
+                  "&:disabled": {
+                    backgroundColor: "#cbd5e1",
+                  },
+                }}
               >
                 {isEdit ? "บันทึกการแก้ไข" : "บันทึกตัวชี้วัด"}
-              </button>
-              <button
+              </Button>
+
+              <Button
                 type="button"
+                variant="outlined"
+                color="inherit"
                 onClick={() => {
                   reset();
                   setExpandedIndexes([]);
                   onClose();
                 }}
-                className="border border-gray-400 px-6 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                sx={{
+                  color: "#64748b",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderRadius: "12px",
+                  "&:hover": {
+                    backgroundColor: "#f8fafc",
+                  },
+                }}
               >
                 ยกเลิก
-              </button>
+              </Button>
             </div>
           </div>
         </form>

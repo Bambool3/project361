@@ -1,5 +1,6 @@
 "use client";
-
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { Indicator, IndicatorFormData } from "@/types/management";
 import React, { useState } from "react";
 import { IndicatorService } from "@/server/services/indicator/indicator-client-service";
@@ -51,6 +52,24 @@ export default function ManagementTable({
   categoryId,
   onRefresh,
 }: ManagementTableProps) {
+  // ทดลองใช้ลุกศร
+  const [progressMap, setProgressMap] = useState<{ [key: string]: number }>({});
+
+  const handleIncrement = (id: string) => {
+    setProgressMap((prev) => ({
+      ...prev,
+      [id]: (prev[id] || 0) + 1,
+    }));
+  };
+
+  const handleDecrement = (id: string) => {
+    setProgressMap((prev) => ({
+      ...prev,
+      [id]: (prev[id] || 0) - 1,
+    }));
+  };
+  //สิ้นสุดส่วนทดลอง
+
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setModalOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // เก็บ id ของ KPI ที่ expand อยู่
@@ -517,6 +536,20 @@ export default function ManagementTable({
                           }}
                         >
                           /{kpi.target_value}
+                          <IconButton
+                            size="small"
+                            onClick={() => handleIncrement(kpi.id)}
+                            sx={{ color: "green" }}
+                          >
+                            <ArrowUpwardIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDecrement(kpi.id)}
+                            sx={{ color: "red" }}
+                          >
+                            <ArrowDownwardIcon fontSize="small" />
+                          </IconButton>
                         </TableCell>
                         <TableCell
                           sx={{
