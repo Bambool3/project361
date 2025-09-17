@@ -38,26 +38,10 @@ export class IndicatorService {
 
       return response.status;
     } catch (error) {
-      console.error("Error updating category:", error);
+      console.error("Error updating indicator:", error);
       return 500;
     }
   }
 
-  static async deleteCategory(id: string): Promise<void> {
-    try {
-      const response = await fetch(`${this.baseUrl}/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete category: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      throw error;
-    }
-  }
+  //ไม่ได้ทำ delete ไว้
 }

@@ -203,6 +203,122 @@ export class IndicatorServerService {
           })) || [],
       };
     } catch (error) {
+      console.error("Error updating indicator in database:", error);
+      if (error instanceof Error) throw error;
+      throw new Error("Failed to updating indicator in database");
+    }
+  }
+
+  static async updateIndicator(
+    id: string,
+    data: IndicatorPayload
+  ): Promise<Indicator> {
+    try {
+      // validate input
+      if (!data.name?.trim() || !data.target_value?.toString().trim()) {
+        throw new Error("Name and target are required");
+      }
+
+      // 🔑 ดึง indicator เดิมมาก่อน
+      const existingIndicator = await prisma.indicator.findUnique({
+        where: { indicator_id: id },
+        select: { user_id: true },
+      });
+
+      // create main indicator
+      const updatedIndicator = await prisma.indicator.update({
+        where: { indicator_id: id },
+        data: {
+          name: data.name.trim(),
+          target_value: parseFloat(data.target_value),
+          unit_id: data.unit_id,
+          frequency_id: data.frequency_id,
+          category_id: data.category_id,
+          position: 100,
+        },
+        include: {
+          unit: true,
+          frequency: true,
+          responsible_jobtitle: { include: { jobtitle: true } },
+          sub_indicators: true,
+        },
+      });
+
+      await prisma.responsibleJobTitle.deleteMany({
+        where: { indicator_id: id },
+      });
+      // insert responsible jobtitles
+      if (data.jobtitle_ids?.length) {
+        await prisma.responsibleJobTitle.createMany({
+          data: data.jobtitle_ids.map((jobId) => ({
+            indicator_id: updatedIndicator.indicator_id,
+            jobtitle_id: jobId,
+          })),
+        });
+      }
+
+      await prisma.indicator.deleteMany({
+        where: { main_indicator_id: id },
+      });
+      // insert sub-indicators
+      if (data.sub_indicators?.length) {
+        await prisma.indicator.createMany({
+          data: data.sub_indicators.map((sub, idx) => ({
+            name: sub.name.trim(),
+            target_value: parseFloat(sub.target_value),
+            unit_id: data.unit_id,
+            frequency_id: data.frequency_id,
+            category_id: data.category_id,
+            user_id: existingIndicator.user_id, // ✅ ใช้ user_id เดิม
+            position: sub.position ?? idx + 1,
+            main_indicator_id: updatedIndicator.indicator_id,
+          })),
+        });
+      }
+
+      // fetch complete indicator
+      const indicator = await prisma.indicator.findUnique({
+        where: { indicator_id: updatedIndicator.indicator_id },
+        include: {
+          unit: true,
+          frequency: true,
+          responsible_jobtitle: { include: { jobtitle: true } },
+          sub_indicators: true,
+        },
+      });
+
+      if (!indicator) throw new Error("Indicator not found after creation");
+
+      return {
+        id: indicator.indicator_id.toString(),
+        name: indicator.name,
+        target_value: indicator.target_value,
+        unit: {
+          unit_id: indicator.unit.unit_id,
+          name: indicator.unit.name,
+        },
+        frequency: {
+          frequency_id: indicator.frequency.frequency_id,
+          name: indicator.frequency.name,
+          periods_in_year: indicator.frequency.periods_in_year,
+        },
+        main_indicator_id: indicator.main_indicator_id,
+        category_id: indicator.category_id,
+        responsible_jobtitles:
+          indicator.responsible_jobtitle.map((r) => ({
+            in_id: r.indicator_id,
+            id: r.jobtitle.jobtitle_id,
+            name: r.jobtitle.name,
+          })) || [],
+        sub_indicators:
+          indicator.sub_indicators.map((s) => ({
+            id: s.indicator_id,
+            name: s.name,
+            target_value: s.target_value,
+            position: s.position,
+          })) || [],
+      };
+    } catch (error) {
       console.error("Error creating indicator in database:", error);
       if (error instanceof Error) throw error;
       throw new Error("Failed to create indicator in database");

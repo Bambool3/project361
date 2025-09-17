@@ -338,6 +338,7 @@ export default function AddKpiModal({
                       รอบการรายงาน
                     </label>
                     <Select
+                      disabled={isEdit}
                       {...field}
                       value={field.value || ""}
                       onChange={(e) => field.onChange(e.target.value)}
@@ -348,12 +349,17 @@ export default function AddKpiModal({
                         width: "100%",
                         borderRadius: "0.5rem",
                         "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#d1d5db",
+                          borderColor: isEdit ? "#d1d5db" : "#d1d5db",
                         },
                         "&:hover .MuiOutlinedInput-notchedOutline": {
                           borderColor: "#8b5cf6",
                         },
-                        "& .MuiSelect-select": { px: 2, py: 1.1 },
+                        "& .MuiSelect-select": {
+                          px: 2,
+                          py: 1.1,
+                          color: isEdit ? "#6b7280" : "inherit",
+                          backgroundColor: isEdit ? "#e7edf8ff" : "inherit",
+                        },
                       }}
                     >
                       {frequencies.map((f) => (

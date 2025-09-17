@@ -16,6 +16,76 @@ export async function GET(
   }
 }
 
+// code ข้างล่างนี้ควรแก้ไข catId หมายถึง IndicatorId
+export async function PUT(
+  request: Request,
+  { params }: { params: { catId: string } }
+) {
+  try {
+    const { catId } = params;
+    const body = await request.json();
+    console.log("id=", catId);
+
+    // Validate required fields
+    if (!body.name?.trim() || !body.target_value?.toString().trim()) {
+      return NextResponse.json(
+        { error: "ชื่อตัวชี้วัดและรายละเอียดจำเป็นต้องกรอก" },
+        { status: 400 }
+      );
+    }
+
+    // Check if Indicator exists
+    // const existingIndicator =
+    //   await IndicatorServerService.getIndicatorsByCategory(id);
+    // if (!existingIndicator) {
+    //   return NextResponse.json(
+    //     { error: "ไม่พบตัวชี้วัดที่ต้องการแก้ไข" },
+    //     { status: 404 }
+    //   );
+    // }
+
+    // Check if indicator name already exists (+ current indicator)
+    const duplicateIndicator =
+      await IndicatorServerService.existsIndicatorByName(body.name);
+
+    if (duplicateIndicator && duplicateIndicator.id !== catId) {
+      return NextResponse.json(
+        { error: "ชื่อตัวชี้วัดนี้มีอยู่ในระบบแล้ว" },
+        { status: 409 }
+      );
+    }
+
+    const updatedIndicator = await IndicatorServerService.updateIndicator(
+      catId,
+      body
+    );
+
+    return NextResponse.json(updatedIndicator, { status: 200 });
+  } catch (error) {
+    console.error("Error updating category:", error);
+
+    if (error instanceof Error) {
+      if (error.message.includes("Unique constraint")) {
+        return NextResponse.json(
+          { error: "ชื่อตัวชี้วัดนี้มีอยู่ในระบบแล้ว" },
+          { status: 409 }
+        );
+      }
+      if (error.message.includes("required")) {
+        return NextResponse.json(
+          { error: "ข้อมูลที่จำเป็นไม่ครบถ้วน" },
+          { status: 400 }
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { error: "เกิดข้อผิดพลาดภายในระบบ" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ catId: string }> }

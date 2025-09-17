@@ -99,7 +99,7 @@ export default function ManagementTable({
       if (mode === "edit") {
         // โหมดแก้ไข
         statusCode = await IndicatorService.updateIndicatorWithStatus(
-          catId,
+          selectedToEdit.id,
           payload
         );
       } else {
