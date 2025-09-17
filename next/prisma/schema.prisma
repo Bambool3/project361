@@ -8,11 +8,11 @@ datasource db {
 }
 
 model User {
-  user_id    Int    @id @default(autoincrement())
+  user_id    String  @id @default(ulid())
   first_name String
   last_name  String
   password   String
-  email      String @unique
+  email      String  @unique
 
   // Relations
   user_roles    UserRole[]
@@ -23,7 +23,7 @@ model User {
 }
 
 model Role {
-  role_id Int    @id @default(autoincrement())
+  role_id String @id @default(ulid())
   name    String
 
   // Relations
@@ -33,8 +33,8 @@ model Role {
 }
 
 model UserRole {
-  user_id Int
-  role_id Int
+  user_id String
+  role_id String
 
   // Relations
   user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -45,19 +45,19 @@ model UserRole {
 }
 
 model JobTitle {
-  jobtitle_id Int    @id @default(autoincrement())
+  jobtitle_id String @id @default(ulid())
   name        String
 
   // Relations
-  user_jobtitle UserJobTitle[]
+  user_jobtitle        UserJobTitle[]
   responsible_jobtitle ResponsibleJobTitle[]
   
   @@map("job_titles")
 }
 
 model UserJobTitle {
-  user_id     Int
-  jobtitle_id Int
+  user_id     String
+  jobtitle_id String
 
   // Relations
   user     User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -68,10 +68,10 @@ model UserJobTitle {
 }
 
 model Category {
-  category_id Int       @id @default(autoincrement())
+  category_id String    @id @default(ulid())
   name        String
   description String?
-  user_id     Int
+  user_id     String
   created_at  DateTime  @default(now())
   updated_at  DateTime? @updatedAt
 
@@ -82,27 +82,27 @@ model Category {
 }
 
 model Indicator {
-  indicator_id        Int      @id @default(autoincrement())
-  name                String
-  target_value        Float?
-  unit_id             Int
-  frequency_id        Int
-  date                DateTime?
-  status              String?
-  main_indicator_id   Int?
-  category_id         Int
-  user_id             Int
-  position            Int
+  indicator_id      String   @id @default(ulid())
+  name              String
+  target_value      Float?
+  unit_id           String
+  frequency_id      String
+  date              DateTime?
+  status            String?
+  main_indicator_id String?
+  category_id       String
+  user_id           String
+  position          Int
 
   // --- Corrected Self-Relation ---
-  main_indicator      Indicator?            @relation("MainSubIndicators", fields: [main_indicator_id], references: [indicator_id], onDelete: Cascade)
-  sub_indicators      Indicator[]           @relation("MainSubIndicators")
+  main_indicator Indicator?  @relation("MainSubIndicators", fields: [main_indicator_id], references: [indicator_id], onDelete: Cascade)
+  sub_indicators Indicator[] @relation("MainSubIndicators")
 
   // Relations
-  category           Category             @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
-  user               User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  frequency          Frequency            @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
-  unit               Unit                 @relation(fields: [unit_id], references: [unit_id], onDelete: Cascade)
+  category            Category             @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
+  user                User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  frequency           Frequency            @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
+  unit                Unit                 @relation(fields: [unit_id], references: [unit_id], onDelete: Cascade)
   responsible_jobtitle ResponsibleJobTitle[]
   indicator_data      IndicatorData[] 
 
@@ -112,8 +112,8 @@ model Indicator {
 }
 
 model ResponsibleJobTitle {
-  indicator_id Int
-  jobtitle_id  Int
+  indicator_id String
+  jobtitle_id  String
 
   // Relations
   indicator Indicator @relation(fields: [indicator_id], references: [indicator_id], onDelete: Cascade)
@@ -124,9 +124,9 @@ model ResponsibleJobTitle {
 }
 
 model Frequency {
-  frequency_id      Int    @id @default(autoincrement())
-  name              String // เช่น รายเดือน, รายปี, รายเทอม, ไตรมาส
-  periods_in_year   Int    @default(1) // 12 1 4 6 9
+  frequency_id    String @id @default(ulid())
+  name            String
+  periods_in_year Int    @default(1)
   
   // Relations
   indicators Indicator[]
@@ -136,11 +136,11 @@ model Frequency {
 }
 
 model Period {
-  period_id    Int      @id @default(autoincrement())
+  period_id    String   @id @default(ulid())
   name         String
   start_date   DateTime
   end_date     DateTime
-  frequency_id Int
+  frequency_id String
   
   // Relations
   frequency Frequency @relation(fields: [frequency_id], references: [frequency_id], onDelete: Cascade)
@@ -151,24 +151,24 @@ model Period {
 }
 
 model IndicatorData {
-  indicatordata_id Int      @id @default(autoincrement())
-  indicator_id     Int
-  period_id        Int
+  indicatordata_id String   @id @default(ulid())
+  indicator_id     String
+  period_id        String
   actual_value     Float?
-  created_at       DateTime @default(now())
+  created_at       DateTime  @default(now())
   updated_at       DateTime? @updatedAt
 
   // Relations
   indicator Indicator @relation(fields: [indicator_id], references: [indicator_id], onDelete: Cascade)
   period    Period    @relation(fields: [period_id], references: [period_id], onDelete: Cascade)
 
-  @@unique([indicator_id, period_id]) // ensure one record per indicator per period
+  @@unique([indicator_id, period_id])
   @@map("indicator_data")
 }
 
 model Unit {
-  unit_id    Int      @id @default(autoincrement())
-  name       String 
+  unit_id String @id @default(ulid())
+  name    String 
 
   // Relations
   indicators Indicator[]
