@@ -4,11 +4,11 @@ import bcrypt from "bcrypt";
 
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const body = await request.json();
-        const employeeId = params.id;
+        const { id: employeeId } = await params;
 
         // Validate required fields for update
         if (
@@ -90,10 +90,10 @@ export async function PUT(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const employeeId = params.id;
+        const { id: employeeId } = await params;
 
         // Check if employee exists
         const existingEmployee = await EmployeeServerService.getEmployeeById(

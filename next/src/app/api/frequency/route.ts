@@ -68,7 +68,7 @@ export async function GET() {
                 },
             },
             orderBy: {
-                frequency_id: "desc",
+                name: "asc",
             },
         });
 

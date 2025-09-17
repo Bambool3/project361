@@ -3,11 +3,11 @@ import prisma from "@/lib/db";
 
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { name } = await request.json();
-        const id = parseInt(params.id);
+        const { id } = await params;
 
         // Validate input
         if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -17,9 +17,9 @@ export async function PUT(
             );
         }
 
-        if (isNaN(id)) {
+        if (!id || typeof id !== "string") {
             return NextResponse.json(
-                { error: "Invalid job title ID" },
+                { error: "Invalid jobTitle ID" },
                 { status: 400 }
             );
         }
@@ -66,7 +66,7 @@ export async function PUT(
         });
 
         return NextResponse.json({
-            id: updatedJobTitle.jobtitle_id.toString(),
+            id: updatedJobTitle.jobtitle_id,
             jobTitle_name: updatedJobTitle.name,
         });
     } catch (error) {
@@ -80,14 +80,14 @@ export async function PUT(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = parseInt(params.id);
+        const { id } = await params;
 
-        if (isNaN(id)) {
+        if (!id || typeof id !== "string") {
             return NextResponse.json(
-                { error: "Invalid job title ID" },
+                { error: "Invalid jobTitle ID" },
                 { status: 400 }
             );
         }

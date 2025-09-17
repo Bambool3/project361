@@ -26,16 +26,16 @@ export class EmployeeServerService {
             });
 
             return employees.map((employee: any) => ({
-                id: employee.user_id.toString(),
+                id: employee.user_id,
                 first_name: employee.first_name,
                 last_name: employee.last_name,
                 email: employee.email,
                 roles: employee.user_roles.map((ur: any) => ({
-                    id: ur.role.role_id.toString(),
+                    id: ur.role.role_id,
                     name: ur.role.name,
                 })),
                 job_titles: employee.user_jobtitle.map((uj: any) => ({
-                    id: uj.jobtitle.jobtitle_id.toString(),
+                    id: uj.jobtitle.jobtitle_id,
                     name: uj.jobtitle.name,
                 })),
             }));
@@ -74,16 +74,16 @@ export class EmployeeServerService {
             }
 
             return {
-                id: employee.user_id.toString(),
+                id: employee.user_id,
                 first_name: employee.first_name,
                 last_name: employee.last_name,
                 email: employee.email,
                 roles: employee.user_roles.map((ur: any) => ({
-                    id: ur.role.role_id.toString(),
+                    id: ur.role.role_id,
                     name: ur.role.name,
                 })),
                 job_titles: employee.user_jobtitle.map((uj: any) => ({
-                    id: uj.jobtitle.jobtitle_id.toString(),
+                    id: uj.jobtitle.jobtitle_id,
                     name: uj.jobtitle.name,
                 })),
             };
@@ -123,7 +123,7 @@ export class EmployeeServerService {
             // Create user-role relationships
             const userRoleData = data.role_ids.map((roleId) => ({
                 user_id: newUser.user_id,
-                role_id: parseInt(roleId),
+                role_id: roleId,
             }));
             await prisma.userRole.createMany({
                 data: userRoleData,
@@ -132,7 +132,7 @@ export class EmployeeServerService {
             // Create user-jobtitle relationships
             const userJobTitleData = data.jobtitle_ids.map((jobTitleId) => ({
                 user_id: newUser.user_id,
-                jobtitle_id: parseInt(jobTitleId),
+                jobtitle_id: jobTitleId,
             }));
             await prisma.userJobTitle.createMany({
                 data: userJobTitleData,
@@ -160,16 +160,16 @@ export class EmployeeServerService {
             }
 
             return {
-                id: employee.user_id.toString(),
+                id: employee.user_id,
                 first_name: employee.first_name,
                 last_name: employee.last_name,
                 email: employee.email,
                 roles: employee.user_roles.map((ur: any) => ({
-                    id: ur.role.role_id.toString(),
+                    id: ur.role.role_id,
                     name: ur.role.name,
                 })),
                 job_titles: employee.user_jobtitle.map((uj: any) => ({
-                    id: uj.jobtitle.jobtitle_id.toString(),
+                    id: uj.jobtitle.jobtitle_id,
                     name: uj.jobtitle.name,
                 })),
             };
@@ -191,7 +191,7 @@ export class EmployeeServerService {
                 throw new Error("Employee ID is required");
             }
 
-            const userId = parseInt(id);
+            const userId = id;
 
             // Check if employee exists
             const existingEmployee = await prisma.user.findUnique({
@@ -229,7 +229,7 @@ export class EmployeeServerService {
 
                 const userRoleData = data.role_ids.map((roleId) => ({
                     user_id: userId,
-                    role_id: parseInt(roleId),
+                    role_id: roleId,
                 }));
                 await prisma.userRole.createMany({
                     data: userRoleData,
@@ -245,7 +245,7 @@ export class EmployeeServerService {
                 const userJobTitleData = data.jobtitle_ids.map(
                     (jobTitleId) => ({
                         user_id: userId,
-                        jobtitle_id: parseInt(jobTitleId),
+                        jobtitle_id: jobTitleId,
                     })
                 );
                 await prisma.userJobTitle.createMany({
@@ -275,16 +275,16 @@ export class EmployeeServerService {
             }
 
             return {
-                id: updatedEmployee.user_id.toString(),
+                id: updatedEmployee.user_id,
                 first_name: updatedEmployee.first_name,
                 last_name: updatedEmployee.last_name,
                 email: updatedEmployee.email,
                 roles: updatedEmployee.user_roles.map((ur: any) => ({
-                    id: ur.role.role_id.toString(),
+                    id: ur.role.role_id,
                     name: ur.role.name,
                 })),
                 job_titles: updatedEmployee.user_jobtitle.map((uj: any) => ({
-                    id: uj.jobtitle.jobtitle_id.toString(),
+                    id: uj.jobtitle.jobtitle_id,
                     name: uj.jobtitle.name,
                 })),
             };
@@ -299,7 +299,7 @@ export class EmployeeServerService {
 
     static async deleteEmployee(employeeId: string): Promise<void> {
         try {
-            const userId = parseInt(employeeId);
+            const userId = employeeId;
 
             // Check if employee exists
             const existingEmployee = await prisma.user.findUnique({
@@ -347,7 +347,7 @@ export class EmployeeServerService {
 
     static async getEmployeeById(employeeId: string): Promise<Employee | null> {
         try {
-            const userId = parseInt(employeeId);
+            const userId = employeeId;
 
             const employee = await prisma.user.findUnique({
                 where: { user_id: userId },
@@ -371,16 +371,16 @@ export class EmployeeServerService {
             }
 
             return {
-                id: employee.user_id.toString(),
+                id: employee.user_id,
                 first_name: employee.first_name,
                 last_name: employee.last_name,
                 email: employee.email,
                 roles: employee.user_roles.map((ur: any) => ({
-                    id: ur.role.role_id.toString(),
+                    id: ur.role.role_id,
                     name: ur.role.name,
                 })),
                 job_titles: employee.user_jobtitle.map((uj: any) => ({
-                    id: uj.jobtitle.jobtitle_id.toString(),
+                    id: uj.jobtitle.jobtitle_id,
                     name: uj.jobtitle.name,
                 })),
             };

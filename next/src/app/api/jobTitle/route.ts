@@ -17,7 +17,7 @@ export async function GET() {
         });
 
         const jobTitle = jobTitles.map((jobTitle) => ({
-            id: jobTitle.jobtitle_id.toString(),
+            id: jobTitle.jobtitle_id,
             jobTitle_name: jobTitle.name,
             employeeCount: jobTitle.user_jobtitle.length,
         }));
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(
             {
-                id: newJobTitle.jobtitle_id.toString(),
+                id: newJobTitle.jobtitle_id,
                 jobTitle_name: newJobTitle.name,
             },
             { status: 201 }

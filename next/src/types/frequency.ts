@@ -1,13 +1,13 @@
 export interface FrequencyPeriod {
-    period_id: number;
+    period_id: string;
     name: string;
     start_date: string;
     end_date: string;
-    frequency_id: number;
+    frequency_id: string;
 }
 
 export interface Frequency {
-    frequency_id: number;
+    frequency_id: string;
     name: string;
     periods: FrequencyPeriod[];
     periods_in_year?: number;

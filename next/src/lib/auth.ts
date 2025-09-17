@@ -56,7 +56,7 @@ export const authOptions: AuthOptions = {
                         user.user_jobtitle[0]?.jobtitle?.name || "No Job Title";
 
                     return {
-                        id: user.user_id.toString(),
+                        id: user.user_id,
                         email: user.email,
                         name: `${user.first_name} ${user.last_name}`,
                         role: userRole,

@@ -17,7 +17,7 @@ export async function GET() {
         });
 
         const transformedRoles = roles.map((role) => ({
-            id: role.role_id.toString(),
+            id: role.role_id,
             role_name: role.name,
             employeeCount: role.user_roles.length,
         }));
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(
             {
-                id: newRole.role_id.toString(),
+                id: newRole.role_id,
                 role_name: newRole.name,
             },
             { status: 201 }

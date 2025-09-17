@@ -16,21 +16,20 @@ export class CategoryServerService {
             });
 
             return categories.map((category: any) => ({
-                id: category.category_id.toString(),
+                id: category.category_id,
                 name: category.name,
                 description: category.description,
                 created_at: category.created_at.toISOString(),
                 updated_at: category.updated_at?.toISOString(),
                 indicators:
                     category.indicators?.map((indicator: any) => ({
-                        id: indicator.indicator_id.toString(),
+                        id: indicator.indicator_id,
                         name: indicator.name,
                         unit: indicator.unit || "",
                         target_value: indicator.target_value || 0,
-                        main_indicator_id:
-                            indicator.main_indicator_id?.toString() || "",
-                        responsible_user_id: indicator.user_id.toString(),
-                        category_id: indicator.category_id.toString(),
+                        main_indicator_id: indicator.main_indicator_id || "",
+                        responsible_user_id: indicator.user_id,
+                        category_id: indicator.category_id,
                     })) || [],
             }));
         } catch (error) {
@@ -58,21 +57,20 @@ export class CategoryServerService {
             }
 
             return {
-                id: category.category_id.toString(),
+                id: category.category_id,
                 name: category.name,
                 description: category.description || "",
                 created_at: category.created_at.toISOString(),
                 updated_at: category.updated_at?.toISOString(),
                 indicators:
                     category.indicators?.map((indicator: any) => ({
-                        id: indicator.indicator_id.toString(),
+                        id: indicator.indicator_id,
                         name: indicator.name,
                         unit: indicator.unit || "",
                         target_value: indicator.target_value || 0,
-                        main_indicator_id:
-                            indicator.main_indicator_id?.toString() || "",
-                        responsible_user_id: indicator.user_id.toString(),
-                        category_id: indicator.category_id.toString(),
+                        main_indicator_id: indicator.main_indicator_id || "",
+                        responsible_user_id: indicator.user_id,
+                        category_id: indicator.category_id,
                     })) || [],
             };
         } catch (error) {
@@ -87,7 +85,7 @@ export class CategoryServerService {
     static async getCategoryById(id: string): Promise<Category | null> {
         try {
             const category = await prisma.category.findUnique({
-                where: { category_id: parseInt(id) },
+                where: { category_id: id },
                 include: {
                     indicators: true,
                 },
@@ -98,21 +96,20 @@ export class CategoryServerService {
             }
 
             return {
-                id: category.category_id.toString(),
+                id: category.category_id,
                 name: category.name,
                 description: category.description || "",
                 created_at: category.created_at.toISOString(),
                 updated_at: category.updated_at?.toISOString(),
                 indicators:
                     category.indicators?.map((indicator: any) => ({
-                        id: indicator.indicator_id.toString(),
+                        id: indicator.indicator_id,
                         name: indicator.name,
                         unit: indicator.unit || "",
                         target_value: indicator.target_value || 0,
-                        main_indicator_id:
-                            indicator.main_indicator_id?.toString() || "",
-                        responsible_user_id: indicator.user_id.toString(),
-                        category_id: indicator.category_id.toString(),
+                        main_indicator_id: indicator.main_indicator_id || "",
+                        responsible_user_id: indicator.user_id,
+                        category_id: indicator.category_id,
                     })) || [],
             };
         } catch (error) {
@@ -126,7 +123,7 @@ export class CategoryServerService {
 
     static async createCategory(
         data: CategoryFormData,
-        userId: number
+        userId: string
     ): Promise<Category> {
         try {
             // Validate input
@@ -146,7 +143,7 @@ export class CategoryServerService {
             });
 
             return {
-                id: newCategory.category_id.toString(),
+                id: newCategory.category_id,
                 name: newCategory.name,
                 description: newCategory.description || "",
                 created_at: newCategory.created_at.toISOString(),
@@ -173,7 +170,7 @@ export class CategoryServerService {
             }
 
             const updatedCategory = await prisma.category.update({
-                where: { category_id: parseInt(id) },
+                where: { category_id: id },
                 data: {
                     name: data.name.trim(),
                     description: data.description.trim(),
@@ -184,21 +181,20 @@ export class CategoryServerService {
             });
 
             return {
-                id: updatedCategory.category_id.toString(),
+                id: updatedCategory.category_id,
                 name: updatedCategory.name,
                 description: updatedCategory.description || "",
                 created_at: updatedCategory.created_at.toISOString(),
                 updated_at: updatedCategory.updated_at?.toISOString(),
                 indicators:
                     updatedCategory.indicators?.map((indicator: any) => ({
-                        id: indicator.indicator_id.toString(),
+                        id: indicator.indicator_id,
                         name: indicator.name,
                         unit: indicator.unit || "",
                         target_value: indicator.target_value || 0,
-                        main_indicator_id:
-                            indicator.main_indicator_id?.toString() || "",
-                        responsible_user_id: indicator.user_id.toString(),
-                        category_id: indicator.category_id.toString(),
+                        main_indicator_id: indicator.main_indicator_id || "",
+                        responsible_user_id: indicator.user_id,
+                        category_id: indicator.category_id,
                     })) || [],
             };
         } catch (error) {
@@ -213,7 +209,7 @@ export class CategoryServerService {
     static async deleteCategory(id: string): Promise<void> {
         try {
             await prisma.category.delete({
-                where: { category_id: parseInt(id) },
+                where: { category_id: id },
             });
         } catch (error) {
             console.error("Error deleting category from database:", error);

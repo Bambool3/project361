@@ -34,12 +34,12 @@ const frequencySchema = z.object({
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const frequency_id = parseInt(params.id);
+        const { id: frequency_id } = await params;
 
-        if (isNaN(frequency_id)) {
+        if (!frequency_id || typeof frequency_id !== "string") {
             return NextResponse.json(
                 { error: "Invalid frequency ID" },
                 { status: 400 }
@@ -94,12 +94,12 @@ export async function GET(
 
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const frequency_id = parseInt(params.id);
+        const { id: frequency_id } = await params;
 
-        if (isNaN(frequency_id)) {
+        if (!frequency_id || typeof frequency_id !== "string") {
             return NextResponse.json(
                 { error: "Invalid frequency ID" },
                 { status: 400 }
@@ -262,12 +262,12 @@ export async function PUT(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const frequency_id = parseInt(params.id);
+        const { id: frequency_id } = await params;
 
-        if (isNaN(frequency_id)) {
+        if (!frequency_id || typeof frequency_id !== "string") {
             return NextResponse.json(
                 { error: "Invalid frequency ID" },
                 { status: 400 }

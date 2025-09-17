@@ -158,7 +158,7 @@ export default function FrequencyTableSection({
         }
     };
 
-    const handleEditFrequency = async (frequencyId: number) => {
+    const handleEditFrequency = async (frequencyId: string) => {
         try {
             const response = await fetch(`/api/frequency/${frequencyId}`);
             if (!response.ok) {
@@ -213,7 +213,7 @@ export default function FrequencyTableSection({
         }
     };
 
-    const handleDeleteFrequency = (frequencyId: number) => {
+    const handleDeleteFrequency = (frequencyId: string) => {
         const frequency = frequencies.find(
             (f) => f.frequency_id === frequencyId
         );

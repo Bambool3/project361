@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
         const newCategory = await CategoryServerService.createCategory(
             body,
-            parseInt(session.user.id)
+            session.user.id // Make sure downstream expects string
         );
 
         return NextResponse.json(newCategory, { status: 201 });

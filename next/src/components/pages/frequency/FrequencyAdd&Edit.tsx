@@ -30,6 +30,7 @@ const frequencySchema = z.object({
         .array(
             z
                 .object({
+                    name: z.string().min(1, "กรุณากรอกชื่อช่วงเวลา"),
                     startDate: z.date({ message: "กรุณาเลือกวันที่เริ่มต้น" }),
                     endDate: z.date({ message: "กรุณาเลือกวันที่สิ้นสุด" }),
                 })
@@ -220,6 +221,7 @@ export default function FrequencyAddEdit({
     const addPeriod = () => {
         const today = normalizeToBangkokMidnight(new Date());
         append({
+            name: "",
             startDate: today,
             endDate: today,
         });
