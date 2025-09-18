@@ -604,6 +604,40 @@ async function main() {
         ],
     });
 
+    // --- Seed IndicatorData ---
+    const allIndicators = await prisma.indicator.findMany({});
+    const allPeriods = await prisma.period.findMany({});
+
+    const indicatorData: any[] = [];
+
+    for (const indicator of allIndicators) {
+        // เลือก period ตาม frequency ของ indicator
+        const validPeriods = allPeriods.filter(
+            (p) => p.frequency_id === indicator.frequency_id
+        );
+
+        for (const period of validPeriods) {
+            // Generate actual value แบบ realistic รอบๆ target_value
+            const target = indicator.target_value ?? 50;
+            const variation = target * 0.2; // ±20%
+            const actual = target + (Math.random() * variation * 2 - variation);
+
+            indicatorData.push({
+                indicator_id: indicator.indicator_id,
+                period_id: period.period_id,
+                actual_value: parseFloat(actual.toFixed(2)),
+                created_at: new Date(),
+                updated_at: new Date(),
+            });
+        }
+    }
+
+    // insert indicator data
+    await prisma.indicatorData.createMany({
+        data: indicatorData,
+        skipDuplicates: true,
+    });
+    
     console.log("Database Seeded Successfully!");
 }
 
