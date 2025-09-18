@@ -1,6 +1,6 @@
 "use client";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import { Indicator, IndicatorFormData } from "@/types/management";
 import React, { useState } from "react";
 import { IndicatorService } from "@/server/services/indicator/indicator-client-service";
@@ -535,22 +535,28 @@ export default function ManagementTable({
                             fontSize: "0.875rem",
                           }}
                         >
-                          /{kpi.target_value}
-                          <IconButton
-                            size="small"
-                            onClick={() => handleIncrement(kpi.id)}
-                            sx={{ color: "green" }}
-                          >
-                            <ArrowUpwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDecrement(kpi.id)}
-                            sx={{ color: "red" }}
-                          >
-                            <ArrowDownwardIcon fontSize="small" />
-                          </IconButton>
+                          10/{kpi.target_value}
+                          {Math.random() > 0.5 ? (
+                            <TrendingUpIcon
+                              sx={{
+                                color: "#22c55e",
+                                fontSize: "1.25rem",
+                                ml: 1,
+                                filter: `drop-shadow(0 0 5px #22c55e)`,
+                              }}
+                            />
+                          ) : (
+                            <TrendingDownIcon
+                              sx={{
+                                color: "red",
+                                fontSize: "1.25rem",
+                                ml: 1,
+                                filter: `drop-shadow(0 0 2px #c56922ff)`,
+                              }}
+                            />
+                          )}
                         </TableCell>
+
                         <TableCell
                           sx={{
                             textAlign: "center",
