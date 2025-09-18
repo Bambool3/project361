@@ -2,6 +2,179 @@ import prisma from "@/lib/db";
 import { CategoryFormData, Category } from "@/types/category";
 
 export class CategoryServerService {
+    static async getCategoriesByResponsibleUser(
+        userId: string
+    ): Promise<Category[]> {
+        try {
+            const categories = await prisma.category.findMany({
+                where: {
+                    indicators: {
+                        some: {
+                            user_id: userId,
+                        },
+                    },
+                },
+                include: {
+                    indicators: {
+                        where: {
+                            user_id: userId,
+                        },
+                    },
+                },
+                orderBy: [
+                    {
+                        name: "asc",
+                    },
+                ],
+            });
+
+            return categories.map((category: any) => ({
+                id: category.category_id,
+                name: category.name,
+                description: category.description,
+                created_at: category.created_at.toISOString(),
+                updated_at: category.updated_at?.toISOString(),
+                indicators:
+                    category.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id,
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id: indicator.main_indicator_id || "",
+                        responsible_user_id: indicator.user_id,
+                        category_id: indicator.category_id,
+                    })) || [],
+            }));
+        } catch (error) {
+            console.error(
+                "Error fetching categories by responsible user from database:",
+                error
+            );
+            throw new Error(
+                "Failed to fetch categories by responsible user from database"
+            );
+        }
+    }
+
+    static async getCategoriesByResponsibleJobTitle(
+        userId: string
+    ): Promise<Category[]> {
+        try {
+            const categories = await prisma.category.findMany({
+                where: {
+                    indicators: {
+                        some: {
+                            responsible_jobtitle: {
+                                some: {
+                                    jobtitle: {
+                                        user_jobtitle: {
+                                            some: {
+                                                user_id: userId,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                include: {
+                    indicators: {
+                        where: {
+                            responsible_jobtitle: {
+                                some: {
+                                    jobtitle: {
+                                        user_jobtitle: {
+                                            some: {
+                                                user_id: userId,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        include: {
+                            responsible_jobtitle: {
+                                include: {
+                                    jobtitle: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                orderBy: [
+                    {
+                        name: "asc",
+                    },
+                ],
+            });
+
+            return categories.map((category: any) => ({
+                id: category.category_id,
+                name: category.name,
+                description: category.description,
+                created_at: category.created_at.toISOString(),
+                updated_at: category.updated_at?.toISOString(),
+                indicators:
+                    category.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id,
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id: indicator.main_indicator_id || "",
+                        responsible_user_id: indicator.user_id,
+                        category_id: indicator.category_id,
+                        responsible_jobtitles:
+                            indicator.responsible_jobtitle?.map(
+                                (rjt: any) => rjt.jobtitle.name
+                            ) || [],
+                    })) || [],
+            }));
+        } catch (error) {
+            console.error(
+                "Error fetching categories by responsible job title from database:",
+                error
+            );
+            throw new Error(
+                "Failed to fetch categories by responsible job title from database"
+            );
+        }
+    }
+
+    static async getCategoriesByUser(userId: string): Promise<Category[]> {
+        try {
+            const categories = await prisma.category.findMany({
+                where: { user_id: userId },
+                include: { indicators: true },
+                orderBy: [{ name: "asc" }],
+            });
+            return categories.map((category: any) => ({
+                id: category.category_id,
+                name: category.name,
+                description: category.description,
+                created_at: category.created_at.toISOString(),
+                updated_at: category.updated_at?.toISOString(),
+                indicators:
+                    category.indicators?.map((indicator: any) => ({
+                        id: indicator.indicator_id,
+                        name: indicator.name,
+                        unit: indicator.unit || "",
+                        target_value: indicator.target_value || 0,
+                        main_indicator_id: indicator.main_indicator_id || "",
+                        responsible_user_id: indicator.user_id,
+                        category_id: indicator.category_id,
+                    })) || [],
+            }));
+        } catch (error) {
+            console.error(
+                "Error fetching categories for user from database:",
+                error
+            );
+            throw new Error(
+                "Failed to fetch categories for user from database"
+            );
+        }
+    }
     static async getCategories(): Promise<Category[]> {
         try {
             const categories = await prisma.category.findMany({

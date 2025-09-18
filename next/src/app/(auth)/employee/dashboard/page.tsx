@@ -1,4 +1,4 @@
-import EmployeeDashboardDetail from "@/components/pages/dashboard/EmployeeDashboardDetail";
+import EmployeeDetail from "@/components/pages/dashboard/EmployeeDetail";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-    return <EmployeeDashboardDetail />;
+    return <EmployeeDetail />;
 }

@@ -6,6 +6,7 @@ export type Indicator = {
     main_indicator_id: string;
     responsible_user_id: string;
     category_id: string;
+    responsible_jobtitles?: string[];
 };
 
 export type Category = {

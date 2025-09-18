@@ -3,8 +3,9 @@
 import Header from "@/components/header";
 import NavBar from "@/components/navigations/nav-bar";
 import { useState } from "react";
+import EmployeeMain from "./EmployeeMain";
 
-export default function EmployeeDashboardDetail() {
+export default function EmployeeDetail() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const toggleMobileMenu = () => {
@@ -33,8 +34,7 @@ export default function EmployeeDashboardDetail() {
                 </div>
 
                 <div className="flex-1 bg-gray-100">
-                    {/* <EmployeeDashboardMain /> */}
-                    "EmployeeDashboardMain"
+                    <EmployeeMain />
                 </div>
             </div>
         </div>
