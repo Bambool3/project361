@@ -515,7 +515,7 @@ export default function AddKpiModal({
                                     {sub.name || "ชื่อตัวชี้วัดย่อย"}
                                   </span>
                                   <span className="ml-3 text-xs text-gray-500">
-                                    (ตำแหน่ง {idx + 1})
+                                    (ตัวชี้วัดย่อยที่ {idx + 1})
                                   </span>
                                   <button
                                     type="button"
