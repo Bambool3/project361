@@ -19,7 +19,12 @@ import {
 const sub_indicatorsSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "กรุณากรอกชื่อตัวชี้วัดย่อย"),
-  target_value: z.string().min(1, "กรุณากรอกเป้าหมายตัวชี้วัดย่อย"),
+  target_value: z
+    .string()
+    .min(1, "กรุณากรอกเป้าหมายตัวชี้วัดย่อย")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "กรุณากรอกเป็นตัวเลขเท่านั้น",
+    }),
   position: z.number(),
 });
 
@@ -187,17 +192,17 @@ export default function AddKpiModal({
           position: i + 1,
         })),
       };
-      alert(
-        JSON.stringify(
-          {
-            data: dataToSubmit,
-            mode: mode,
-            categoryId: categoryId,
-          },
-          null,
-          2
-        )
-      );
+      // alert(
+      //   JSON.stringify(
+      //     {
+      //       data: dataToSubmit,
+      //       mode: mode,
+      //       categoryId: categoryId,
+      //     },
+      //     null,
+      //     2
+      //   )
+      // );
       await onSubmit(dataToSubmit, mode, categoryId);
       setExpandedIndexes([]);
     } catch (error) {

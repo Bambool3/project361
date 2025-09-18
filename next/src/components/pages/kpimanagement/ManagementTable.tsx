@@ -97,7 +97,7 @@ export default function ManagementTable({
     catId: string
   ) => {
     try {
-      console.log(data);
+      // console.log(data);
       const payload = {
         name: data.name,
         target_value: parseFloat(data.target_value),
@@ -123,7 +123,7 @@ export default function ManagementTable({
         );
       } else {
         // โหมดเพิ่มใหม่
-        console.log("payload=", payload);
+        // console.log("payload=", payload);
         statusCode = await IndicatorService.createIndicatorWithStatus(payload);
       }
 
@@ -492,18 +492,6 @@ export default function ManagementTable({
                               gap: 1,
                             }}
                           >
-                            {/* {kpi.sub_indicators?.length > 0 && (
-                            <IconButton
-                              size="small"
-                              onClick={() => toggleExpand(kpi.id)}
-                            >
-                              {expanded.has(kpi.id) ? (
-                                <ChevronDown size={16} />
-                              ) : (
-                                <ChevronRight size={16} />
-                              )}
-                            </IconButton>
-                          )} */}
                             <Typography
                               sx={{
                                 fontWeight: "600",
@@ -535,7 +523,8 @@ export default function ManagementTable({
                             fontSize: "0.875rem",
                           }}
                         >
-                          10/{kpi.target_value}
+                          {Math.floor(Math.random() * (100 - 1 + 1)) + 1}/
+                          {kpi.target_value}
                           {Math.random() > 0.5 ? (
                             <TrendingUpIcon
                               sx={{
@@ -696,7 +685,29 @@ export default function ManagementTable({
                                           &nbsp;&nbsp;{sub.name}
                                         </TableCell>
                                         <TableCell sx={{ pl: 5 }}>
+                                          {Math.floor(
+                                            Math.random() * (10 - 1 + 1)
+                                          ) + 1}
                                           /{sub.target_value}
+                                          {Math.random() > 0.5 ? (
+                                            <TrendingUpIcon
+                                              sx={{
+                                                color: "#22c55e",
+                                                fontSize: "1.25rem",
+                                                ml: 1,
+                                                filter: `drop-shadow(0 0 5px #22c55e)`,
+                                              }}
+                                            />
+                                          ) : (
+                                            <TrendingDownIcon
+                                              sx={{
+                                                color: "red",
+                                                fontSize: "1.25rem",
+                                                ml: 1,
+                                                filter: `drop-shadow(0 0 2px #c56922ff)`,
+                                              }}
+                                            />
+                                          )}
                                         </TableCell>
                                       </TableRow>
                                     ))}
