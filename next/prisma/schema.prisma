@@ -151,7 +151,6 @@ model Period {
 }
 
 model IndicatorData {
-  indicatordata_id String   @id @default(ulid())
   indicator_id     String
   period_id        String
   actual_value     Float?
@@ -162,7 +161,7 @@ model IndicatorData {
   indicator Indicator @relation(fields: [indicator_id], references: [indicator_id], onDelete: Cascade)
   period    Period    @relation(fields: [period_id], references: [period_id], onDelete: Cascade)
 
-  @@unique([indicator_id, period_id])
+  @@id([indicator_id, period_id])
   @@map("indicator_data")
 }
 
