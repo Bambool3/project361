@@ -22,7 +22,7 @@ export default function EmployeeTableSection({
     const router = useRouter();
 
     const handleRowClick = (category: Category) => {
-        router.push(`/employee/management?categoryId=${category.id}`);
+        router.push(`/employee/data?categoryId=${category.id}`);
     };
 
     const columns = [

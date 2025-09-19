@@ -16,6 +16,7 @@ import {
     ChevronUp,
     PenLine,
     Clock,
+    Database,
 } from "lucide-react";
 import {
     Drawer,
@@ -79,7 +80,7 @@ export default function NavBar({ isOpen, onClose }: NavBarProps) {
                 icon: LayoutGrid,
                 path: "/employee/dashboard",
             },
-            { name: "ตัวชี้วัด", icon: Goal, path: "/employee/kpi" }
+            { name: "ข้อมูล", icon: Database, path: "/employee/data" }
         );
     }
 
