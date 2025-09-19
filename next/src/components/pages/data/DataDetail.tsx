@@ -34,8 +34,7 @@ export default function DataDetail() {
                 </div>
 
                 <div className="flex-1 bg-gray-100">
-                    test!!!!!!!!!!
-                    {/* {DataMain} */}
+                    <DataMain/>
                 </div>
             </div>
         </div>

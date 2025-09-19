@@ -88,3 +88,30 @@ export type Indicator = {
   frequency: Frequency;
   sub_indicators: SubIndicator[];
 };
+
+export type MappedIndicatorData = {
+  period_id: string;
+  period_name: string;
+  start_date: string;
+  end_date: string;
+  actual_value: number | null;
+};
+
+export type MappedIndicator = {
+  id: string;
+  name: string;
+  target_value: number | null;
+  date: string | null;
+  status: string | null;
+  position: number;
+  main_indicator_id: string | null;
+  creator_user_id: string;
+  category_id: string;
+  // We can even include category info if needed
+  category_name: string; 
+  unit: string;
+  frequency: string;
+  responsible_jobtitles: string[];
+  sub_indicators: { id: string; name: string }[];
+  data: MappedIndicatorData[];
+};

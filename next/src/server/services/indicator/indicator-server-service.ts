@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import { Indicator, IndicatorPayload } from "@/types/management";
+import { Indicator, IndicatorPayload, MappedIndicator } from "@/types/management";
 
 export class IndicatorServerService {
   static async getIndicatorsByCategory(catId: string): Promise<Indicator[]> {
@@ -57,6 +57,110 @@ export class IndicatorServerService {
     } catch (error) {
       console.error("Error fetching indicators from database:", error);
       throw new Error("Failed to fetch indicators from database");
+    }
+  }
+
+  static async getIndicatorsByResponsibleJobTitle(
+    userId: string,
+    catId: string
+    ): Promise<MappedIndicator[]> {
+    try {
+        // The main query to fetch indicators directly
+        const indicators = await prisma.indicator.findMany({
+            where: {
+                // Filter indicators where the user is directly responsible
+                responsible_jobtitle: {
+                    some: {
+                        jobtitle: {
+                            user_jobtitle: {
+                                some: {
+                                    user_id: userId,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            include: {
+                // Include all necessary related data
+                category: { // <-- ADDED: To get category name
+                    select: { name: true }
+                },
+                unit: true,
+                frequency: true,
+                responsible_jobtitle: {
+                    include: {
+                        jobtitle: true,
+                    },
+                },
+                sub_indicators: {
+                    select: {
+                        indicator_id: true,
+                        name: true,
+                    },
+                },
+                indicator_data: {
+                    include: {
+                        period: true, // Include period details for each data point
+                    },
+                    orderBy: {
+                        period: {
+                            end_date: 'desc', // Order data by most recent period
+                        },
+                    },
+                },
+            },
+            orderBy: [
+                {
+                    category: {
+                       name: "asc" // Optional: order by category name first
+                    }
+                },
+                {
+                    position: "asc", // Then order indicators by their position
+                },
+            ]
+        });
+
+        // Map the raw Prisma response to the desired clean structure
+        return indicators.map((indicator) => ({
+            id: indicator.indicator_id,
+            name: indicator.name,
+            target_value: indicator.target_value,
+            date: indicator.date?.toISOString() || null,
+            status: indicator.status,
+            position: indicator.position,
+            main_indicator_id: indicator.main_indicator_id,
+            creator_user_id: indicator.user_id,
+            category_id: indicator.category_id,
+            category_name: indicator.category.name, // <-- ADDED
+            unit: indicator.unit.name,
+            frequency: indicator.frequency.name,
+            responsible_jobtitles:
+                indicator.responsible_jobtitle?.map(
+                    (rjt) => rjt.jobtitle.name
+                ) || [],
+            sub_indicators: indicator.sub_indicators.map(sub => ({
+                id: sub.indicator_id,
+                name: sub.name,
+            })),
+            data:
+                indicator.indicator_data?.map((data) => ({
+                    period_id: data.period_id,
+                    period_name: data.period.name,
+                    start_date: data.period.start_date.toISOString(),
+                    end_date: data.period.end_date.toISOString(),
+                    actual_value: data.actual_value,
+                })) || [],
+        }));
+    } catch (error) {
+        console.error(
+            "Error fetching indicators by responsible job title from database:",
+            error
+        );
+        throw new Error(
+            "Failed to fetch indicators by responsible job title from database"
+        );
     }
   }
 
