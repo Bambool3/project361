@@ -48,8 +48,18 @@ async function main() {
     // --- Periods ---
     const currentYear = new Date().getFullYear();
     const monthNames = [
-        "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
-        "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"
+        "มกราคม",
+        "กุมภาพันธ์",
+        "มีนาคม",
+        "เมษายน",
+        "พฤษภาคม",
+        "มิถุนายน",
+        "กรกฎาคม",
+        "สิงหาคม",
+        "กันยายน",
+        "ตุลาคม",
+        "พฤศจิกายน",
+        "ธันวาคม",
     ];
 
     const monthlyPeriods = [];
@@ -57,7 +67,7 @@ async function main() {
         const start = new Date(currentYear, m - 1, 1);
         const end = new Date(currentYear, m, 0);
         monthlyPeriods.push({
-            name: `${monthNames[m-1]} ${currentYear}`,
+            name: `${monthNames[m - 1]} ${currentYear}`,
             start_date: start,
             end_date: end,
             frequency_id: frequencyRecords["freq1"].frequency_id,
@@ -294,9 +304,9 @@ async function main() {
         // หน่วยทั่วไป / KPI
         { name: "ร้อยละ" },
         { name: "เครื่อง" },
-        { name: "หน่วย" },  
+        { name: "หน่วย" },
     ];
-    
+
     const unitRecords: Record<string, any> = {};
     for (let i = 0; i < units.length; i++) {
         const unit = units[i];
@@ -304,7 +314,6 @@ async function main() {
             data: unit,
         });
     }
-  
 
     // First, create main indicators (without main_indicator_id)
     // Position is unique per category for main indicators
@@ -316,7 +325,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id,
+            frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
             date: new Date(),
             position: 1, // First indicator in CMUPA category
@@ -328,7 +337,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id,
+            frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
             date: new Date(),
             position: 2, // Second indicator in CMUPA category
@@ -340,7 +349,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq2"].frequency_id,
+            frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
             date: new Date(),
             position: 3, // Third indicator in CMUPA category
@@ -352,7 +361,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq3"].frequency_id,
+            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
             status: "Active",
             date: new Date(),
             position: 4, // Fourth indicator in CMUPA category
@@ -364,7 +373,7 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq4"].frequency_id,
+            frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
             status: "Active",
             date: new Date(),
             position: 5, // Fifth indicator in CMUPA category
@@ -376,10 +385,95 @@ async function main() {
             main_indicator_id: null,
             user_id: userRecords["user1"].user_id,
             category_id: categoryRecords["cat1"].category_id,
-            frequency_id: frequencyRecords["freq5"].frequency_id,
+            frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
             status: "Active",
             date: new Date(),
             position: 6, // Sixth indicator in CMUPA category
+        },
+        // New CMUPA indicators with different frequencies
+        {
+            name: "จำนวนนักศึกษาต่างชาติที่เข้าศึกษาในหลักสูตรนานาชาติ",
+            unit_id: unitRecords["unit14"].unit_id, // คน
+            target_value: 150,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 7, // Seventh indicator in CMUPA category
+        },
+        {
+            name: "จำนวนโครงการวิจัยร่วมกับภาคอุตสาหกรรม",
+            unit_id: unitRecords["unit10"].unit_id, // โครงการ
+            target_value: 30,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 8, // Eighth indicator in CMUPA category
+        },
+        {
+            name: "ร้อยละความพึงพอใจของนักศึกษาต่อคุณภาพการเรียนการสอน",
+            unit_id: unitRecords["unit18"].unit_id, // เปอร์เซ็นต์
+            target_value: 85,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
+            status: "Active",
+            date: new Date(),
+            position: 9, // Ninth indicator in CMUPA category
+        },
+        {
+            name: "จำนวนสิทธิบัตรที่ได้รับการจดทะเบียน",
+            unit_id: unitRecords["unit10"].unit_id, // รายการ
+            target_value: 20,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
+            status: "Active",
+            date: new Date(),
+            position: 10, // Tenth indicator in CMUPA category
+        },
+        {
+            name: "งบประมาณการวิจัยที่ได้รับจากแหล่งทุนภายนอก",
+            unit_id: unitRecords["unit2"].unit_id, // บาท
+            target_value: 50000000,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
+            status: "Active",
+            date: new Date(),
+            position: 11, // Eleventh indicator in CMUPA category
+        },
+        {
+            name: "จำนวนผู้เข้าร่วมกิจกรรมบริการวิชาการแก่สังคม",
+            unit_id: unitRecords["unit14"].unit_id, // คน
+            target_value: 500,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 12, // Twelfth indicator in CMUPA category
+        },
+        {
+            name: "ร้อยละการคงอยู่ของนักศึกษา (Student Retention Rate)",
+            unit_id: unitRecords["unit18"].unit_id, // เปอร์เซ็นต์
+            target_value: 92,
+            main_indicator_id: null,
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
+            status: "Active",
+            date: new Date(),
+            position: 13, // Thirteenth indicator in CMUPA category
         },
         {
             name: "HR Efficiency",
@@ -514,6 +608,115 @@ async function main() {
             date: new Date(),
             position: 1, // First sub-indicator under main8 (Academic Publications)
         },
+        // Sub-indicators for new CMUPA indicators
+        {
+            name: "นักศึกษาต่างชาติระดับปริญญาตรี",
+            unit_id: unitRecords["unit14"].unit_id,
+            target_value: 60,
+            main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // นักศึกษาต่างชาติ
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 1, // First sub-indicator under main7
+        },
+        {
+            name: "นักศึกษาต่างชาติระดับปริญญาโท",
+            unit_id: unitRecords["unit14"].unit_id,
+            target_value: 70,
+            main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // นักศึกษาต่างชาติ
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 2, // Second sub-indicator under main7
+        },
+        {
+            name: "นักศึกษาต่างชาติระดับปริญญาเอก",
+            unit_id: unitRecords["unit14"].unit_id,
+            target_value: 20,
+            main_indicator_id: mainIndicatorRecords["main7"].indicator_id, // นักศึกษาต่างชาติ
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 3, // Third sub-indicator under main7
+        },
+        {
+            name: "โครงการวิจัยร่วมกับบริษัทเอกชน",
+            unit_id: unitRecords["unit10"].unit_id,
+            target_value: 15,
+            main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // โครงการวิจัยร่วมกับภาคอุตสาหกรรม
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 1, // First sub-indicator under main8 (industry research)
+        },
+        {
+            name: "โครงการวิจัยร่วมกับหน่วยงานรัฐ",
+            unit_id: unitRecords["unit10"].unit_id,
+            target_value: 10,
+            main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // โครงการวิจัยร่วมกับภาคอุตสาหกรรม
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 2, // Second sub-indicator under main8 (industry research)
+        },
+        {
+            name: "โครงการวิจัยร่วมกับองค์กรระหว่างประเทศ",
+            unit_id: unitRecords["unit10"].unit_id,
+            target_value: 5,
+            main_indicator_id: mainIndicatorRecords["main8"].indicator_id, // โครงการวิจัยร่วมกับภาคอุตสาหกรรม
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
+            status: "Active",
+            date: new Date(),
+            position: 3, // Third sub-indicator under main8 (industry research)
+        },
+        {
+            name: "สิทธิบัตรด้านเทคโนโลยี",
+            unit_id: unitRecords["unit10"].unit_id,
+            target_value: 12,
+            main_indicator_id: mainIndicatorRecords["main10"].indicator_id, // สิทธิบัตร
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
+            status: "Active",
+            date: new Date(),
+            position: 1, // First sub-indicator under main10 (patents)
+        },
+        {
+            name: "สิทธิบัตรด้านการแพทย์",
+            unit_id: unitRecords["unit10"].unit_id,
+            target_value: 5,
+            main_indicator_id: mainIndicatorRecords["main10"].indicator_id, // สิทธิบัตร
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
+            status: "Active",
+            date: new Date(),
+            position: 2, // Second sub-indicator under main10 (patents)
+        },
+        {
+            name: "สิทธิบัตรด้านเกษตรกรรม",
+            unit_id: unitRecords["unit10"].unit_id,
+            target_value: 3,
+            main_indicator_id: mainIndicatorRecords["main10"].indicator_id, // สิทธิบัตร
+            user_id: userRecords["user1"].user_id,
+            category_id: categoryRecords["cat1"].category_id,
+            frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
+            status: "Active",
+            date: new Date(),
+            position: 3, // Third sub-indicator under main10 (patents)
+        },
     ];
 
     const subIndicatorRecords: Record<string, any> = {};
@@ -527,18 +730,10 @@ async function main() {
     // Seed Responsible Persons (Link indicators to job titles)
     await prisma.responsibleJobTitle.createMany({
         data: [
-            // Main indicators
-            {
-                indicator_id: mainIndicatorRecords["main1"].indicator_id,
-                jobtitle_id: jobTitleRecords["job4"].jobtitle_id,
-            },
+            // Main indicators - All CMUPA indicators (main1-main13) assigned to Bob's job (job3)
             {
                 indicator_id: mainIndicatorRecords["main1"].indicator_id,
                 jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
-            },
-            {
-                indicator_id: mainIndicatorRecords["main1"].indicator_id,
-                jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main2"].indicator_id,
@@ -550,94 +745,159 @@ async function main() {
             },
             {
                 indicator_id: mainIndicatorRecords["main4"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main5"].indicator_id,
-                jobtitle_id: jobTitleRecords["job4"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main6"].indicator_id,
-                jobtitle_id: jobTitleRecords["job7"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main7"].indicator_id,
-                jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main8"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
-            },
-            // Sub-indicators
-            {
-                indicator_id: subIndicatorRecords["sub1"].indicator_id,
                 jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
-                indicator_id: subIndicatorRecords["sub2"].indicator_id,
+                indicator_id: mainIndicatorRecords["main9"].indicator_id,
                 jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
-                indicator_id: subIndicatorRecords["sub3"].indicator_id,
+                indicator_id: mainIndicatorRecords["main10"].indicator_id,
                 jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
-                indicator_id: subIndicatorRecords["sub4"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+                indicator_id: mainIndicatorRecords["main11"].indicator_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
-                indicator_id: subIndicatorRecords["sub5"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+                indicator_id: mainIndicatorRecords["main12"].indicator_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
             {
-                indicator_id: subIndicatorRecords["sub6"].indicator_id,
-                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+                indicator_id: mainIndicatorRecords["main13"].indicator_id,
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
             },
+            // Non-CMUPA indicators keep their original assignments
             {
-                indicator_id: subIndicatorRecords["sub7"].indicator_id,
+                indicator_id: mainIndicatorRecords["main14"].indicator_id, // HR Efficiency
                 jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
             },
             {
-                indicator_id: subIndicatorRecords["sub8"].indicator_id,
+                indicator_id: mainIndicatorRecords["main15"].indicator_id, // Academic Publications
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
+            },
+            // Sub-indicators - All CMUPA sub-indicators assigned to Bob's job (job3)
+            {
+                indicator_id: subIndicatorRecords["sub1"].indicator_id, // under main2 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub2"].indicator_id, // under main2 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub3"].indicator_id, // under main2 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub4"].indicator_id, // under main4 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub5"].indicator_id, // under main4 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub6"].indicator_id, // under main4 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub9"].indicator_id, // under main7 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub10"].indicator_id, // under main7 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub11"].indicator_id, // under main7 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub12"].indicator_id, // under main8 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub13"].indicator_id, // under main8 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub14"].indicator_id, // under main8 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub15"].indicator_id, // under main10 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub16"].indicator_id, // under main10 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub17"].indicator_id, // under main10 (CMUPA)
+                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+            },
+            // Non-CMUPA sub-indicators keep their original assignments
+            {
+                indicator_id: subIndicatorRecords["sub7"].indicator_id, // under main14 (HR)
+                jobtitle_id: jobTitleRecords["job2"].jobtitle_id,
+            },
+            {
+                indicator_id: subIndicatorRecords["sub8"].indicator_id, // under main15 (Academic)
                 jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
         ],
     });
 
     // --- Seed IndicatorData ---
-    const allIndicators = await prisma.indicator.findMany({});
-    const allPeriods = await prisma.period.findMany({});
+    const allIndicators = await prisma.indicator.findMany({});
+    const allPeriods = await prisma.period.findMany({});
 
-    const indicatorData: any[] = [];
+    const indicatorData: any[] = [];
 
-    for (const indicator of allIndicators) {
-        // เลือก period ตาม frequency ของ indicator
-        const validPeriods = allPeriods.filter(
-            (p) => p.frequency_id === indicator.frequency_id
-        );
+    for (const indicator of allIndicators) {
+        // เลือก period ตาม frequency ของ indicator
+        const validPeriods = allPeriods.filter(
+            (p) => p.frequency_id === indicator.frequency_id
+        );
 
-        for (const period of validPeriods) {
-            // Generate actual value แบบ realistic รอบๆ target_value
-            const target = indicator.target_value ?? 50;
-            const variation = target * 0.2; // ±20%
-            const actual = target + (Math.random() * variation * 2 - variation);
+        for (const period of validPeriods) {
+            // Generate actual value แบบ realistic รอบๆ target_value
+            const target = indicator.target_value ?? 50;
+            const variation = target * 0.2; // ±20%
+            const actual = target + (Math.random() * variation * 2 - variation);
 
-            indicatorData.push({
-                indicator_id: indicator.indicator_id,
-                period_id: period.period_id,
-                actual_value: parseFloat(actual.toFixed(2)),
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
-        }
-    }
+            indicatorData.push({
+                indicator_id: indicator.indicator_id,
+                period_id: period.period_id,
+                actual_value: parseFloat(actual.toFixed(2)),
+                created_at: new Date(),
+                updated_at: new Date(),
+            });
+        }
+    } // insert indicator data
 
-    // insert indicator data
-    await prisma.indicatorData.createMany({
-        data: indicatorData,
-        skipDuplicates: true,
-    });
-    
+    await prisma.indicatorData.createMany({
+        data: indicatorData,
+        skipDuplicates: true,
+    });
+
     console.log("Database Seeded Successfully!");
 }
 
