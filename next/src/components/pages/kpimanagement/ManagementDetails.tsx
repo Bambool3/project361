@@ -18,10 +18,20 @@ export default function KpiTopicDetails() {
   return (
     <div className="min-h-screen bg-gray-100 font-sans antialiased">
       <div className="flex flex-col h-screen">
-        <Header onMenuToggle={toggleMobileMenu} />
-        <NavBar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1000,
+          }}
+        >
+          <Header onMenuToggle={toggleMobileMenu} />
+          <NavBar isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
+        </div>
 
-        <ManagementMain />
+        <div className="flex-1 bg-gray-100">
+          <ManagementMain />
+        </div>
       </div>
     </div>
   );
