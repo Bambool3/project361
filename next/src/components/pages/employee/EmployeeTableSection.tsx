@@ -748,7 +748,7 @@ export default function EmployeeTableSection({
                                                                         employee.last_name
                                                                     }
                                                                 </Typography>
-                                                                <Typography
+                                                                {/* <Typography
                                                                     sx={{
                                                                         fontSize:
                                                                             "0.75rem",
@@ -758,7 +758,7 @@ export default function EmployeeTableSection({
                                                                     ID:{" "}
                                                                     {actualIndex +
                                                                         1}
-                                                                </Typography>
+                                                                </Typography> */}
                                                             </Box>
                                                         </Box>
                                                     </TableCell>
