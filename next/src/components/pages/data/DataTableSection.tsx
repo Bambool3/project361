@@ -782,9 +782,11 @@ export default function DataTableSection({
           <Box
             sx={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              p: 3,
+              flexDirection: { xs: "column", lg: "row" },
+              alignItems: { xs: "stretch", lg: "center" },
+              justifyContent: { xs: "flex-start", lg: "space-between" },
+              p: { xs: 2, sm: 3 },
+              gap: { xs: 2, lg: 0 },
               borderBottom: "1px solid #f1f5f9",
             }}
           >
@@ -793,12 +795,17 @@ export default function DataTableSection({
                 display: "flex",
                 alignItems: "center",
                 gap: 2,
+                mb: { xs: 1, lg: 0 },
               }}
             >
               <Database size={24} color="#8b5cf6" />
               <Typography
                 variant="h6"
-                sx={{ fontWeight: "bold", color: "#1e293b" }}
+                sx={{
+                  fontWeight: "bold",
+                  color: "#1e293b",
+                  fontSize: { xs: "1rem", sm: "1.25rem" },
+                }}
               >
                 ป้อนข้อมูลตัวชี้วัด: ({filteredIndicators.length})
               </Typography>
@@ -807,8 +814,10 @@ export default function DataTableSection({
             <Box
               sx={{
                 display: "flex",
-                alignItems: "center",
-                gap: 2,
+                flexDirection: { xs: "column", sm: "row" },
+                alignItems: { xs: "stretch", sm: "center" },
+                gap: { xs: 1.5, sm: 2 },
+                width: { xs: "100%", lg: "auto" },
               }}
             >
               <TextField
@@ -817,10 +826,12 @@ export default function DataTableSection({
                 value={searchTerm}
                 onChange={handleSearch}
                 sx={{
-                  width: { xs: "100%", sm: "250px" },
+                  width: { xs: "100%", sm: "250px", md: "300px" },
+                  order: { xs: 1, sm: 0 },
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "12px",
                     backgroundColor: "#f8fafc",
+                    fontSize: { xs: "0.875rem", sm: "1rem" },
                     "&:hover fieldset": {
                       borderColor: "#8b5cf6",
                     },
@@ -848,13 +859,19 @@ export default function DataTableSection({
                 }}
                 size="small"
                 sx={{
+                  width: { xs: "100%", sm: "auto" },
+                  order: { xs: 2, sm: 0 },
+                  "& .MuiToggleButtonGroup-root": {
+                    width: { xs: "100%", sm: "auto" },
+                  },
                   "& .MuiToggleButton-root": {
                     borderColor: "#e2e8f0",
                     color: "#64748b",
                     textTransform: "none",
-                    fontSize: "0.875rem",
-                    px: 2,
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    px: { xs: 1, sm: 2 },
                     py: 0.5,
+                    flex: { xs: 1, sm: "none" },
                     "&.Mui-selected": {
                       backgroundColor: "#8b5cf6",
                       color: "white",
@@ -869,97 +886,192 @@ export default function DataTableSection({
                 }}
               >
                 <ToggleButton value="frequency" aria-label="จัดกลุ่มตามความถี่">
-                  <Calendar size={18} style={{ marginRight: 4 }} />
-                  ตามความถี่
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 0.5, sm: 1 },
+                    }}
+                  >
+                    <Calendar size={18} />
+                    <Box
+                      component="span"
+                      sx={{ display: { xs: "none", sm: "inline" } }}
+                    >
+                      ตามความถี่
+                    </Box>
+                    <Box
+                      component="span"
+                      sx={{ display: { xs: "inline", sm: "none" } }}
+                    >
+                      ความถี่
+                    </Box>
+                  </Box>
                 </ToggleButton>
                 <ToggleButton
                   value="deadline"
                   aria-label="เรียงตามความเร่งด่วน"
                 >
-                  <Clock size={18} style={{ marginRight: 4 }} />
-                  ตามความเร่งด่วน
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 0.5, sm: 1 },
+                    }}
+                  >
+                    <Clock size={18} />
+                    <Box
+                      component="span"
+                      sx={{ display: { xs: "none", sm: "inline" } }}
+                    >
+                      ตามความเร่งด่วน
+                    </Box>
+                    <Box
+                      component="span"
+                      sx={{ display: { xs: "inline", sm: "none" } }}
+                    >
+                      เร่งด่วน
+                    </Box>
+                  </Box>
                 </ToggleButton>
               </ToggleButtonGroup>
 
-              <Button
-                variant="outlined"
-                onClick={toggleAllFrequencyGroups}
-                size="small"
+              <Box
                 sx={{
-                  borderColor: "#e2e8f0",
-                  color: "#64748b",
-                  textTransform: "none",
-                  fontSize: "0.875rem",
-                  "&:hover": {
-                    borderColor: "#8b5cf6",
-                    backgroundColor: "#f1f5f9",
+                  display: "flex",
+                  flexDirection: { xs: "row", sm: "row" },
+                  gap: { xs: 1, sm: 2 },
+                  order: { xs: 3, sm: 0 },
+                  width: { xs: "100%", sm: "auto" },
+                  "& > *": {
+                    flex: { xs: 1, sm: "none" },
+                    minWidth: { xs: 0, sm: "auto" },
                   },
                 }}
-                startIcon={(() => {
-                  const frequencyGroups = groupIndicatorsByFrequency();
-                  const allFrequencyIds = Object.keys(frequencyGroups);
-                  const allExpanded =
-                    expandedFrequencyGroups.size === allFrequencyIds.length;
-                  return allExpanded ? (
-                    <ChevronDown size={18} />
-                  ) : (
-                    <ChevronRight size={18} />
-                  );
-                })()}
               >
-                {(() => {
-                  const frequencyGroups = groupIndicatorsByFrequency();
-                  const allFrequencyIds = Object.keys(frequencyGroups);
-                  const allExpanded =
-                    expandedFrequencyGroups.size === allFrequencyIds.length;
-                  return allExpanded ? "ย่อทั้งหมด" : "ขยายทั้งหมด";
-                })()}
-              </Button>
+                <Button
+                  variant="outlined"
+                  onClick={toggleAllFrequencyGroups}
+                  size="small"
+                  sx={{
+                    borderColor: "#e2e8f0",
+                    color: "#64748b",
+                    textTransform: "none",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    px: { xs: 1, sm: 2 },
+                    "&:hover": {
+                      borderColor: "#8b5cf6",
+                      backgroundColor: "#f1f5f9",
+                    },
+                  }}
+                  startIcon={(() => {
+                    const frequencyGroups = groupIndicatorsByFrequency();
+                    const allFrequencyIds = Object.keys(frequencyGroups);
+                    const allExpanded =
+                      expandedFrequencyGroups.size === allFrequencyIds.length;
+                    return allExpanded ? (
+                      <ChevronDown size={18} />
+                    ) : (
+                      <ChevronRight size={18} />
+                    );
+                  })()}
+                >
+                  <Box
+                    component="span"
+                    sx={{ display: { xs: "none", sm: "inline" } }}
+                  >
+                    {(() => {
+                      const frequencyGroups = groupIndicatorsByFrequency();
+                      const allFrequencyIds = Object.keys(frequencyGroups);
+                      const allExpanded =
+                        expandedFrequencyGroups.size === allFrequencyIds.length;
+                      return allExpanded ? "ย่อทั้งหมด" : "ขยายทั้งหมด";
+                    })()}
+                  </Box>
+                  <Box
+                    component="span"
+                    sx={{ display: { xs: "inline", sm: "none" } }}
+                  >
+                    {(() => {
+                      const frequencyGroups = groupIndicatorsByFrequency();
+                      const allFrequencyIds = Object.keys(frequencyGroups);
+                      const allExpanded =
+                        expandedFrequencyGroups.size === allFrequencyIds.length;
+                      return allExpanded ? "ย่อ" : "ขยาย";
+                    })()}
+                  </Box>
+                </Button>
 
-              <Button
-                variant="outlined"
-                onClick={() => setShowPeriodDetails(!showPeriodDetails)}
-                size="small"
-                sx={{
-                  borderColor: "#e2e8f0",
-                  color: showPeriodDetails ? "#8b5cf6" : "#64748b",
-                  backgroundColor: showPeriodDetails
-                    ? "#f3f4f6"
-                    : "transparent",
-                  textTransform: "none",
-                  fontSize: "0.875rem",
-                  "&:hover": {
-                    borderColor: "#8b5cf6",
-                    backgroundColor: "#f1f5f9",
-                  },
-                }}
-                startIcon={<Calendar size={18} />}
-              >
-                {showPeriodDetails ? "ซ่อนวันที่" : "แสดงวันที่"}
-              </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowPeriodDetails(!showPeriodDetails)}
+                  size="small"
+                  sx={{
+                    borderColor: "#e2e8f0",
+                    color: showPeriodDetails ? "#8b5cf6" : "#64748b",
+                    backgroundColor: showPeriodDetails
+                      ? "#f3f4f6"
+                      : "transparent",
+                    textTransform: "none",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    px: { xs: 1, sm: 2 },
+                    "&:hover": {
+                      borderColor: "#8b5cf6",
+                      backgroundColor: "#f1f5f9",
+                    },
+                  }}
+                  startIcon={<Calendar size={18} />}
+                >
+                  <Box
+                    component="span"
+                    sx={{ display: { xs: "none", sm: "inline" } }}
+                  >
+                    {showPeriodDetails ? "ซ่อนวันที่" : "แสดงวันที่"}
+                  </Box>
+                  <Box
+                    component="span"
+                    sx={{ display: { xs: "inline", sm: "none" } }}
+                  >
+                    {showPeriodDetails ? "ซ่อน" : "วันที่"}
+                  </Box>
+                </Button>
 
-              <Button
-                variant="contained"
-                onClick={handleSaveAllModified}
-                disabled={
-                  saving ||
-                  Array.from(dataEntries.values()).filter(
-                    (entry) => entry.isModified
-                  ).length === 0
-                }
-                sx={{
-                  backgroundColor: "#059669",
-                  "&:hover": { backgroundColor: "#047857" },
-                  borderRadius: "8px",
-                  textTransform: "none",
-                  fontWeight: "500",
-                }}
-                startIcon={
-                  saving ? <CircularProgress size={18} /> : <Save size={18} />
-                }
-              >
-                บันทึกทั้งหมด
-              </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleSaveAllModified}
+                  disabled={
+                    saving ||
+                    Array.from(dataEntries.values()).filter(
+                      (entry) => entry.isModified
+                    ).length === 0
+                  }
+                  sx={{
+                    backgroundColor: "#059669",
+                    "&:hover": { backgroundColor: "#047857" },
+                    borderRadius: "8px",
+                    textTransform: "none",
+                    fontWeight: "500",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    px: { xs: 1, sm: 2 },
+                  }}
+                  startIcon={
+                    saving ? <CircularProgress size={18} /> : <Save size={18} />
+                  }
+                >
+                  <Box
+                    component="span"
+                    sx={{ display: { xs: "none", sm: "inline" } }}
+                  >
+                    บันทึกทั้งหมด
+                  </Box>
+                  <Box
+                    component="span"
+                    sx={{ display: { xs: "inline", sm: "none" } }}
+                  >
+                    บันทึก
+                  </Box>
+                </Button>
+              </Box>
             </Box>
           </Box>
 
@@ -1126,8 +1238,8 @@ export default function DataTableSection({
                   timeout="auto"
                   unmountOnExit
                 >
-                  <TableContainer>
-                    <Table>
+                  <TableContainer sx={{ overflowX: "auto" }}>
+                    <Table sx={{ minWidth: { xs: 800, sm: 1000 } }}>
                       <TableHead>
                         <TableRow
                           sx={{
@@ -1140,9 +1252,11 @@ export default function DataTableSection({
                               fontWeight: "bold",
                               color: "#475569",
                               border: "none",
-                              py: 3,
-                              width: "80px",
+                              py: { xs: 2, sm: 3 },
+                              px: { xs: 1, sm: 2 },
+                              width: { xs: "60px", sm: "80px" },
                               textAlign: "center",
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
                             }}
                           >
                             ลำดับ
@@ -1154,8 +1268,10 @@ export default function DataTableSection({
                               fontWeight: "bold",
                               color: "#475569",
                               border: "none",
-                              py: 3,
-                              minWidth: "300px",
+                              py: { xs: 2, sm: 3 },
+                              px: { xs: 1, sm: 2 },
+                              minWidth: { xs: "200px", sm: "300px" },
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
                             }}
                           >
                             ชื่อตัวชี้วัด
@@ -1173,9 +1289,11 @@ export default function DataTableSection({
                                   fontWeight: "bold",
                                   color: urgencyColor,
                                   border: "none",
-                                  py: 3,
+                                  py: { xs: 2, sm: 3 },
+                                  px: { xs: 0.5, sm: 2 },
                                   textAlign: "center",
-                                  minWidth: "150px",
+                                  minWidth: { xs: "100px", sm: "150px" },
+                                  fontSize: { xs: "0.7rem", sm: "0.875rem" },
                                 }}
                               >
                                 <Tooltip
@@ -1245,7 +1363,7 @@ export default function DataTableSection({
                                       <Typography
                                         variant="caption"
                                         sx={{
-                                          display: "block",
+                                          display: { xs: "none", sm: "block" },
                                           fontSize: "0.6rem",
                                           color:
                                             urgency === "overdue"
@@ -1279,11 +1397,16 @@ export default function DataTableSection({
                                     label="เกินกำหนด"
                                     size="small"
                                     sx={{
-                                      ml: 1,
+                                      ml: { xs: 0.5, sm: 1 },
+                                      mt: { xs: 0.5, sm: 0 },
                                       backgroundColor: "#dc2626",
                                       color: "white",
-                                      fontSize: "0.65rem",
-                                      height: "18px",
+                                      fontSize: { xs: "0.6rem", sm: "0.65rem" },
+                                      height: { xs: "16px", sm: "18px" },
+                                      display: {
+                                        xs: "none",
+                                        sm: "inline-flex",
+                                      },
                                     }}
                                   />
                                 )}
@@ -1292,11 +1415,16 @@ export default function DataTableSection({
                                     label="ใกล้กำหนด"
                                     size="small"
                                     sx={{
-                                      ml: 1,
+                                      ml: { xs: 0.5, sm: 1 },
+                                      mt: { xs: 0.5, sm: 0 },
                                       backgroundColor: "#d97706",
                                       color: "white",
-                                      fontSize: "0.65rem",
-                                      height: "18px",
+                                      fontSize: { xs: "0.6rem", sm: "0.65rem" },
+                                      height: { xs: "16px", sm: "18px" },
+                                      display: {
+                                        xs: "none",
+                                        sm: "inline-flex",
+                                      },
                                     }}
                                   />
                                 )}
@@ -1310,9 +1438,11 @@ export default function DataTableSection({
                               fontWeight: "bold",
                               color: "#475569",
                               border: "none",
-                              py: 3,
+                              py: { xs: 2, sm: 3 },
+                              px: { xs: 0.5, sm: 2 },
                               textAlign: "center",
-                              minWidth: "140px",
+                              minWidth: { xs: "80px", sm: "140px" },
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
                             }}
                           >
                             รวม
@@ -1345,9 +1475,11 @@ export default function DataTableSection({
                                   sx={{
                                     textAlign: "center",
                                     color: "#1e293b",
-                                    fontSize: "0.875rem",
+                                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
                                     fontWeight: "600",
                                     verticalAlign: "top",
+                                    py: { xs: 2, sm: 3 },
+                                    px: { xs: 1, sm: 2 },
                                   }}
                                 >
                                   {index + 1}
@@ -1356,7 +1488,8 @@ export default function DataTableSection({
                                 {/* ชื่อตัวชี้วัด */}
                                 <TableCell
                                   sx={{
-                                    py: 3,
+                                    py: { xs: 2, sm: 3 },
+                                    px: { xs: 1, sm: 2 },
                                     verticalAlign: "top",
                                   }}
                                 >
@@ -1372,7 +1505,10 @@ export default function DataTableSection({
                                       sx={{
                                         fontWeight: "600",
                                         color: "#1e293b",
-                                        fontSize: "0.9rem",
+                                        fontSize: {
+                                          xs: "0.8rem",
+                                          sm: "0.9rem",
+                                        },
                                         flex: 1,
                                         lineHeight: 1.4,
                                       }}
@@ -1388,11 +1524,14 @@ export default function DataTableSection({
                                           toggleExpand(indicator.id)
                                         }
                                         sx={{
-                                          fontSize: "0.75rem",
+                                          fontSize: {
+                                            xs: "0.7rem",
+                                            sm: "0.75rem",
+                                          },
                                           color: "#8b5cf6",
                                           textTransform: "none",
                                           minWidth: "auto",
-                                          p: 0.5,
+                                          p: { xs: 0.25, sm: 0.5 },
                                           whiteSpace: "nowrap",
                                           flexShrink: 0,
                                           "&:hover": {
@@ -1409,7 +1548,7 @@ export default function DataTableSection({
                                   </Box>
                                   <Typography
                                     sx={{
-                                      fontSize: "0.75rem",
+                                      fontSize: { xs: "0.7rem", sm: "0.75rem" },
                                       color: "#64748b",
                                       mt: 0.5,
                                     }}
@@ -1437,7 +1576,8 @@ export default function DataTableSection({
                                       key={period.period_id}
                                       sx={{
                                         textAlign: "center",
-                                        py: 2,
+                                        py: { xs: 1.5, sm: 2 },
+                                        px: { xs: 0.5, sm: 2 },
                                         verticalAlign: "top",
                                       }}
                                     >
@@ -1453,10 +1593,13 @@ export default function DataTableSection({
                                           )
                                         }
                                         sx={{
-                                          width: "100px",
+                                          width: { xs: "80px", sm: "100px" },
                                           "& .MuiOutlinedInput-root": {
-                                            height: "36px",
-                                            fontSize: "0.875rem",
+                                            height: { xs: "32px", sm: "36px" },
+                                            fontSize: {
+                                              xs: "0.75rem",
+                                              sm: "0.875rem",
+                                            },
                                             backgroundColor:
                                               urgency === "overdue"
                                                 ? "#fef2f2"
@@ -1479,8 +1622,10 @@ export default function DataTableSection({
                                 <TableCell
                                   sx={{
                                     textAlign: "center",
-                                    py: 2,
+                                    py: { xs: 1.5, sm: 2 },
+                                    px: { xs: 0.5, sm: 2 },
                                     fontWeight: "600",
+                                    fontSize: { xs: "0.7rem", sm: "0.875rem" },
                                     color: getTotalColor(
                                       calculateIndicatorTotal(indicator.id),
                                       indicator.target_value || 0
@@ -1488,10 +1633,16 @@ export default function DataTableSection({
                                     verticalAlign: "top",
                                   }}
                                 >
-                                  {calculateIndicatorTotal(
-                                    indicator.id
-                                  ).toLocaleString()}{" "}
-                                  / {indicator.target_value?.toLocaleString()}
+                                  <Box
+                                    sx={{
+                                      display: { xs: "block", sm: "inline" },
+                                    }}
+                                  >
+                                    {calculateIndicatorTotal(
+                                      indicator.id
+                                    ).toLocaleString()}{" "}
+                                    / {indicator.target_value?.toLocaleString()}
+                                  </Box>
                                 </TableCell>
                               </TableRow>
 
