@@ -140,6 +140,7 @@ model Period {
   name         String
   start_date   DateTime
   end_date     DateTime
+  notification_date DateTime
   frequency_id String
   
   // Relations

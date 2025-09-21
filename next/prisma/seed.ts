@@ -44,7 +44,7 @@ async function main() {
             data: frequencies[i],
         });
     }
-
+    
     // --- Periods ---
     const currentYear = new Date().getFullYear();
     const monthNames = [
@@ -61,80 +61,95 @@ async function main() {
         "พฤศจิกายน",
         "ธันวาคม",
     ];
-
+    
+    // --- Monthly ---
     const monthlyPeriods = [];
     for (let m = 1; m <= 12; m++) {
         const start = new Date(currentYear, m - 1, 1);
         const end = new Date(currentYear, m, 0);
+        // สร้าง notification_date 7 วันก่อนสิ้นสุด period
+        const notification = new Date(end);
+        notification.setDate(notification.getDate() - 7);
+    
         monthlyPeriods.push({
             name: `${monthNames[m - 1]} ${currentYear}`,
             start_date: start,
             end_date: end,
+            notification_date: notification, // ✨ เพิ่มฟิลด์ใหม่
             frequency_id: frequencyRecords["freq1"].frequency_id,
         });
     }
     await prisma.period.createMany({ data: monthlyPeriods });
-
+    
+    // --- Quarterly ---
     await prisma.period.createMany({
         data: [
             {
                 name: `ไตรมาส 1/${currentYear}`,
                 start_date: new Date(`${currentYear}-01-01`),
                 end_date: new Date(`${currentYear}-03-31`),
+                notification_date: new Date(`${currentYear}-03-24`), 
                 frequency_id: frequencyRecords["freq2"].frequency_id,
             },
             {
                 name: `ไตรมาส 2/${currentYear}`,
                 start_date: new Date(`${currentYear}-04-01`),
                 end_date: new Date(`${currentYear}-06-30`),
+                notification_date: new Date(`${currentYear}-06-23`), 
                 frequency_id: frequencyRecords["freq2"].frequency_id,
             },
             {
                 name: `ไตรมาส 3/${currentYear}`,
                 start_date: new Date(`${currentYear}-07-01`),
                 end_date: new Date(`${currentYear}-09-30`),
+                notification_date: new Date(`${currentYear}-09-23`), 
                 frequency_id: frequencyRecords["freq2"].frequency_id,
             },
             {
                 name: `ไตรมาส 4/${currentYear}`,
                 start_date: new Date(`${currentYear}-10-01`),
                 end_date: new Date(`${currentYear}-12-31`),
+                notification_date: new Date(`${currentYear}-12-24`), 
                 frequency_id: frequencyRecords["freq2"].frequency_id,
             },
         ],
     });
-
-    // Semester
+    
+    // --- Semester ---
     await prisma.period.createMany({
         data: [
             {
                 name: `เทอม 1/${currentYear}`,
                 start_date: new Date(`${currentYear}-06-01`),
                 end_date: new Date(`${currentYear}-10-31`),
+                notification_date: new Date(`${currentYear}-10-24`), 
                 frequency_id: frequencyRecords["freq3"].frequency_id,
             },
             {
                 name: `เทอม 2/${currentYear}`,
                 start_date: new Date(`${currentYear}-11-01`),
                 end_date: new Date(`${currentYear + 1}-03-31`),
+                notification_date: new Date(`${currentYear + 1}-03-24`), 
                 frequency_id: frequencyRecords["freq3"].frequency_id,
             },
         ],
     });
-
-    // Annuals
+    
+    // --- Annuals ---
     await prisma.period.createMany({
         data: [
             {
                 name: `ปีงบประมาณ ${currentYear}`,
                 start_date: new Date(`${currentYear}-10-01`),
                 end_date: new Date(`${currentYear + 1}-09-30`),
+                notification_date: new Date(`${currentYear + 1}-09-23`), 
                 frequency_id: frequencyRecords["freq4"].frequency_id,
             },
             {
                 name: `ปีการศึกษา ${currentYear}`,
                 start_date: new Date(`${currentYear}-06-01`),
                 end_date: new Date(`${currentYear + 1}-05-31`),
+                notification_date: new Date(`${currentYear + 1}-05-24`), 
                 frequency_id: frequencyRecords["freq5"].frequency_id,
             },
         ],
