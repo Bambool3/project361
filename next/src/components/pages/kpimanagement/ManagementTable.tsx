@@ -1,6 +1,8 @@
 "use client";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import ReorderIcon from "@mui/icons-material/Reorder";
+import SaveIcon from "@mui/icons-material/Save";
 import { Indicator, IndicatorFormData } from "@/types/management";
 import React, { useState } from "react";
 import { IndicatorService } from "@/server/services/indicator/indicator-client-service";
@@ -24,6 +26,7 @@ import {
   Collapse,
   Alert,
   Snackbar,
+  Tooltip,
 } from "@mui/material";
 import {
   Search,
@@ -65,6 +68,9 @@ export default function ManagementTable({
 
   // Editing
   const [selectedToEdit, setSelectedToEdit] = useState<Indicator | null>(null);
+
+  // Reorder mode
+  const [isReorderMode, setReorderMode] = useState(false);
 
   // Snackbar
   const [alertOpen, setAlertOpen] = useState(false);
@@ -345,38 +351,91 @@ export default function ManagementTable({
                   ),
                 }}
               />
-              <Button
-                onClick={handleAddKpi}
-                startIcon={<Plus size={18} />}
-                sx={{
-                  backgroundColor: "#8b5cf6",
-                  color: "white",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  px: 2,
-                  py: 1,
-                  borderRadius: "12px",
-                  "&:hover": { backgroundColor: "#7c3aed" },
+              <Tooltip
+                title="เพิ่มตัวชี้วัด"
+                arrow
+                placement="top"
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor: "#1e293b",
+                      color: "white",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      fontSize: "0.875rem",
+                    },
+                  },
+                  arrow: { sx: { color: "#1e293b" } },
                 }}
               >
-                เพิ่มตัวชี้วัด
-              </Button>
-              <Button
-                onClick={handleAddKpi}
-                startIcon={<Plus size={18} />}
-                sx={{
-                  backgroundColor: "#8b5cf6",
-                  color: "white",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  px: 2,
-                  py: 1,
-                  borderRadius: "12px",
-                  "&:hover": { backgroundColor: "#7c3aed" },
+                <Button
+                  onClick={handleAddKpi}
+                  startIcon={<Plus size={18} />}
+                  sx={{
+                    backgroundColor: "#8b5cf6",
+                    color: "white",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    px: 2,
+                    py: 1,
+                    borderRadius: "12px",
+                    "&:hover": { backgroundColor: "#7c3aed" },
+                  }}
+                >
+                  เพิ่มตัวชี้วัด
+                </Button>
+              </Tooltip>
+              <Tooltip
+                title={
+                  isReorderMode
+                    ? "บันทึกลำดับของตัวชี้วัด"
+                    : "สลับลำดับของตัวชี้วัด"
+                }
+                arrow
+                placement="top"
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor: "#1e293b",
+                      color: "white",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      fontSize: "0.875rem",
+                    },
+                  },
+                  arrow: { sx: { color: "#1e293b" } },
                 }}
               >
-                สลับลำดับ
-              </Button>
+                <Button
+                  onClick={() => setReorderMode(!isReorderMode)}
+                  startIcon={
+                    isReorderMode ? (
+                      <SaveIcon sx={{ fontSize: 18 }} />
+                    ) : (
+                      <ReorderIcon sx={{ fontSize: 18 }} />
+                    )
+                  }
+                  sx={{
+                    backgroundColor: isReorderMode ? "#10b981" : "#8b5cf6",
+                    color: "white",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    px: 2,
+                    py: 1,
+                    borderRadius: "12px",
+                    "&:hover": {
+                      backgroundColor: isReorderMode ? "#059669" : "#7c3aed",
+                    },
+                    minWidth: 130,
+                    maxWidth: 130,
+                    boxShadow: isReorderMode
+                      ? "0 8px 16px rgba(139, 92, 246, 0.3)"
+                      : "none",
+                  }}
+                >
+                  {isReorderMode ? "บันทึก" : "สลับลำดับ"}
+                </Button>
+              </Tooltip>
             </Box>
           </Box>
 
@@ -642,24 +701,60 @@ export default function ManagementTable({
                               gap: 1,
                             }}
                           >
-                            <IconButton
-                              onClick={() => handleEdit(kpi.id)}
-                              size="small"
-                              sx={{
-                                color: "#64748b",
+                            <Tooltip
+                              title="แก้ไขข้อมูลตัวชี้วัด"
+                              arrow
+                              placement="top"
+                              componentsProps={{
+                                tooltip: {
+                                  sx: {
+                                    backgroundColor: "#1e293b",
+                                    color: "white",
+                                    borderRadius: "8px",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                    fontSize: "0.875rem",
+                                  },
+                                },
+                                arrow: { sx: { color: "#1e293b" } },
                               }}
                             >
-                              <Edit size={16} />
-                            </IconButton>
-                            <IconButton
-                              onClick={() => handleDelete(kpi.id)}
-                              size="small"
-                              sx={{
-                                color: "#64748b",
+                              <IconButton
+                                onClick={() => handleEdit(kpi.id)}
+                                size="small"
+                                sx={{
+                                  color: "#64748b",
+                                }}
+                              >
+                                <Edit size={16} />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip
+                              title="ลบตัวชี้วัดนี้ออกจากระบบ"
+                              arrow
+                              placement="top"
+                              componentsProps={{
+                                tooltip: {
+                                  sx: {
+                                    backgroundColor: "#1e293b",
+                                    color: "white",
+                                    borderRadius: "8px",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                    fontSize: "0.875rem",
+                                  },
+                                },
+                                arrow: { sx: { color: "#1e293b" } },
                               }}
                             >
-                              <Trash2 size={16} />
-                            </IconButton>
+                              <IconButton
+                                onClick={() => handleDelete(kpi.id)}
+                                size="small"
+                                sx={{
+                                  color: "#64748b",
+                                }}
+                              >
+                                <Trash2 size={16} />
+                              </IconButton>
+                            </Tooltip>
                           </Box>
                         </TableCell>
                       </TableRow>
