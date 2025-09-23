@@ -4,6 +4,7 @@ import { IndicatorServerService } from "@/server/services/indicator/indicator-se
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+// เพิ่ม indicator ใหม่
 export async function POST(request: Request) {
   try {
     // Verify user is authenticated

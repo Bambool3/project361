@@ -52,38 +52,28 @@ export default function ManagementTable({
   categoryId,
   onRefresh,
 }: ManagementTableProps) {
-  // ทดลองใช้ลุกศร
-  const [progressMap, setProgressMap] = useState<{ [key: string]: number }>({});
-
-  const handleIncrement = (id: string) => {
-    setProgressMap((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1,
-    }));
-  };
-
-  const handleDecrement = (id: string) => {
-    setProgressMap((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) - 1,
-    }));
-  };
-  //สิ้นสุดส่วนทดลอง
-
+  // ----------------------- STATE -----------------------
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setModalOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set()); // เก็บ id ของ KPI ที่ expand อยู่
+
+  //  Delete
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [indicatorToDelete, setIndicatorToDelete] = useState<Indicator | null>(
     null
   );
+
+  // Editing
+  const [selectedToEdit, setSelectedToEdit] = useState<Indicator | null>(null);
+
   // Snackbar
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState<
     "error" | "success" | "warning" | "info"
   >("success");
-  const [selectedToEdit, setSelectedToEdit] = useState<Indicator | null>(null);
+
+  // ----------------------- FILTERED KPI -----------------------
   const filteredKpi = indicators.filter(
     (kpi) =>
       kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,6 +81,87 @@ export default function ManagementTable({
       kpi.target_value?.toString().includes(searchTerm)
   );
 
+  const totalCount = filteredKpi.reduce((total, kpi) => {
+    // Add the main KPI (which is 1)
+    let count = 1;
+    // If there are sub-indicators, add their count
+    if (kpi.sub_indicators && kpi.sub_indicators.length > 0) {
+      count += kpi.sub_indicators.length;
+    }
+    return total + count;
+  }, 0);
+  // ----------------------- FUNCTIONS -----------------------
+
+  // สลับส่วนขยาย
+  const toggleExpand = (id: string) => {
+    setExpanded((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  // เอาไว้ serach
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  // Add KPI
+  const handleAddKpi = () => {
+    setSelectedToEdit(null);
+    setModalOpen(true);
+  };
+
+  // Edit KPI
+  const handleEdit = (id: string) => {
+    const indicator = indicators.find((indicator) => indicator.id === id);
+    if (indicator) {
+      setSelectedToEdit(indicator);
+      setModalOpen(true);
+    }
+  };
+
+  // Delete KPI
+  const handleDelete = (id: string) => {
+    const indicator = indicators.find((indicator) => indicator.id === id);
+    if (indicator) {
+      setIndicatorToDelete(indicator);
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const handleDeleteIndicatorConfirm = async () => {
+    if (!indicatorToDelete) return;
+
+    try {
+      if (!categoryId) {
+        showAlert("ไม่พบหมวดหมู่ของตัวชี้วัด", "error");
+        return;
+      }
+
+      const statusCode = await IndicatorService.deleteIndicatorWithStatus(
+        categoryId,
+        indicatorToDelete.id
+      );
+
+      if (statusCode === 200) {
+        setIsDeleteModalOpen(false);
+        setIndicatorToDelete(null);
+        showAlert("ลบตัวชี้วัดสำเร็จ!", "success");
+        if (onRefresh) onRefresh();
+      } else if (statusCode === 404) {
+        showAlert("ไม่พบตัวชี้วัดที่ต้องการลบ", "error");
+      } else {
+        showAlert("เกิดข้อผิดพลาดในการลบตัวชี้วัด", "error");
+      }
+    } catch (error) {
+      console.error("Error deleting indicator:", error);
+      showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+    }
+  };
+
+  // Add / Edit submit
   const handleAdd_EditSubmit = async (
     data: IndicatorFormData,
     mode: "add" | "edit",
@@ -118,6 +189,7 @@ export default function ManagementTable({
       if (mode === "edit") {
         // โหมดแก้ไข
         statusCode = await IndicatorService.updateIndicatorWithStatus(
+          catId,
           selectedToEdit.id,
           payload
         );
@@ -153,24 +225,6 @@ export default function ManagementTable({
     }
   };
 
-  // สลับส่วนขยาย
-  const toggleExpand = (id: string) => {
-    setExpanded((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  };
-  // เอาไว้ serach
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const handleAddKpi = () => {
-    setSelectedToEdit(null);
-    setModalOpen(true);
-  };
   // Alert helper functions
   const showAlert = (
     message: string,
@@ -180,6 +234,7 @@ export default function ManagementTable({
     setAlertSeverity(severity);
     setAlertOpen(true);
   };
+
   const handleCloseAlert = (
     event?: React.SyntheticEvent | Event,
     reason?: string
@@ -190,54 +245,6 @@ export default function ManagementTable({
     setAlertOpen(false);
   };
 
-  const handleEdit = (id: string) => {
-    const indicator = indicators.find((indicator) => indicator.id === id);
-    if (indicator) {
-      setSelectedToEdit(indicator);
-      setModalOpen(true);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    const indicator = indicators.find((indicator) => indicator.id === id);
-    if (indicator) {
-      setIndicatorToDelete(indicator);
-      setIsDeleteModalOpen(true);
-    }
-  };
-
-  const handleDeleteIndicatorConfirm = async () => {
-    if (!indicatorToDelete) return;
-
-    try {
-      const response = await fetch(
-        `/api/category-indicators/${indicatorToDelete.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        setIsDeleteModalOpen(false);
-        setIndicatorToDelete(null);
-        showAlert("ลบตัวชี้วัดสำเร็จ!", "success");
-        if (onRefresh) {
-          onRefresh();
-        }
-      } else if (response.status === 404) {
-        alert("ไม่พบตัวชี้วัดที่ต้องการลบ");
-        // showAlert("ไม่พบตัวชี้วัดที่ต้องการลบ", "error");
-      } else {
-        // showAlert("เกิดข้อผิดพลาดในการลบตัวชี้วัด", "error");
-      }
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      // showAlert("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
-    }
-  };
   if (loading) {
     return (
       <Card
@@ -307,7 +314,7 @@ export default function ManagementTable({
                 variant="h6"
                 sx={{ fontWeight: "bold", color: "#1e293b" }}
               >
-                การจัดการตัวชี้วัด: ({filteredKpi.length})
+                การจัดการตัวชี้วัด: ({totalCount})
               </Typography>
             </Box>
 
@@ -354,6 +361,22 @@ export default function ManagementTable({
               >
                 เพิ่มตัวชี้วัด
               </Button>
+              <Button
+                onClick={handleAddKpi}
+                startIcon={<Plus size={18} />}
+                sx={{
+                  backgroundColor: "#8b5cf6",
+                  color: "white",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  px: 2,
+                  py: 1,
+                  borderRadius: "12px",
+                  "&:hover": { backgroundColor: "#7c3aed" },
+                }}
+              >
+                สลับลำดับ
+              </Button>
             </Box>
           </Box>
 
@@ -368,7 +391,8 @@ export default function ManagementTable({
                       color: "#475569",
                       border: "none",
                       py: 2,
-                      width: "70px",
+                      px: 1.5,
+                      width: "10px",
                     }}
                   >
                     ลำดับ
@@ -480,11 +504,12 @@ export default function ManagementTable({
                             color: "#1e293b",
                             fontSize: "0.875rem",
                             fontWeight: "600",
+                            px: 0,
                           }}
                         >
                           {kpiIndex + 1}
                         </TableCell>
-                        <TableCell sx={{ py: 2.5 }}>
+                        <TableCell sx={{ py: 1, px: 0 }}>
                           <Box
                             sx={{
                               display: "flex",
@@ -523,9 +548,9 @@ export default function ManagementTable({
                             fontSize: "0.875rem",
                           }}
                         >
-                          {Math.floor(Math.random() * (100 - 1 + 1)) + 1}/
+                          {kpi.actual_value ? kpi.actual_value : "-"}/
                           {kpi.target_value}
-                          {Math.random() > 0.5 ? (
+                          {kpi.trend === "up" && (
                             <TrendingUpIcon
                               sx={{
                                 color: "#22c55e",
@@ -534,7 +559,8 @@ export default function ManagementTable({
                                 filter: `drop-shadow(0 0 5px #22c55e)`,
                               }}
                             />
-                          ) : (
+                          )}
+                          {kpi.trend === "down" && (
                             <TrendingDownIcon
                               sx={{
                                 color: "red",
@@ -543,6 +569,18 @@ export default function ManagementTable({
                                 filter: `drop-shadow(0 0 2px #c56922ff)`,
                               }}
                             />
+                          )}
+                          {kpi.trend === "same" && (
+                            <Typography
+                              component="span"
+                              sx={{
+                                color: "#64748b",
+                                fontSize: "1rem",
+                                ml: 1,
+                              }}
+                            >
+                              ➖
+                            </Typography>
                           )}
                         </TableCell>
 
@@ -646,7 +684,7 @@ export default function ManagementTable({
                                     <TableRow>
                                       <TableCell
                                         sx={{
-                                          py: 2,
+                                          py: 0,
                                           color: "#1e293b",
                                           fontWeight: "550",
                                           borderBottom: "none",
@@ -656,7 +694,7 @@ export default function ManagementTable({
                                       </TableCell>
                                       <TableCell
                                         sx={{
-                                          py: 2,
+                                          py: 0,
                                           color: "#1e293b",
                                           fontWeight: "550",
                                           borderBottom: "none",
@@ -680,16 +718,16 @@ export default function ManagementTable({
                                           height: 50,
                                         }}
                                       >
-                                        <TableCell sx={{ pl: 5 }}>
+                                        <TableCell sx={{ pl: 4, py: 0 }}>
                                           {kpiIndex + 1}.{subIndex + 1}
                                           &nbsp;&nbsp;{sub.name}
                                         </TableCell>
-                                        <TableCell sx={{ pl: 5 }}>
-                                          {Math.floor(
-                                            Math.random() * (10 - 1 + 1)
-                                          ) + 1}
+                                        <TableCell sx={{ pl: 5, py: 0 }}>
+                                          {sub.actual_value
+                                            ? sub.actual_value
+                                            : "-"}
                                           /{sub.target_value}
-                                          {Math.random() > 0.5 ? (
+                                          {sub.trend === "up" && (
                                             <TrendingUpIcon
                                               sx={{
                                                 color: "#22c55e",
@@ -698,7 +736,8 @@ export default function ManagementTable({
                                                 filter: `drop-shadow(0 0 5px #22c55e)`,
                                               }}
                                             />
-                                          ) : (
+                                          )}
+                                          {sub.trend === "down" && (
                                             <TrendingDownIcon
                                               sx={{
                                                 color: "red",
@@ -708,7 +747,26 @@ export default function ManagementTable({
                                               }}
                                             />
                                           )}
+                                          {sub.trend === "same" && (
+                                            <Typography
+                                              component="span"
+                                              sx={{
+                                                color: "#64748b",
+                                                fontSize: "1rem",
+                                                ml: 1,
+                                              }}
+                                            >
+                                              ➖
+                                            </Typography>
+                                          )}
                                         </TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
                                       </TableRow>
                                     ))}
                                   </TableBody>

@@ -1,61 +1,126 @@
 import prisma from "@/lib/db";
-import { Indicator, IndicatorPayload, MappedIndicator } from "@/types/management";
+import {
+  Indicator,
+  IndicatorPayload,
+  MappedIndicator,
+} from "@/types/management";
 
 export class IndicatorServerService {
   static async getIndicatorsByCategory(catId: string): Promise<Indicator[]> {
     try {
-      // ดึง main indicator
+      // ดึง indicator ทั้งหมดพร้อม indicator_data
       const indicators = await prisma.indicator.findMany({
         where: { category_id: catId },
-        orderBy: [{ main_indicator_id: "asc" }, { position: "asc" }],
         include: {
           responsible_jobtitle: {
-            include: {
-              jobtitle: true, // ดึง id และ name ของ jobtitle
-            },
+            include: { jobtitle: true },
           },
           frequency: true,
           unit: true,
+          indicator_data: {
+            orderBy: { period: { start_date: "asc" } },
+            include: { period: true },
+          },
         },
       });
-      console.log("indicators=", indicators);
-      // กรอง main indicator
-      const mainIndicators = indicators.filter(
-        (indicator) => indicator.main_indicator_id === null
-      );
-      // ดึง subindicator
-      const subIndicators = indicators.filter(
-        (indicator: any) => indicator.main_indicator_id !== null
-      );
 
-      return mainIndicators.map((indicator: any) => ({
-        id: indicator.indicator_id.toString(),
-        name: indicator.name,
-        unit: { unit_id: indicator.unit.unit_id, name: indicator.unit.name },
-        target_value: indicator.target_value,
-        main_indicator_id: indicator.main_indicator_id,
-        responsible_jobtitles: indicator.responsible_jobtitle.map((r) => ({
-          in_id: r.indicator_id,
-          id: r.jobtitle.jobtitle_id,
-          name: r.jobtitle.name,
-        })),
-        category_id: indicator.category_id,
-        frequency: {
-          frequency_id: indicator.frequency.frequency_id,
-          name: indicator.frequency.name,
-          periods_in_year: indicator.frequency.periods_in_year,
-        }, // ✅ ดึงข้อมูลความถี่
-        sub_indicators: subIndicators
-          .filter((sub) => sub.main_indicator_id === indicator.indicator_id)
-          .map((sub) => ({
-            id: sub.indicator_id,
-            name: sub.name,
-            target_value: sub.target_value,
-            position: sub.position,
+      // แยก main และ sub indicator
+      const mainIndicators = indicators.filter(
+        (i) => i.main_indicator_id === null
+      );
+      const subIndicators = indicators.filter(
+        (i) => i.main_indicator_id !== null
+      );
+      console.log("subIndicators", subIndicators[0].indicator_data);
+      // map main indicator
+      const mappedIndicators = mainIndicators.map((main) => {
+        const data = main.indicator_data;
+        const TotalActual = data.length
+          ? data.reduce(
+              (sum, d) => sum + (d.actual_value ?? 0), // ถ้า actual_value เป็น null ให้คิดเป็น 0
+              0
+            )
+          : null;
+        const latestActual = data.length
+          ? data[data.length - 1].actual_value
+          : null;
+        const previousActual =
+          data.length > 1 ? data[data.length - 2].actual_value : null;
+        const trend =
+          latestActual === null || previousActual === null
+            ? null
+            : latestActual > previousActual
+            ? "up"
+            : latestActual < previousActual
+            ? "down"
+            : "same";
+
+        // map sub indicators
+        const subMapped = subIndicators
+          .filter((sub) => sub.main_indicator_id === main.indicator_id)
+          .sort((a, b) => a.position - b.position)
+          .map((sub) => {
+            const subData = sub.indicator_data;
+            const subTotalActual = subData.length
+              ? subData.reduce(
+                  (sum, d) => sum + (d.actual_value ?? 0), // ถ้า actual_value เป็น null ให้คิดเป็น 0
+                  0
+                )
+              : null;
+            const subLatestActual = subData.length
+              ? subData[subData.length - 1].actual_value
+              : null;
+            const subPreviousActual =
+              subData.length > 1
+                ? subData[subData.length - 2].actual_value
+                : null;
+            console.log("last=", subLatestActual);
+            console.log("pre=", subPreviousActual);
+            const subTrend =
+              subLatestActual === null || subPreviousActual === null
+                ? null
+                : subLatestActual > subPreviousActual
+                ? "up"
+                : subLatestActual < subPreviousActual
+                ? "down"
+                : "same";
+            console.log("trend=", subTrend);
+
+            return {
+              id: sub.indicator_id,
+              name: sub.name,
+              target_value: sub.target_value,
+              position: sub.position,
+              actual_value: subTotalActual,
+              trend: subTrend,
+            };
+          });
+
+        return {
+          id: main.indicator_id,
+          name: main.name,
+          unit: { unit_id: main.unit.unit_id, name: main.unit.name },
+          target_value: main.target_value,
+          main_indicator_id: main.main_indicator_id,
+          responsible_jobtitles: main.responsible_jobtitle.map((r) => ({
+            in_id: r.indicator_id,
+            id: r.jobtitle.jobtitle_id,
+            name: r.jobtitle.name,
           })),
-      }));
+          category_id: main.category_id,
+          frequency: {
+            frequency_id: main.frequency.frequency_id,
+            name: main.frequency.name,
+            periods_in_year: main.frequency.periods_in_year,
+          },
+          actual_value: TotalActual,
+          trend,
+          sub_indicators: subMapped,
+        };
+      });
+      return mappedIndicators;
     } catch (error) {
-      console.error("Error fetching indicators from database:", error);
+      console.error("Error fetching indicators:", error);
       throw new Error("Failed to fetch indicators from database");
     }
   }
@@ -63,104 +128,103 @@ export class IndicatorServerService {
   static async getIndicatorsByResponsibleJobTitle(
     userId: string,
     catId: string
-    ): Promise<MappedIndicator[]> {
+  ): Promise<MappedIndicator[]> {
     try {
-        // The main query to fetch indicators directly
-        const indicators = await prisma.indicator.findMany({
-            where: {
-                // Filter indicators where the user is directly responsible
-                responsible_jobtitle: {
-                    some: {
-                        jobtitle: {
-                            user_jobtitle: {
-                                some: {
-                                    user_id: userId,
-                                },
-                            },
-                        },
-                    },
+      // The main query to fetch indicators directly
+      const indicators = await prisma.indicator.findMany({
+        where: {
+          // Filter indicators where the user is directly responsible
+          responsible_jobtitle: {
+            some: {
+              jobtitle: {
+                user_jobtitle: {
+                  some: {
+                    user_id: userId,
+                  },
                 },
+              },
             },
+          },
+        },
+        include: {
+          // Include all necessary related data
+          category: {
+            // <-- ADDED: To get category name
+            select: { name: true },
+          },
+          unit: true,
+          frequency: true,
+          responsible_jobtitle: {
             include: {
-                // Include all necessary related data
-                category: { // <-- ADDED: To get category name
-                    select: { name: true }
-                },
-                unit: true,
-                frequency: true,
-                responsible_jobtitle: {
-                    include: {
-                        jobtitle: true,
-                    },
-                },
-                sub_indicators: {
-                    select: {
-                        indicator_id: true,
-                        name: true,
-                    },
-                },
-                indicator_data: {
-                    include: {
-                        period: true, // Include period details for each data point
-                    },
-                    orderBy: {
-                        period: {
-                            end_date: 'desc', // Order data by most recent period
-                        },
-                    },
-                },
+              jobtitle: true,
             },
-            orderBy: [
-                {
-                    category: {
-                       name: "asc" // Optional: order by category name first
-                    }
-                },
-                {
-                    position: "asc", // Then order indicators by their position
-                },
-            ]
-        });
+          },
+          sub_indicators: {
+            select: {
+              indicator_id: true,
+              name: true,
+            },
+          },
+          indicator_data: {
+            include: {
+              period: true, // Include period details for each data point
+            },
+            orderBy: {
+              period: {
+                end_date: "desc", // Order data by most recent period
+              },
+            },
+          },
+        },
+        orderBy: [
+          {
+            category: {
+              name: "asc", // Optional: order by category name first
+            },
+          },
+          {
+            position: "asc", // Then order indicators by their position
+          },
+        ],
+      });
 
-        // Map the raw Prisma response to the desired clean structure
-        return indicators.map((indicator) => ({
-            id: indicator.indicator_id,
-            name: indicator.name,
-            target_value: indicator.target_value,
-            date: indicator.date?.toISOString() || null,
-            status: indicator.status,
-            position: indicator.position,
-            main_indicator_id: indicator.main_indicator_id,
-            creator_user_id: indicator.user_id,
-            category_id: indicator.category_id,
-            category_name: indicator.category.name, // <-- ADDED
-            unit: indicator.unit.name,
-            frequency: indicator.frequency.name,
-            responsible_jobtitles:
-                indicator.responsible_jobtitle?.map(
-                    (rjt) => rjt.jobtitle.name
-                ) || [],
-            sub_indicators: indicator.sub_indicators.map(sub => ({
-                id: sub.indicator_id,
-                name: sub.name,
-            })),
-            data:
-                indicator.indicator_data?.map((data) => ({
-                    period_id: data.period_id,
-                    period_name: data.period.name,
-                    start_date: data.period.start_date.toISOString(),
-                    end_date: data.period.end_date.toISOString(),
-                    actual_value: data.actual_value,
-                })) || [],
-        }));
+      // Map the raw Prisma response to the desired clean structure
+      return indicators.map((indicator) => ({
+        id: indicator.indicator_id,
+        name: indicator.name,
+        target_value: indicator.target_value,
+        date: indicator.date?.toISOString() || null,
+        status: indicator.status,
+        position: indicator.position,
+        main_indicator_id: indicator.main_indicator_id,
+        creator_user_id: indicator.user_id,
+        category_id: indicator.category_id,
+        category_name: indicator.category.name, // <-- ADDED
+        unit: indicator.unit.name,
+        frequency: indicator.frequency.name,
+        responsible_jobtitles:
+          indicator.responsible_jobtitle?.map((rjt) => rjt.jobtitle.name) || [],
+        sub_indicators: indicator.sub_indicators.map((sub) => ({
+          id: sub.indicator_id,
+          name: sub.name,
+        })),
+        data:
+          indicator.indicator_data?.map((data) => ({
+            period_id: data.period_id,
+            period_name: data.period.name,
+            start_date: data.period.start_date.toISOString(),
+            end_date: data.period.end_date.toISOString(),
+            actual_value: data.actual_value,
+          })) || [],
+      }));
     } catch (error) {
-        console.error(
-            "Error fetching indicators by responsible job title from database:",
-            error
-        );
-        throw new Error(
-            "Failed to fetch indicators by responsible job title from database"
-        );
+      console.error(
+        "Error fetching indicators by responsible job title from database:",
+        error
+      );
+      throw new Error(
+        "Failed to fetch indicators by responsible job title from database"
+      );
     }
   }
 
