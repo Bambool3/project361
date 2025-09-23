@@ -52,24 +52,6 @@ export default function ManagementTable({
   categoryId,
   onRefresh,
 }: ManagementTableProps) {
-  // ทดลองใช้ลุกศร
-  const [progressMap, setProgressMap] = useState<{ [key: string]: number }>({});
-
-  const handleIncrement = (id: string) => {
-    setProgressMap((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1,
-    }));
-  };
-
-  const handleDecrement = (id: string) => {
-    setProgressMap((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) - 1,
-    }));
-  };
-  //สิ้นสุดส่วนทดลอง
-
   // ----------------------- STATE -----------------------
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setModalOpen] = useState(false);
@@ -99,7 +81,17 @@ export default function ManagementTable({
       kpi.target_value?.toString().includes(searchTerm)
   );
 
+  const totalCount = filteredKpi.reduce((total, kpi) => {
+    // Add the main KPI (which is 1)
+    let count = 1;
+    // If there are sub-indicators, add their count
+    if (kpi.sub_indicators && kpi.sub_indicators.length > 0) {
+      count += kpi.sub_indicators.length;
+    }
+    return total + count;
+  }, 0);
   // ----------------------- FUNCTIONS -----------------------
+
   // สลับส่วนขยาย
   const toggleExpand = (id: string) => {
     setExpanded((prev) => {
@@ -322,7 +314,7 @@ export default function ManagementTable({
                 variant="h6"
                 sx={{ fontWeight: "bold", color: "#1e293b" }}
               >
-                การจัดการตัวชี้วัด: ({filteredKpi.length})
+                การจัดการตัวชี้วัด: ({totalCount})
               </Typography>
             </Box>
 
@@ -399,7 +391,8 @@ export default function ManagementTable({
                       color: "#475569",
                       border: "none",
                       py: 2,
-                      width: "70px",
+                      px: 1.5,
+                      width: "10px",
                     }}
                   >
                     ลำดับ
@@ -511,11 +504,12 @@ export default function ManagementTable({
                             color: "#1e293b",
                             fontSize: "0.875rem",
                             fontWeight: "600",
+                            px: 0,
                           }}
                         >
                           {kpiIndex + 1}
                         </TableCell>
-                        <TableCell sx={{ py: 2.5 }}>
+                        <TableCell sx={{ py: 1, px: 0 }}>
                           <Box
                             sx={{
                               display: "flex",
@@ -554,9 +548,9 @@ export default function ManagementTable({
                             fontSize: "0.875rem",
                           }}
                         >
-                          {Math.floor(Math.random() * (100 - 1 + 1)) + 1}/
+                          {kpi.actual_value ? kpi.actual_value : "-"}/
                           {kpi.target_value}
-                          {Math.random() > 0.5 ? (
+                          {kpi.trend === "up" && (
                             <TrendingUpIcon
                               sx={{
                                 color: "#22c55e",
@@ -565,7 +559,8 @@ export default function ManagementTable({
                                 filter: `drop-shadow(0 0 5px #22c55e)`,
                               }}
                             />
-                          ) : (
+                          )}
+                          {kpi.trend === "down" && (
                             <TrendingDownIcon
                               sx={{
                                 color: "red",
@@ -574,6 +569,18 @@ export default function ManagementTable({
                                 filter: `drop-shadow(0 0 2px #c56922ff)`,
                               }}
                             />
+                          )}
+                          {kpi.trend === "same" && (
+                            <Typography
+                              component="span"
+                              sx={{
+                                color: "#64748b",
+                                fontSize: "1rem",
+                                ml: 1,
+                              }}
+                            >
+                              ➖
+                            </Typography>
                           )}
                         </TableCell>
 
@@ -677,7 +684,7 @@ export default function ManagementTable({
                                     <TableRow>
                                       <TableCell
                                         sx={{
-                                          py: 2,
+                                          py: 0,
                                           color: "#1e293b",
                                           fontWeight: "550",
                                           borderBottom: "none",
@@ -687,7 +694,7 @@ export default function ManagementTable({
                                       </TableCell>
                                       <TableCell
                                         sx={{
-                                          py: 2,
+                                          py: 0,
                                           color: "#1e293b",
                                           fontWeight: "550",
                                           borderBottom: "none",
@@ -711,16 +718,16 @@ export default function ManagementTable({
                                           height: 50,
                                         }}
                                       >
-                                        <TableCell sx={{ pl: 5 }}>
+                                        <TableCell sx={{ pl: 4, py: 0 }}>
                                           {kpiIndex + 1}.{subIndex + 1}
                                           &nbsp;&nbsp;{sub.name}
                                         </TableCell>
-                                        <TableCell sx={{ pl: 5 }}>
-                                          {Math.floor(
-                                            Math.random() * (10 - 1 + 1)
-                                          ) + 1}
+                                        <TableCell sx={{ pl: 5, py: 0 }}>
+                                          {sub.actual_value
+                                            ? sub.actual_value
+                                            : "-"}
                                           /{sub.target_value}
-                                          {Math.random() > 0.5 ? (
+                                          {sub.trend === "up" && (
                                             <TrendingUpIcon
                                               sx={{
                                                 color: "#22c55e",
@@ -729,7 +736,8 @@ export default function ManagementTable({
                                                 filter: `drop-shadow(0 0 5px #22c55e)`,
                                               }}
                                             />
-                                          ) : (
+                                          )}
+                                          {sub.trend === "down" && (
                                             <TrendingDownIcon
                                               sx={{
                                                 color: "red",
@@ -739,7 +747,26 @@ export default function ManagementTable({
                                               }}
                                             />
                                           )}
+                                          {sub.trend === "same" && (
+                                            <Typography
+                                              component="span"
+                                              sx={{
+                                                color: "#64748b",
+                                                fontSize: "1rem",
+                                                ml: 1,
+                                              }}
+                                            >
+                                              ➖
+                                            </Typography>
+                                          )}
                                         </TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
+                                        <TableCell colSpan={8}></TableCell>
                                       </TableRow>
                                     ))}
                                   </TableBody>
