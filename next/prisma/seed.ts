@@ -540,7 +540,7 @@ async function main() {
             position: 1, // First sub-indicator under main2
         },
         {
-            name: "จำนวนนวัตกรรมสิ่งแวดล้อม",
+            name: "จำนวนนวัตกรรมสิ่งแวดล้อมและพลังงาน",
             unit_id: unitRecords["unit10"].unit_id,
             target_value: 25,
             main_indicator_id: mainIndicatorRecords["main2"].indicator_id,
@@ -748,7 +748,7 @@ async function main() {
             // Main indicators - All CMUPA indicators (main1-main13) assigned to Bob's job (job3)
             {
                 indicator_id: mainIndicatorRecords["main1"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main2"].indicator_id,
@@ -760,15 +760,15 @@ async function main() {
             },
             {
                 indicator_id: mainIndicatorRecords["main4"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main5"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job4"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main6"].indicator_id,
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job7"].jobtitle_id,
             },
             {
                 indicator_id: mainIndicatorRecords["main7"].indicator_id,
@@ -822,15 +822,15 @@ async function main() {
             },
             {
                 indicator_id: subIndicatorRecords["sub4"].indicator_id, // under main4 (CMUPA)
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
             {
                 indicator_id: subIndicatorRecords["sub5"].indicator_id, // under main4 (CMUPA)
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
             {
                 indicator_id: subIndicatorRecords["sub6"].indicator_id, // under main4 (CMUPA)
-                jobtitle_id: jobTitleRecords["job3"].jobtitle_id,
+                jobtitle_id: jobTitleRecords["job6"].jobtitle_id,
             },
             {
                 indicator_id: subIndicatorRecords["sub9"].indicator_id, // under main7 (CMUPA)
