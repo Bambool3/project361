@@ -179,11 +179,17 @@ export default function DataTableSection({
     }
   };
 
-  const filteredIndicators = indicators.filter(
-    (indicator) =>
+  const filteredIndicators = indicators.filter((indicator) => {
+    const matchesSearch =
       indicator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      indicator.unit.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      indicator.unit.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const isSubIndicator = indicators.some((mainIndicator) =>
+      mainIndicator.sub_indicators?.some((sub) => sub.id === indicator.id)
+    );
+
+    return matchesSearch && !isSubIndicator;
+  });
 
   // Group indicators by frequency
   const groupIndicatorsByFrequency = () => {
@@ -199,6 +205,7 @@ export default function DataTableSection({
       };
     } = {};
 
+    // Ensure we only work with main indicators (already filtered by filteredIndicators)
     filteredIndicators.forEach((indicator) => {
       const frequencyId = indicator.frequency.frequency_id;
 
@@ -490,7 +497,15 @@ export default function DataTableSection({
     indicators: Indicator[],
     relevantPeriods: FrequencyPeriod[]
   ): Indicator[] => {
-    return [...indicators].sort((a, b) => {
+    // Ensure we only work with main indicators (filter out any sub-indicators)
+    const mainIndicators = indicators.filter((indicator) => {
+      const isSubIndicator = indicators.some((mainIndicator) =>
+        mainIndicator.sub_indicators?.some((sub) => sub.id === indicator.id)
+      );
+      return !isSubIndicator;
+    });
+
+    return [...mainIndicators].sort((a, b) => {
       // First, check completion status - incomplete indicators come first
       const aCompleted = isIndicatorCompleted(a);
       const bCompleted = isIndicatorCompleted(b);
