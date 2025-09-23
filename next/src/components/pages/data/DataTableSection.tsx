@@ -1197,7 +1197,16 @@ export default function DataTableSection({
                     ความถี่: {group.frequency.name}
                   </Typography>
                   <Chip
-                    label={`${group.indicators.length} ตัวชี้วัด`}
+                    label={(() => {
+                      const mainCount = group.indicators.length;
+                      const totalSubCount = group.indicators.reduce(
+                        (sum, indicator) =>
+                          sum + (indicator.sub_indicators?.length || 0),
+                        0
+                      );
+                      const totalCount = mainCount + totalSubCount;
+                      return `ตัวชี้วัดหลัก: ${mainCount} | รวมทั้งหมด: ${totalCount}`;
+                    })()}
                     size="small"
                     sx={{
                       backgroundColor: "#e0e7ff",
