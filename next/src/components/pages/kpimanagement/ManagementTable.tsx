@@ -3,6 +3,7 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import ReorderIcon from "@mui/icons-material/Reorder";
 import SaveIcon from "@mui/icons-material/Save";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { Indicator, IndicatorFormData } from "@/types/management";
 import React, { useState } from "react";
 import { IndicatorService } from "@/server/services/indicator/indicator-client-service";
@@ -39,6 +40,13 @@ import {
 } from "lucide-react";
 import AddKpiModal from "@/client/components/AddKpiModal";
 import ConfirmModal from "@/components/ui/confirm-modal";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import Providers from "@/providers/sessionProviders";
 
 interface ManagementTableProps {
   indicators: Indicator[];
@@ -71,6 +79,7 @@ export default function ManagementTable({
 
   // Reorder mode
   const [isReorderMode, setReorderMode] = useState(false);
+  const [kpiList, setKpiList] = useState<Indicator[]>([]); // editable list for reorder
 
   // Snackbar
   const [alertOpen, setAlertOpen] = useState(false);
@@ -251,6 +260,34 @@ export default function ManagementTable({
     setAlertOpen(false);
   };
 
+  // handle drag end
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
+
+    const newList = Array.from(kpiList);
+    const [moved] = newList.splice(sourceIndex, 1);
+    newList.splice(destIndex, 0, moved);
+
+    // update positions in UI
+    const updated = newList.map((it, idx) => ({ ...it, position: idx + 1 }));
+    setKpiList(updated);
+  };
+  // เมื่อกดปุ่ม toggle สลับ <-> บันทึก
+  const handleToggleReorder = async () => {
+    if (isReorderMode) {
+      // กดบันทึก: ส่ง order ไป backend
+      // await saveOrder();
+      setReorderMode(false);
+    } else {
+      // เข้าโหมดสลับลำดับ: ให้ใช้ filteredKpi ปัจจุบันเป็น base
+      setKpiList(filteredKpi);
+      setReorderMode(true);
+    }
+  };
+  const displayedList = isReorderMode ? kpiList : filteredKpi;
+
   if (loading) {
     return (
       <Card
@@ -407,7 +444,7 @@ export default function ManagementTable({
                 }}
               >
                 <Button
-                  onClick={() => setReorderMode(!isReorderMode)}
+                  onClick={handleToggleReorder}
                   startIcon={
                     isReorderMode ? (
                       <SaveIcon sx={{ fontSize: 18 }} />
@@ -450,7 +487,7 @@ export default function ManagementTable({
                       color: "#475569",
                       border: "none",
                       py: 2,
-                      px: 1.5,
+                      px: 2,
                       width: "10px",
                     }}
                   >
@@ -535,346 +572,428 @@ export default function ManagementTable({
                   </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
-                {filteredKpi.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
-                      <Typography color="#64748b">
-                        {searchTerm
-                          ? "ไม่พบตัวชี้วัดที่ค้นหา"
-                          : "ไม่มีข้อมูลตัวชี้วัด"}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredKpi.map((kpi, kpiIndex) => (
-                    <React.Fragment key={kpi.id}>
-                      <TableRow
-                        sx={{
-                          "&:hover": {
-                            backgroundColor: "#f8fafc",
-                          },
-                          borderBottom: "1px solid #f1f5f9",
-                        }}
-                      >
-                        <TableCell
-                          sx={{
-                            textAlign: "center",
-                            color: "#1e293b",
-                            fontSize: "0.875rem",
-                            fontWeight: "600",
-                            px: 0,
-                          }}
-                        >
-                          {kpiIndex + 1}
-                        </TableCell>
-                        <TableCell sx={{ py: 1, px: 0 }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                fontWeight: "600",
-                                color: "#1e293b",
-                                maxWidth: 600,
-                              }}
-                            >
-                              {kpi.name}
-                              {kpi.sub_indicators?.length > 0 && (
-                                <IconButton
-                                  size="small"
-                                  onClick={() => toggleExpand(kpi.id)}
-                                >
-                                  {expanded.has(kpi.id) ? (
-                                    <ChevronDown size={16} />
-                                  ) : (
-                                    <ChevronRight size={16} />
-                                  )}
-                                </IconButton>
-                              )}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-
-                        <TableCell
-                          sx={{
-                            textAlign: "center",
-                            color: "#64748b",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          {kpi.actual_value ? kpi.actual_value : "-"}/
-                          {kpi.target_value}
-                          {kpi.trend === "up" && (
-                            <TrendingUpIcon
-                              sx={{
-                                color: "#22c55e",
-                                fontSize: "1.25rem",
-                                ml: 1,
-                                filter: `drop-shadow(0 0 5px #22c55e)`,
-                              }}
-                            />
-                          )}
-                          {kpi.trend === "down" && (
-                            <TrendingDownIcon
-                              sx={{
-                                color: "red",
-                                fontSize: "1.25rem",
-                                ml: 1,
-                                filter: `drop-shadow(0 0 2px #c56922ff)`,
-                              }}
-                            />
-                          )}
-                          {kpi.trend === "same" && (
-                            <Typography
-                              component="span"
-                              sx={{
-                                color: "#64748b",
-                                fontSize: "1rem",
-                                ml: 1,
-                              }}
-                            >
-                              ➖
-                            </Typography>
-                          )}
-                        </TableCell>
-
-                        <TableCell
-                          sx={{
-                            textAlign: "center",
-                            color: "#64748b",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          {kpi.unit.name}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            textAlign: "center",
-                            color: "#64748b",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          {kpi.responsible_jobtitles?.length
-                            ? kpi.responsible_jobtitles
-                                .map((r) => r.name)
-                                .join(", ")
-                            : "-"}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            textAlign: "center",
-                            color: "#64748b",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          {kpi.frequency.name || "-"}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            textAlign: "center",
-                            color: "#64748b",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          <Chip
-                            label={`${
-                              kpi.sub_indicators?.length || 0
-                            } ตัวชี้วัดย่อย`}
-                            size="small"
-                            sx={{
-                              backgroundColor: "#f1f5f9",
-                              color: "#475569",
-                              fontWeight: "600",
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center" }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "center",
-                              gap: 1,
-                            }}
-                          >
-                            <Tooltip
-                              title="แก้ไขข้อมูลตัวชี้วัด"
-                              arrow
-                              placement="top"
-                              componentsProps={{
-                                tooltip: {
-                                  sx: {
-                                    backgroundColor: "#1e293b",
-                                    color: "white",
-                                    borderRadius: "8px",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                    fontSize: "0.875rem",
-                                  },
-                                },
-                                arrow: { sx: { color: "#1e293b" } },
-                              }}
-                            >
-                              <IconButton
-                                onClick={() => handleEdit(kpi.id)}
-                                size="small"
-                                sx={{
-                                  color: "#64748b",
-                                }}
-                              >
-                                <Edit size={16} />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip
-                              title="ลบตัวชี้วัดนี้ออกจากระบบ"
-                              arrow
-                              placement="top"
-                              componentsProps={{
-                                tooltip: {
-                                  sx: {
-                                    backgroundColor: "#1e293b",
-                                    color: "white",
-                                    borderRadius: "8px",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                    fontSize: "0.875rem",
-                                  },
-                                },
-                                arrow: { sx: { color: "#1e293b" } },
-                              }}
-                            >
-                              <IconButton
-                                onClick={() => handleDelete(kpi.id)}
-                                size="small"
-                                sx={{
-                                  color: "#64748b",
-                                }}
-                              >
-                                <Trash2 size={16} />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-
-                      {kpi.sub_indicators?.length > 0 && (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="indicator-list">
+                  {(provided) => (
+                    <TableBody
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                      {displayedList.length === 0 ? (
                         <TableRow>
                           <TableCell
-                            style={{
-                              paddingBottom: 0,
-                              paddingTop: 0,
-                            }}
-                            colSpan={8}
+                            colSpan={6}
+                            sx={{ textAlign: "center", py: 4 }}
                           >
-                            <Collapse
-                              in={expanded.has(kpi.id)}
-                              timeout="auto"
-                              unmountOnExit
-                            >
-                              <Box sx={{ margin: 2, pl: 5 }}>
-                                <Table size="small">
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell
-                                        sx={{
-                                          py: 0,
-                                          color: "#1e293b",
-                                          fontWeight: "550",
-                                          borderBottom: "none",
-                                        }}
-                                      >
-                                        รายการตัวชี้วัดย่อย
-                                      </TableCell>
-                                      <TableCell
-                                        sx={{
-                                          py: 0,
-                                          color: "#1e293b",
-                                          fontWeight: "550",
-                                          borderBottom: "none",
-                                        }}
-                                      >
-                                        ความคืบหน้า
-                                      </TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    {kpi.sub_indicators.map((sub, subIndex) => (
-                                      <TableRow
-                                        key={sub.id}
-                                        sx={{
-                                          "&:hover": {
-                                            backgroundColor: "#f8fafc",
-                                          },
-                                          "& td": {
-                                            borderBottom: "1px solid #f1f5f9",
-                                          },
-                                          height: 50,
-                                        }}
-                                      >
-                                        <TableCell sx={{ pl: 4, py: 0 }}>
-                                          {kpiIndex + 1}.{subIndex + 1}
-                                          &nbsp;&nbsp;{sub.name}
-                                        </TableCell>
-                                        <TableCell sx={{ pl: 5, py: 0 }}>
-                                          {sub.actual_value
-                                            ? sub.actual_value
-                                            : "-"}
-                                          /{sub.target_value}
-                                          {sub.trend === "up" && (
-                                            <TrendingUpIcon
-                                              sx={{
-                                                color: "#22c55e",
-                                                fontSize: "1.25rem",
-                                                ml: 1,
-                                                filter: `drop-shadow(0 0 5px #22c55e)`,
-                                              }}
-                                            />
-                                          )}
-                                          {sub.trend === "down" && (
-                                            <TrendingDownIcon
-                                              sx={{
-                                                color: "red",
-                                                fontSize: "1.25rem",
-                                                ml: 1,
-                                                filter: `drop-shadow(0 0 2px #c56922ff)`,
-                                              }}
-                                            />
-                                          )}
-                                          {sub.trend === "same" && (
-                                            <Typography
-                                              component="span"
-                                              sx={{
-                                                color: "#64748b",
-                                                fontSize: "1rem",
-                                                ml: 1,
-                                              }}
-                                            >
-                                              ➖
-                                            </Typography>
-                                          )}
-                                        </TableCell>
-                                        <TableCell colSpan={8}></TableCell>
-                                        <TableCell colSpan={8}></TableCell>
-                                        <TableCell colSpan={8}></TableCell>
-                                        <TableCell colSpan={8}></TableCell>
-                                        <TableCell colSpan={8}></TableCell>
-                                        <TableCell colSpan={8}></TableCell>
-                                        <TableCell colSpan={8}></TableCell>
-                                      </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
-                              </Box>
-                            </Collapse>
+                            <Typography color="#64748b">
+                              {searchTerm
+                                ? "ไม่พบตัวชี้วัดที่ค้นหา"
+                                : "ไม่มีข้อมูลตัวชี้วัด"}
+                            </Typography>
                           </TableCell>
                         </TableRow>
+                      ) : (
+                        displayedList.map((kpi, kpiIndex) => (
+                          <Draggable
+                            key={kpi.id}
+                            draggableId={kpi.id}
+                            index={kpiIndex}
+                            isDragDisabled={!isReorderMode}
+                          >
+                            {(draggableProvided, snapshot) => (
+                              <React.Fragment>
+                                <TableRow
+                                  ref={draggableProvided.innerRef}
+                                  {...draggableProvided.draggableProps}
+                                  sx={{
+                                    "&:hover": { backgroundColor: "#f8fafc" },
+                                    borderBottom: "1px solid #f1f5f9",
+                                    backgroundColor: snapshot.isDragging
+                                      ? "#eef2ff"
+                                      : "inherit",
+                                    boxShadow: snapshot.isDragging
+                                      ? "0 4px 12px rgba(0,0,0,0.15)"
+                                      : "none",
+                                    transform: snapshot.isDragging
+                                      ? "scale(1.02)"
+                                      : "none",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                >
+                                  <TableCell
+                                    sx={{
+                                      px: 1,
+                                      fontWeight: 600,
+                                      fontSize: "0.875rem",
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      {isReorderMode && (
+                                        <Box
+                                          {...draggableProvided.dragHandleProps}
+                                          sx={{
+                                            mr: 1,
+                                            cursor: snapshot.isDragging
+                                              ? "grabbing"
+                                              : "grab",
+                                          }}
+                                        >
+                                          <DragIndicatorIcon
+                                            fontSize="medium"
+                                            sx={{ color: "#8b5cf6" }}
+                                          />
+                                        </Box>
+                                      )}
+                                      <Box
+                                        sx={{ flex: 1, textAlign: "center" }}
+                                      >
+                                        {kpiIndex + 1}
+                                      </Box>
+                                    </Box>
+                                  </TableCell>
+                                  <TableCell sx={{ py: 1, px: 0 }}>
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1,
+                                      }}
+                                    >
+                                      <Typography
+                                        sx={{
+                                          fontWeight: "600",
+                                          color: "#1e293b",
+                                          maxWidth: 600,
+                                        }}
+                                      >
+                                        {kpi.name}
+                                        {kpi.sub_indicators?.length > 0 && (
+                                          <IconButton
+                                            size="small"
+                                            onClick={() => toggleExpand(kpi.id)}
+                                          >
+                                            {expanded.has(kpi.id) ? (
+                                              <ChevronDown size={16} />
+                                            ) : (
+                                              <ChevronRight size={16} />
+                                            )}
+                                          </IconButton>
+                                        )}
+                                      </Typography>
+                                    </Box>
+                                  </TableCell>
+
+                                  <TableCell
+                                    sx={{
+                                      textAlign: "center",
+                                      color: "#64748b",
+                                      fontSize: "0.875rem",
+                                    }}
+                                  >
+                                    {kpi.actual_value ? kpi.actual_value : "-"}/
+                                    {kpi.target_value}
+                                    {kpi.trend === "up" && (
+                                      <TrendingUpIcon
+                                        sx={{
+                                          color: "#22c55e",
+                                          fontSize: "1.25rem",
+                                          ml: 1,
+                                          filter: `drop-shadow(0 0 5px #22c55e)`,
+                                        }}
+                                      />
+                                    )}
+                                    {kpi.trend === "down" && (
+                                      <TrendingDownIcon
+                                        sx={{
+                                          color: "red",
+                                          fontSize: "1.25rem",
+                                          ml: 1,
+                                          filter: `drop-shadow(0 0 2px #c56922ff)`,
+                                        }}
+                                      />
+                                    )}
+                                    {kpi.trend === "same" && (
+                                      <Typography
+                                        component="span"
+                                        sx={{
+                                          color: "#64748b",
+                                          fontSize: "1rem",
+                                          ml: 1,
+                                        }}
+                                      >
+                                        ➖
+                                      </Typography>
+                                    )}
+                                  </TableCell>
+
+                                  <TableCell
+                                    sx={{
+                                      textAlign: "center",
+                                      color: "#64748b",
+                                      fontSize: "0.875rem",
+                                    }}
+                                  >
+                                    {kpi.unit.name}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={{
+                                      textAlign: "center",
+                                      color: "#64748b",
+                                      fontSize: "0.875rem",
+                                    }}
+                                  >
+                                    {kpi.responsible_jobtitles?.length
+                                      ? kpi.responsible_jobtitles
+                                          .map((r) => r.name)
+                                          .join(", ")
+                                      : "-"}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={{
+                                      textAlign: "center",
+                                      color: "#64748b",
+                                      fontSize: "0.875rem",
+                                    }}
+                                  >
+                                    {kpi.frequency.name || "-"}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={{
+                                      textAlign: "center",
+                                      color: "#64748b",
+                                      fontSize: "0.875rem",
+                                    }}
+                                  >
+                                    <Chip
+                                      label={`${
+                                        kpi.sub_indicators?.length || 0
+                                      } ตัวชี้วัดย่อย`}
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: "#f1f5f9",
+                                        color: "#475569",
+                                        fontWeight: "600",
+                                      }}
+                                    />
+                                  </TableCell>
+                                  <TableCell sx={{ textAlign: "center" }}>
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        gap: 1,
+                                      }}
+                                    >
+                                      <Tooltip
+                                        title="แก้ไขข้อมูลตัวชี้วัด"
+                                        arrow
+                                        placement="top"
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              backgroundColor: "#1e293b",
+                                              color: "white",
+                                              borderRadius: "8px",
+                                              boxShadow:
+                                                "0 4px 12px rgba(0,0,0,0.15)",
+                                              fontSize: "0.875rem",
+                                            },
+                                          },
+                                          arrow: { sx: { color: "#1e293b" } },
+                                        }}
+                                      >
+                                        <IconButton
+                                          onClick={() => handleEdit(kpi.id)}
+                                          size="small"
+                                          sx={{
+                                            color: "#64748b",
+                                          }}
+                                        >
+                                          <Edit size={16} />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <Tooltip
+                                        title="ลบตัวชี้วัดนี้ออกจากระบบ"
+                                        arrow
+                                        placement="top"
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              backgroundColor: "#1e293b",
+                                              color: "white",
+                                              borderRadius: "8px",
+                                              boxShadow:
+                                                "0 4px 12px rgba(0,0,0,0.15)",
+                                              fontSize: "0.875rem",
+                                            },
+                                          },
+                                          arrow: { sx: { color: "#1e293b" } },
+                                        }}
+                                      >
+                                        <IconButton
+                                          onClick={() => handleDelete(kpi.id)}
+                                          size="small"
+                                          sx={{
+                                            color: "#64748b",
+                                          }}
+                                        >
+                                          <Trash2 size={16} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </Box>
+                                  </TableCell>
+                                </TableRow>
+
+                                {kpi.sub_indicators?.length > 0 && (
+                                  <TableRow>
+                                    <TableCell
+                                      style={{
+                                        paddingBottom: 0,
+                                        paddingTop: 0,
+                                      }}
+                                      colSpan={8}
+                                    >
+                                      <Collapse
+                                        in={expanded.has(kpi.id)}
+                                        timeout="auto"
+                                        unmountOnExit
+                                      >
+                                        <Box sx={{ margin: 2, pl: 5 }}>
+                                          <Table size="small">
+                                            <TableHead>
+                                              <TableRow>
+                                                <TableCell
+                                                  sx={{
+                                                    py: 0,
+                                                    color: "#1e293b",
+                                                    fontWeight: "550",
+                                                    borderBottom: "none",
+                                                  }}
+                                                >
+                                                  รายการตัวชี้วัดย่อย
+                                                </TableCell>
+                                                <TableCell
+                                                  sx={{
+                                                    py: 0,
+                                                    color: "#1e293b",
+                                                    fontWeight: "550",
+                                                    borderBottom: "none",
+                                                  }}
+                                                >
+                                                  ความคืบหน้า
+                                                </TableCell>
+                                              </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                              {kpi.sub_indicators.map(
+                                                (sub, subIndex) => (
+                                                  <TableRow
+                                                    key={sub.id}
+                                                    sx={{
+                                                      "&:hover": {
+                                                        backgroundColor:
+                                                          "#f8fafc",
+                                                      },
+                                                      "& td": {
+                                                        borderBottom:
+                                                          "1px solid #f1f5f9",
+                                                      },
+                                                      height: 50,
+                                                    }}
+                                                  >
+                                                    <TableCell
+                                                      sx={{ pl: 4, py: 0 }}
+                                                    >
+                                                      {kpiIndex + 1}.
+                                                      {subIndex + 1}
+                                                      &nbsp;&nbsp;{sub.name}
+                                                    </TableCell>
+                                                    <TableCell
+                                                      sx={{ pl: 5, py: 0 }}
+                                                    >
+                                                      {sub.actual_value
+                                                        ? sub.actual_value
+                                                        : "-"}
+                                                      /{sub.target_value}
+                                                      {sub.trend === "up" && (
+                                                        <TrendingUpIcon
+                                                          sx={{
+                                                            color: "#22c55e",
+                                                            fontSize: "1.25rem",
+                                                            ml: 1,
+                                                            filter: `drop-shadow(0 0 5px #22c55e)`,
+                                                          }}
+                                                        />
+                                                      )}
+                                                      {sub.trend === "down" && (
+                                                        <TrendingDownIcon
+                                                          sx={{
+                                                            color: "red",
+                                                            fontSize: "1.25rem",
+                                                            ml: 1,
+                                                            filter: `drop-shadow(0 0 2px #c56922ff)`,
+                                                          }}
+                                                        />
+                                                      )}
+                                                      {sub.trend === "same" && (
+                                                        <Typography
+                                                          component="span"
+                                                          sx={{
+                                                            color: "#64748b",
+                                                            fontSize: "1rem",
+                                                            ml: 1,
+                                                          }}
+                                                        >
+                                                          ➖
+                                                        </Typography>
+                                                      )}
+                                                    </TableCell>
+                                                    <TableCell
+                                                      colSpan={8}
+                                                    ></TableCell>
+                                                    <TableCell
+                                                      colSpan={8}
+                                                    ></TableCell>
+                                                    <TableCell
+                                                      colSpan={8}
+                                                    ></TableCell>
+                                                    <TableCell
+                                                      colSpan={8}
+                                                    ></TableCell>
+                                                    <TableCell
+                                                      colSpan={8}
+                                                    ></TableCell>
+                                                    <TableCell
+                                                      colSpan={8}
+                                                    ></TableCell>
+                                                    <TableCell
+                                                      colSpan={8}
+                                                    ></TableCell>
+                                                  </TableRow>
+                                                )
+                                              )}
+                                            </TableBody>
+                                          </Table>
+                                        </Box>
+                                      </Collapse>
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </React.Fragment>
+                            )}
+                          </Draggable>
+                        ))
                       )}
-                    </React.Fragment>
-                  ))
-                )}
-              </TableBody>
+                      {provided.placeholder}
+                    </TableBody>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </Table>
           </TableContainer>
         </CardContent>

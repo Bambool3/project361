@@ -31,7 +31,6 @@ export class IndicatorServerService {
       const subIndicators = indicators.filter(
         (i) => i.main_indicator_id !== null
       );
-      console.log("subIndicators", subIndicators[0].indicator_data);
       // map main indicator
       const mappedIndicators = mainIndicators.map((main) => {
         const data = main.indicator_data;
@@ -74,8 +73,6 @@ export class IndicatorServerService {
               subData.length > 1
                 ? subData[subData.length - 2].actual_value
                 : null;
-            console.log("last=", subLatestActual);
-            console.log("pre=", subPreviousActual);
             const subTrend =
               subLatestActual === null || subPreviousActual === null
                 ? null
@@ -84,7 +81,6 @@ export class IndicatorServerService {
                 : subLatestActual < subPreviousActual
                 ? "down"
                 : "same";
-            console.log("trend=", subTrend);
 
             return {
               id: sub.indicator_id,
