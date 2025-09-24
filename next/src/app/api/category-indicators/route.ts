@@ -14,7 +14,6 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    console.log("body=", body);
     // Validate required fields
     if (!body.target_value?.toString().trim()) {
       return NextResponse.json(
@@ -32,7 +31,6 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
-    console.log("session.user.id:", session.user.id);
     const newIndicator = await IndicatorServerService.createIndicator(
       body,
       session.user.id

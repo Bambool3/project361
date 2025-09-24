@@ -6,7 +6,7 @@ export class IndicatorService {
   static async createIndicatorWithStatus(
     data: IndicatorFormData
   ): Promise<number> {
-    console.log("body in indicater-client-service", data);
+    // console.log("body in indicater-client-service", data);
     try {
       const response = await fetch(this.baseUrlCategory, {
         method: "POST",

@@ -275,6 +275,7 @@ export class IndicatorServerService {
   ): Promise<Indicator> {
     try {
       // validate input
+      console.log("data=", data);
       if (!data.name?.trim() || !data.target_value?.toString().trim()) {
         throw new Error("Name and target are required");
       }
@@ -310,18 +311,35 @@ export class IndicatorServerService {
 
       // insert sub-indicators
       if (data.sub_indicators?.length) {
-        await prisma.indicator.createMany({
-          data: data.sub_indicators.map((sub, idx) => ({
-            name: sub.name.trim(),
-            target_value: parseFloat(sub.target_value),
-            unit_id: data.unit_id,
-            frequency_id: data.frequency_id,
-            category_id: data.category_id,
-            user_id: userId.toString(),
-            position: sub.position ?? idx + 1,
-            main_indicator_id: newIndicator.indicator_id,
-          })),
-        });
+        // สร้าง sub-indicator
+        const createdSubs = await prisma.$transaction(
+          data.sub_indicators.map((sub, idx) =>
+            prisma.indicator.create({
+              data: {
+                name: sub.name.trim(),
+                target_value: parseFloat(sub.target_value),
+                unit_id: data.unit_id,
+                frequency_id: data.frequency_id,
+                category_id: data.category_id,
+                user_id: userId.toString(),
+                position: sub.position ?? idx + 1,
+                main_indicator_id: newIndicator.indicator_id,
+              },
+            })
+          )
+        );
+
+        // ใส่ jobtitle_ids (ใช้ชุดเดียวกับ main) ให้ทุก sub-indicator
+        if (data.jobtitle_ids?.length) {
+          for (const sub of createdSubs) {
+            await prisma.responsibleJobTitle.createMany({
+              data: data.jobtitle_ids.map((jobId) => ({
+                indicator_id: sub.indicator_id,
+                jobtitle_id: jobId,
+              })),
+            });
+          }
+        }
       }
 
       // fetch complete indicator
@@ -421,25 +439,42 @@ export class IndicatorServerService {
         });
       }
 
+      // ลบ sub-indicators เดิมทั้งหมด (รวม jobtitle ด้วย เพราะ onDelete: Cascade)
       await prisma.indicator.deleteMany({
         where: { main_indicator_id: id },
       });
-      // insert sub-indicators
-      if (data.sub_indicators?.length) {
-        await prisma.indicator.createMany({
-          data: data.sub_indicators.map((sub, idx) => ({
-            name: sub.name.trim(),
-            target_value: parseFloat(sub.target_value),
-            unit_id: data.unit_id,
-            frequency_id: data.frequency_id,
-            category_id: data.category_id,
-            user_id: existingIndicator.user_id, // ✅ ใช้ user_id เดิม
-            position: sub.position ?? idx + 1,
-            main_indicator_id: updatedIndicator.indicator_id,
-          })),
-        });
-      }
 
+      // สร้าง sub-indicators ใหม่
+      if (data.sub_indicators?.length) {
+        const createdSubs = await prisma.$transaction(
+          data.sub_indicators.map((sub, idx) =>
+            prisma.indicator.create({
+              data: {
+                name: sub.name.trim(),
+                target_value: parseFloat(sub.target_value),
+                unit_id: data.unit_id,
+                frequency_id: data.frequency_id,
+                category_id: data.category_id,
+                user_id: existingIndicator.user_id, // ใช้ user_id เดิม
+                position: sub.position ?? idx + 1,
+                main_indicator_id: updatedIndicator.indicator_id,
+              },
+            })
+          )
+        );
+
+        // ใส่ jobtitle_ids (ใช้ชุดเดียวกับ main) ให้ทุก sub-indicator
+        if (data.jobtitle_ids?.length) {
+          for (const sub of createdSubs) {
+            await prisma.responsibleJobTitle.createMany({
+              data: data.jobtitle_ids.map((jobId) => ({
+                indicator_id: sub.indicator_id,
+                jobtitle_id: jobId,
+              })),
+            });
+          }
+        }
+      }
       // fetch complete indicator
       const indicator = await prisma.indicator.findUnique({
         where: { indicator_id: updatedIndicator.indicator_id },
