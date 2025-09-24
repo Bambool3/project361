@@ -28,3 +28,28 @@ export async function GET(
     return NextResponse.json({ error: "Error fetching KPIs" }, { status: 500 });
   }
 }
+
+// ------------------- PUT สำหรับ reorder -------------------
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { catId: string } } // ไม่ต้อง Promise
+) {
+  try {
+    const { catId } = params;
+    const body = await request.json();
+
+    if (!Array.isArray(body)) {
+      return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
+    }
+
+    await IndicatorServerService.reorderIndicators(body, catId);
+
+    return NextResponse.json({ message: "Reorder success" }, { status: 200 });
+  } catch (error) {
+    console.error("Error reordering indicators:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

@@ -1,4 +1,4 @@
-import { IndicatorFormData, Indicator } from "@/types/management";
+import { IndicatorFormData, ReorderPayload } from "@/types/management";
 
 export class IndicatorService {
   private static baseUrlCategory = "/api/category-indicators";
@@ -59,6 +59,24 @@ export class IndicatorService {
       return response.status;
     } catch (error) {
       console.error("Error deleting indicator:", error);
+      return 500;
+    }
+  }
+
+  static async reOrderIndicator(
+    payload: ReorderPayload[],
+    categoryId: string
+  ): Promise<number> {
+    try {
+      const response = await fetch(`${this.baseUrlCategory}/${categoryId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      return response.status;
+    } catch (error) {
+      console.error("Error reordering indicators:", error);
       return 500;
     }
   }

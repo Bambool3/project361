@@ -3,6 +3,7 @@ import {
   Indicator,
   IndicatorPayload,
   MappedIndicator,
+  ReorderPayload,
 } from "@/types/management";
 
 export class IndicatorServerService {
@@ -521,6 +522,27 @@ export class IndicatorServerService {
       console.error("Error creating indicator in database:", error);
       if (error instanceof Error) throw error;
       throw new Error("Failed to create indicator in database");
+    }
+  }
+  static async reorderIndicators(indicators: ReorderPayload[], catId: string) {
+    if (!indicators || indicators.length === 0) return;
+
+    try {
+      const updates = indicators.map((item) =>
+        prisma.indicator.update({
+          where: { indicator_id: item.id },
+          data: { position: item.position },
+        })
+      );
+
+      await prisma.$transaction(updates);
+
+      console.log(
+        `Reordered ${indicators.length} indicators in category ${catId}`
+      );
+    } catch (error) {
+      console.error("Error reordering indicators:", error);
+      throw error;
     }
   }
 }

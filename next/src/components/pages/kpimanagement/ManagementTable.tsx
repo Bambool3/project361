@@ -4,7 +4,11 @@ import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import ReorderIcon from "@mui/icons-material/Reorder";
 import SaveIcon from "@mui/icons-material/Save";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import { Indicator, IndicatorFormData } from "@/types/management";
+import {
+  Indicator,
+  IndicatorFormData,
+  ReorderPayload,
+} from "@/types/management";
 import React, { useState } from "react";
 import { IndicatorService } from "@/server/services/indicator/indicator-client-service";
 import {
@@ -260,6 +264,26 @@ export default function ManagementTable({
     setAlertOpen(false);
   };
 
+  // บันทึกลำดับขึ้น backend
+  const saveOrder = async () => {
+    // prepare payload [{id, position}]
+    const payload: ReorderPayload[] = kpiList.map((item, idx) => ({
+      id: item.id,
+      position: idx + 1,
+    }));
+
+    try {
+      // ใช้ IndicatorService.reorderIndicators โดยตรง
+      await IndicatorService.reOrderIndicator(payload, categoryId);
+
+      showAlert("บันทึกลำดับเรียบร้อย", "success");
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error("saveOrder error:", err);
+      showAlert("เกิดข้อผิดพลาดขณะบันทึก", "error");
+    }
+  };
+
   // handle drag end
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -278,7 +302,7 @@ export default function ManagementTable({
   const handleToggleReorder = async () => {
     if (isReorderMode) {
       // กดบันทึก: ส่ง order ไป backend
-      // await saveOrder();
+      await saveOrder();
       setReorderMode(false);
     } else {
       // เข้าโหมดสลับลำดับ: ให้ใช้ filteredKpi ปัจจุบันเป็น base
