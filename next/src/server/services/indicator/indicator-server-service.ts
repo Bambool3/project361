@@ -461,7 +461,7 @@ export class IndicatorServerService {
         });
       }
 
-      // Step 1: temporary position
+      // เปลี่ยนค่า position ของ sub ก่อนเพื่อให้ตอนสลับดับจะไม่ซ้ำ
       for (const [idx, sub] of (data.sub_indicators || []).entries()) {
         if (sub.id) {
           await tx.indicator.update({
