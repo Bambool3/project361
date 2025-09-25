@@ -1,6 +1,14 @@
 "use client";
 
-import { Box, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Card,
+  Typography,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import ManagementTable from "./ManagementTable";
@@ -71,8 +79,14 @@ export default function ManagementMain() {
 
   // เมื่อ selectedCatId เปลี่ยน
   useEffect(() => {
-    if (selectedCatId) loadIndicators(selectedCatId);
-  }, [selectedCatId]);
+    if (selectedCatId) {
+      loadIndicators(selectedCatId);
+    } else if (categories.length === 0) {
+      setIndicators([]); // ไม่มี indicator
+      setError("ไม่มีหมวดหมู่ให้เลือก");
+      setLoading(false);
+    }
+  }, [selectedCatId, categories]);
 
   return (
     <Box
@@ -100,13 +114,34 @@ export default function ManagementMain() {
       </FormControl>
 
       {/* Table แสดง KPI ของ category */}
-      <ManagementTable
-        indicators={indicators}
-        loading={loading}
-        error={error}
-        onRefresh={() => loadIndicators(selectedCatId)}
-        categoryId={selectedCatId}
-      />
+      {categories.length === 0 ? (
+        <Card
+          sx={{
+            backgroundColor: "white",
+            borderRadius: "16px",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "400px",
+          }}
+        >
+          <Box sx={{ textAlign: "center" }}>
+            <Typography sx={{ mt: 2, color: "#64748b" }}>
+              ยังไม่มีข้อมูลหมวดหมู่
+            </Typography>
+          </Box>
+        </Card>
+      ) : (
+        <ManagementTable
+          indicators={indicators}
+          loading={loading}
+          error={error}
+          onRefresh={() => loadIndicators(selectedCatId)}
+          categoryId={selectedCatId}
+        />
+      )}
     </Box>
   );
 }

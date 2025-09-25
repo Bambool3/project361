@@ -1,16 +1,25 @@
 "use client";
+
+// Icons
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import ReorderIcon from "@mui/icons-material/Reorder";
 import SaveIcon from "@mui/icons-material/Save";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import {
-  Indicator,
-  IndicatorFormData,
-  ReorderPayload,
-} from "@/types/management";
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Target,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
+
+// React
 import React, { useState } from "react";
-import { IndicatorService } from "@/server/services/indicator/indicator-client-service";
+
+// MUI Components
 import {
   Box,
   Card,
@@ -33,24 +42,24 @@ import {
   Snackbar,
   Tooltip,
 } from "@mui/material";
-import {
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  Target,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+
+// Custom Components & Services
 import AddKpiModal from "@/client/components/AddKpiModal";
 import ConfirmModal from "@/components/ui/confirm-modal";
+import { IndicatorService } from "@/server/services/indicator/indicator-client-service";
+import {
+  Indicator,
+  IndicatorFormData,
+  ReorderPayload,
+} from "@/types/management";
+
+// Drag & Drop
 import {
   DragDropContext,
   Draggable,
   Droppable,
   DropResult,
 } from "@hello-pangea/dnd";
-import Providers from "@/providers/sessionProviders";
 
 interface ManagementTableProps {
   indicators: Indicator[];
