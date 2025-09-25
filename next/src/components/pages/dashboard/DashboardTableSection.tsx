@@ -371,7 +371,7 @@ export default function DashboardTableSection({
         loading={loading}
         error={error}
         title="รายการหมวดหมู่"
-        icon={<Tags size={24} color="#8b5cf6" />}
+        icon={<Tags size={24} color="#3b82f6" />}
         searchPlaceholder="ค้นหาหมวดหมู่..."
         onRowClick={handleRowClick}
         onRefresh={onRefresh}
