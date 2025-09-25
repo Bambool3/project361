@@ -154,22 +154,6 @@ export default function RoleTableSection({
       searchable: true,
       render: (role: Role, index: number) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box
-            sx={{
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              backgroundColor: "#3b82f6",
-              color: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "0.75rem",
-              fontWeight: "600",
-            }}
-          >
-            {index + 1}
-          </Box>
           <Typography sx={{ fontWeight: "600", color: "#1e293b" }}>
             {role.name}
           </Typography>
