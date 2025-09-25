@@ -87,8 +87,8 @@ model Indicator {
   target_value      Float?
   unit_id           String
   frequency_id      String
-  date              DateTime?
-  status            String?
+  created_at        DateTime @default(now())
+  status            String   @default("Active")
   main_indicator_id String?
   category_id       String
   user_id           String

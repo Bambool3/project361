@@ -24,7 +24,7 @@ export default function ManagementMain() {
       if (!res.ok) throw new Error("Failed to fetch categories");
       const data: Category[] = await res.json();
       // เอาไว้ debug
-      console.log("Categories:", data);
+      // console.log("Categories:", data);
       setCategories(data);
 
       // ตั้งค่า default catId - ใช้จาก URL parameter ก่อน หรือ category แรกถ้าไม่มี
@@ -53,7 +53,7 @@ export default function ManagementMain() {
 
       const data: Indicator[] = await res.json();
       // เอาไว้ debug
-      console.log("Indicators:", data);
+      // console.log("Indicators:", data);
       setIndicators(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";

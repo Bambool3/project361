@@ -3,6 +3,7 @@ import {
   Indicator,
   IndicatorPayload,
   MappedIndicator,
+  ReorderPayload,
 } from "@/types/management";
 
 export class IndicatorServerService {
@@ -31,7 +32,6 @@ export class IndicatorServerService {
       const subIndicators = indicators.filter(
         (i) => i.main_indicator_id !== null
       );
-      console.log("subIndicators", subIndicators[0].indicator_data);
       // map main indicator
       const mappedIndicators = mainIndicators.map((main) => {
         const data = main.indicator_data;
@@ -74,8 +74,6 @@ export class IndicatorServerService {
               subData.length > 1
                 ? subData[subData.length - 2].actual_value
                 : null;
-            console.log("last=", subLatestActual);
-            console.log("pre=", subPreviousActual);
             const subTrend =
               subLatestActual === null || subPreviousActual === null
                 ? null
@@ -84,7 +82,6 @@ export class IndicatorServerService {
                 : subLatestActual < subPreviousActual
                 ? "down"
                 : "same";
-            console.log("trend=", subTrend);
 
             return {
               id: sub.indicator_id,
@@ -279,6 +276,7 @@ export class IndicatorServerService {
   ): Promise<Indicator> {
     try {
       // validate input
+      console.log("data=", data);
       if (!data.name?.trim() || !data.target_value?.toString().trim()) {
         throw new Error("Name and target are required");
       }
@@ -314,18 +312,35 @@ export class IndicatorServerService {
 
       // insert sub-indicators
       if (data.sub_indicators?.length) {
-        await prisma.indicator.createMany({
-          data: data.sub_indicators.map((sub, idx) => ({
-            name: sub.name.trim(),
-            target_value: parseFloat(sub.target_value),
-            unit_id: data.unit_id,
-            frequency_id: data.frequency_id,
-            category_id: data.category_id,
-            user_id: userId.toString(),
-            position: sub.position ?? idx + 1,
-            main_indicator_id: newIndicator.indicator_id,
-          })),
-        });
+        // สร้าง sub-indicator
+        const createdSubs = await prisma.$transaction(
+          data.sub_indicators.map((sub, idx) =>
+            prisma.indicator.create({
+              data: {
+                name: sub.name.trim(),
+                target_value: parseFloat(sub.target_value),
+                unit_id: data.unit_id,
+                frequency_id: data.frequency_id,
+                category_id: data.category_id,
+                user_id: userId.toString(),
+                position: sub.position ?? idx + 1,
+                main_indicator_id: newIndicator.indicator_id,
+              },
+            })
+          )
+        );
+
+        // ใส่ jobtitle_ids (ใช้ชุดเดียวกับ main) ให้ทุก sub-indicator
+        if (data.jobtitle_ids?.length) {
+          for (const sub of createdSubs) {
+            await prisma.responsibleJobTitle.createMany({
+              data: data.jobtitle_ids.map((jobId) => ({
+                indicator_id: sub.indicator_id,
+                jobtitle_id: jobId,
+              })),
+            });
+          }
+        }
       }
 
       // fetch complete indicator
@@ -425,25 +440,42 @@ export class IndicatorServerService {
         });
       }
 
+      // ลบ sub-indicators เดิมทั้งหมด (รวม jobtitle ด้วย เพราะ onDelete: Cascade)
       await prisma.indicator.deleteMany({
         where: { main_indicator_id: id },
       });
-      // insert sub-indicators
-      if (data.sub_indicators?.length) {
-        await prisma.indicator.createMany({
-          data: data.sub_indicators.map((sub, idx) => ({
-            name: sub.name.trim(),
-            target_value: parseFloat(sub.target_value),
-            unit_id: data.unit_id,
-            frequency_id: data.frequency_id,
-            category_id: data.category_id,
-            user_id: existingIndicator.user_id, // ✅ ใช้ user_id เดิม
-            position: sub.position ?? idx + 1,
-            main_indicator_id: updatedIndicator.indicator_id,
-          })),
-        });
-      }
 
+      // สร้าง sub-indicators ใหม่
+      if (data.sub_indicators?.length) {
+        const createdSubs = await prisma.$transaction(
+          data.sub_indicators.map((sub, idx) =>
+            prisma.indicator.create({
+              data: {
+                name: sub.name.trim(),
+                target_value: parseFloat(sub.target_value),
+                unit_id: data.unit_id,
+                frequency_id: data.frequency_id,
+                category_id: data.category_id,
+                user_id: existingIndicator.user_id, // ใช้ user_id เดิม
+                position: sub.position ?? idx + 1,
+                main_indicator_id: updatedIndicator.indicator_id,
+              },
+            })
+          )
+        );
+
+        // ใส่ jobtitle_ids (ใช้ชุดเดียวกับ main) ให้ทุก sub-indicator
+        if (data.jobtitle_ids?.length) {
+          for (const sub of createdSubs) {
+            await prisma.responsibleJobTitle.createMany({
+              data: data.jobtitle_ids.map((jobId) => ({
+                indicator_id: sub.indicator_id,
+                jobtitle_id: jobId,
+              })),
+            });
+          }
+        }
+      }
       // fetch complete indicator
       const indicator = await prisma.indicator.findUnique({
         where: { indicator_id: updatedIndicator.indicator_id },
@@ -490,6 +522,27 @@ export class IndicatorServerService {
       console.error("Error creating indicator in database:", error);
       if (error instanceof Error) throw error;
       throw new Error("Failed to create indicator in database");
+    }
+  }
+  static async reorderIndicators(indicators: ReorderPayload[], catId: string) {
+    if (!indicators || indicators.length === 0) return;
+
+    try {
+      const updates = indicators.map((item) =>
+        prisma.indicator.update({
+          where: { indicator_id: item.id },
+          data: { position: item.position },
+        })
+      );
+
+      await prisma.$transaction(updates);
+
+      console.log(
+        `Reordered ${indicators.length} indicators in category ${catId}`
+      );
+    } catch (error) {
+      console.error("Error reordering indicators:", error);
+      throw error;
     }
   }
 }

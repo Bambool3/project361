@@ -108,10 +108,15 @@ export type MappedIndicator = {
   creator_user_id: string;
   category_id: string;
   // We can even include category info if needed
-  category_name: string; 
+  category_name: string;
   unit: string;
   frequency: string;
   responsible_jobtitles: string[];
   sub_indicators: { id: string; name: string }[];
   data: MappedIndicatorData[];
+};
+
+export type ReorderPayload = {
+  id: string;
+  position: number;
 };

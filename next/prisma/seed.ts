@@ -342,7 +342,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First indicator in CMUPA category
         },
         {
@@ -354,7 +354,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 2, // Second indicator in CMUPA category
         },
         {
@@ -366,7 +366,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 3, // Third indicator in CMUPA category
         },
         {
@@ -378,7 +378,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 4, // Fourth indicator in CMUPA category
         },
         {
@@ -390,7 +390,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 5, // Fifth indicator in CMUPA category
         },
         {
@@ -402,7 +402,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 6, // Sixth indicator in CMUPA category
         },
         // New CMUPA indicators with different frequencies
@@ -415,7 +415,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 7, // Seventh indicator in CMUPA category
         },
         {
@@ -427,7 +427,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 8, // Eighth indicator in CMUPA category
         },
         {
@@ -439,7 +439,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq3"].frequency_id, // รายภาคการศึกษา
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 9, // Ninth indicator in CMUPA category
         },
         {
@@ -451,7 +451,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 10, // Tenth indicator in CMUPA category
         },
         {
@@ -463,7 +463,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq4"].frequency_id, // รายปีงบประมาณ
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 11, // Eleventh indicator in CMUPA category
         },
         {
@@ -475,7 +475,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 12, // Twelfth indicator in CMUPA category
         },
         {
@@ -487,7 +487,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq5"].frequency_id, // รายปีการศึกษา
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 13, // Thirteenth indicator in CMUPA category
         },
         {
@@ -499,7 +499,7 @@ async function main() {
             category_id: categoryRecords["cat2"].category_id,
             frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First indicator in HR category
         },
         {
@@ -511,7 +511,7 @@ async function main() {
             category_id: categoryRecords["cat3"].category_id,
             frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First indicator in Academic category
         },
     ];
@@ -536,7 +536,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First sub-indicator under main2
         },
         {
@@ -548,7 +548,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 2, // Second sub-indicator under main2
         },
         {
@@ -560,7 +560,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 3, // Third sub-indicator under main2
         },
         {
@@ -572,7 +572,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First sub-indicator under main4
         },
         {
@@ -584,7 +584,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 2, // Second sub-indicator under main4
         },
         {
@@ -596,7 +596,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 3, // Third sub-indicator under main4
         },
         {
@@ -608,7 +608,7 @@ async function main() {
             category_id: categoryRecords["cat2"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First sub-indicator under main7 (HR Efficiency)
         },
         {
@@ -620,7 +620,7 @@ async function main() {
             category_id: categoryRecords["cat3"].category_id,
             frequency_id: frequencyRecords["freq3"].frequency_id,
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First sub-indicator under main8 (Academic Publications)
         },
         // Sub-indicators for new CMUPA indicators
@@ -633,7 +633,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First sub-indicator under main7
         },
         {
@@ -645,7 +645,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 2, // Second sub-indicator under main7
         },
         {
@@ -657,7 +657,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 3, // Third sub-indicator under main7
         },
         {
@@ -669,7 +669,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First sub-indicator under main8 (industry research)
         },
         {
@@ -681,7 +681,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 2, // Second sub-indicator under main8 (industry research)
         },
         {
@@ -693,7 +693,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq1"].frequency_id, // รายเดือน
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 3, // Third sub-indicator under main8 (industry research)
         },
         {
@@ -705,7 +705,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 1, // First sub-indicator under main10 (patents)
         },
         {
@@ -717,7 +717,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 2, // Second sub-indicator under main10 (patents)
         },
         {
@@ -729,7 +729,7 @@ async function main() {
             category_id: categoryRecords["cat1"].category_id,
             frequency_id: frequencyRecords["freq2"].frequency_id, // รายไตรมาส
             status: "Active",
-            date: new Date(),
+            created_at: now,
             position: 3, // Third sub-indicator under main10 (patents)
         },
     ];
