@@ -606,7 +606,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main14"].indicator_id,
             user_id: userRecords["user2"].user_id,
             category_id: categoryRecords["cat2"].category_id,
-            frequency_id: frequencyRecords["freq1"].frequency_id,
+            frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
             created_at: now,
             position: 1, // First sub-indicator under main7 (HR Efficiency)
@@ -618,7 +618,7 @@ async function main() {
             main_indicator_id: mainIndicatorRecords["main15"].indicator_id,
             user_id: userRecords["user3"].user_id,
             category_id: categoryRecords["cat3"].category_id,
-            frequency_id: frequencyRecords["freq3"].frequency_id,
+            frequency_id: frequencyRecords["freq4"].frequency_id,
             status: "Active",
             created_at: now,
             position: 1, // First sub-indicator under main8 (Academic Publications)
@@ -886,22 +886,33 @@ async function main() {
 
     const indicatorData: any[] = [];
 
+    // Function to generate a random number within a range [min, max)
+    const getRandom = (min: number, max: number): number => Math.random() * (max - min) + min;
+
     for (const indicator of allIndicators) {
-        // เลือก period ตาม frequency ของ indicator
+
+        const target = indicator.target_value ?? 50;
+        
+        const trendPercentage = getRandom(-0.10, 0.10); // -10% to +10%
+        const trendValue = target * trendPercentage;
+
         const validPeriods = allPeriods.filter(
             (p) => p.frequency_id === indicator.frequency_id
         );
 
         for (const period of validPeriods) {
-            // Generate actual value แบบ realistic รอบๆ target_value
-            const target = indicator.target_value ?? 50;
-            const variation = target * 0.2; // ±20%
-            const actual = target + (Math.random() * variation * 2 - variation);
+            
+            const noisePercentage = getRandom(-0.02, 0.02); // -2% to +2%
+            const noiseValue = target * noisePercentage;
+
+            let actual = target + trendValue + noiseValue;
+            
+            actual = Math.max(0, actual); 
 
             indicatorData.push({
                 indicator_id: indicator.indicator_id,
                 period_id: period.period_id,
-                actual_value: parseFloat(actual.toFixed(2)),
+                actual_value: parseFloat(actual.toFixed(0)), // Keep 2 decimal places
                 created_at: new Date(),
                 updated_at: new Date(),
             });
