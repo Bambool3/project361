@@ -321,6 +321,21 @@ export default function ManagementTable({
   };
   const displayedList = isReorderMode ? kpiList : filteredKpi;
 
+  const handleClickOtherAction = (action: () => void) => {
+    if (isReorderMode) {
+      if (
+        confirm(
+          "คุณยังไม่ได้บันทึกลำดับตัวชี้วัด ต้องการออกโดยไม่บันทึกหรือไม่?"
+        )
+      ) {
+        setReorderMode(false); // ออกจาก reorder mode
+        action(); // ทำ action เดิม
+      }
+    } else {
+      action();
+    }
+  };
+
   if (loading) {
     return (
       <Card
@@ -439,7 +454,7 @@ export default function ManagementTable({
                 }}
               >
                 <Button
-                  onClick={handleAddKpi}
+                  onClick={() => handleClickOtherAction(handleAddKpi)}
                   startIcon={<Plus size={18} />}
                   sx={{
                     backgroundColor: "#8b5cf6",
@@ -841,7 +856,11 @@ export default function ManagementTable({
                                         }}
                                       >
                                         <IconButton
-                                          onClick={() => handleEdit(kpi.id)}
+                                          onClick={() =>
+                                            handleClickOtherAction(() =>
+                                              handleEdit(kpi.id)
+                                            )
+                                          }
                                           size="small"
                                           sx={{
                                             color: "#64748b",
@@ -869,7 +888,11 @@ export default function ManagementTable({
                                         }}
                                       >
                                         <IconButton
-                                          onClick={() => handleDelete(kpi.id)}
+                                          onClick={() =>
+                                            handleClickOtherAction(() =>
+                                              handleDelete(kpi.id)
+                                            )
+                                          }
                                           size="small"
                                           sx={{
                                             color: "#64748b",
