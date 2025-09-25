@@ -26,12 +26,14 @@ export class IndicatorServerService {
       });
 
       // แยก main และ sub indicator
-      const mainIndicators = indicators.filter(
-        (i) => i.main_indicator_id === null
-      );
-      const subIndicators = indicators.filter(
-        (i) => i.main_indicator_id !== null
-      );
+      const mainIndicators = indicators
+        .filter((i) => i.main_indicator_id === null)
+        .sort((a, b) => a.position - b.position); // เรียง main ตาม position
+
+      const subIndicators = indicators
+        .filter((i) => i.main_indicator_id !== null)
+        .sort((a, b) => a.position - b.position); // เรียง sub ตาม position
+
       // map main indicator
       const mappedIndicators = mainIndicators.map((main) => {
         const data = main.indicator_data;
@@ -280,7 +282,13 @@ export class IndicatorServerService {
       if (!data.name?.trim() || !data.target_value?.toString().trim()) {
         throw new Error("Name and target are required");
       }
+      // หาค่า position สูงสุดใน category ก่อน
+      const maxPosition = await prisma.indicator.aggregate({
+        where: { category_id: data.category_id, main_indicator_id: null },
+        _max: { position: true },
+      });
 
+      const lastPosition = (maxPosition._max.position ?? 0) + 1;
       // create main indicator
       const newIndicator = await prisma.indicator.create({
         data: {
@@ -290,7 +298,7 @@ export class IndicatorServerService {
           frequency_id: data.frequency_id,
           category_id: data.category_id,
           user_id: userId.toString(),
-          position: 100,
+          position: lastPosition,
         },
         include: {
           unit: true,
@@ -414,7 +422,6 @@ export class IndicatorServerService {
           unit_id: data.unit_id,
           frequency_id: data.frequency_id,
           category_id: data.category_id,
-          position: 100,
         },
         include: {
           unit: true,
