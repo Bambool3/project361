@@ -2,31 +2,18 @@
 
 import CustomModal from "@/components/ui/custom-modal";
 import ConfirmModal from "@/components/ui/confirm-modal";
+import CustomTable from "@/components/ui/custom-table";
 import { Job, JobFormData } from "@/types/job";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
-  Alert,
-  CircularProgress,
-  TablePagination,
-  Snackbar,
   Tooltip,
   Button,
-  TextField,
-  InputAdornment,
   Chip,
 } from "@mui/material";
-import { Edit, Trash2, Search, Plus, Building2 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Edit, Trash2, Plus, Building2 } from "lucide-react";
+import { useState } from "react";
 import JobAddEdit from "./JobAdd&Edit";
 import { useNotification } from "@/providers/NotificationProvider";
 
@@ -45,51 +32,12 @@ export default function JobTableSection({
 }: JobTableSectionProps) {
   const { showNotification } = useNotification();
 
-  // Search state
-  const [searchTerm, setSearchTerm] = useState<string>("");
-
-  // Pagination
-  const [page, setPage] = useState<number>(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
-
-  // Filter jobs based on search term
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchesSearch = job.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      return matchesSearch;
-    });
-  }, [jobs, searchTerm]);
-
-  // Paginated data
-  const paginatedJobs = useMemo(() => {
-    const startIndex = page * rowsPerPage;
-    return filteredJobs.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredJobs, page, rowsPerPage]);
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-    setPage(0);
-  };
 
   const handleAddJob = () => {
     setIsAddModalOpen(true);
@@ -215,434 +163,160 @@ export default function JobTableSection({
     }
   };
 
-  if (loading) {
-    return (
-      <Card
-        sx={{
-          backgroundColor: "white",
-          borderRadius: "16px",
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "400px",
-        }}
-      >
-        <Box sx={{ textAlign: "center" }}>
-          <CircularProgress />
-          <Typography sx={{ mt: 2, color: "#64748b" }}>
-            กำลังโหลดข้อมูล...
+  const columns = [
+    {
+      id: "name",
+      label: "ชื่อหน่วยงาน",
+      searchable: true,
+      render: (job: Job, index: number) => (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Typography sx={{ fontWeight: "600", color: "#1e293b" }}>
+            {job.name}
           </Typography>
         </Box>
-      </Card>
-    );
-  }
+      ),
+    },
+    {
+      id: "employeeCount",
+      label: "จำนวนบุคลากร",
+      align: "center" as const,
+      render: (job: Job) => (
+        <Chip
+          label={`${job.employeeCount || 0} คน`}
+          size="small"
+          sx={{
+            backgroundColor: "#f1f5f9",
+            color: "#475569",
+            fontWeight: "600",
+          }}
+        />
+      ),
+    },
+    {
+      id: "actions",
+      label: "จัดการ",
+      align: "center" as const,
+      render: (job: Job) => (
+        <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+          <Tooltip
+            title="แก้ไขข้อมูลหน่วยงาน"
+            arrow
+            placement="top"
+            componentsProps={{
+              tooltip: {
+                sx: {
+                  backgroundColor: "#1e293b",
+                  color: "white",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  fontSize: "0.875rem",
+                },
+              },
+              arrow: { sx: { color: "#1e293b" } },
+            }}
+          >
+            <IconButton
+              onClick={() => handleEditJob(job.id)}
+              size="small"
+              sx={{
+                color: "#64748b",
+                "&:hover": {
+                  color: "#8b5cf6",
+                  backgroundColor: "#f1f5f9",
+                },
+              }}
+            >
+              <Edit size={16} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip
+            title="ลบหน่วยงานนี้ออกจากระบบ"
+            arrow
+            placement="top"
+            componentsProps={{
+              tooltip: {
+                sx: {
+                  backgroundColor: "#1e293b",
+                  color: "white",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  fontSize: "0.875rem",
+                },
+              },
+              arrow: { sx: { color: "#1e293b" } },
+            }}
+          >
+            <IconButton
+              onClick={() => handleDeleteJob(job.id)}
+              size="small"
+              sx={{
+                color: "#64748b",
+                "&:hover": {
+                  color: "#ef4444",
+                  backgroundColor: "#fef2f2",
+                },
+              }}
+            >
+              <Trash2 size={16} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ];
 
-  if (error) {
-    return (
-      <Alert
-        severity="error"
+  const headerActions = (
+    <Tooltip
+      title="เพิ่มหน่วยงานใหม่"
+      arrow
+      placement="top"
+      componentsProps={{
+        tooltip: {
+          sx: {
+            backgroundColor: "#1e293b",
+            color: "white",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            fontSize: "0.875rem",
+          },
+        },
+        arrow: { sx: { color: "#1e293b" } },
+      }}
+    >
+      <Button
+        onClick={handleAddJob}
+        startIcon={<Plus size={18} />}
         sx={{
-          mb: 3,
-          borderRadius: "16px",
+          backgroundColor: "#8b5cf6",
+          color: "white",
+          textTransform: "none",
+          fontWeight: 600,
+          px: 2,
+          py: 1,
+          borderRadius: "12px",
+          "&:hover": { backgroundColor: "#7c3aed" },
         }}
-        action={
-          <Button color="inherit" size="small" onClick={onRefresh}>
-            ลองใหม่
-          </Button>
-        }
       >
-        {error}
-      </Alert>
-    );
-  }
+        เพิ่มหน่วยงาน
+      </Button>
+    </Tooltip>
+  );
 
   return (
     <>
-      <Card
-        sx={{
-          p: 2,
-          backgroundColor: "white",
-          borderRadius: "16px",
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-        }}
-      >
-        <CardContent sx={{ p: 0 }}>
-          {/* Table Header */}
-          <Box
-            sx={{
-              p: 3,
-              borderBottom: "1px solid #f1f5f9",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 2,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Building2 size={24} color="#3b82f6" />
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: "bold",
-                  color: "#1e293b",
-                }}
-              >
-                หน่วยงานทั้งหมด ({filteredJobs.length})
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-                flexWrap: "wrap",
-              }}
-            >
-              {/* Search Bar */}
-              <TextField
-                placeholder="ค้นหาหน่วยงาน..."
-                value={searchTerm}
-                onChange={handleSearch}
-                size="small"
-                sx={{
-                  width: { xs: "100%", sm: "200px" },
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                    backgroundColor: "#f8fafc",
-                    "&:hover fieldset": {
-                      borderColor: "#8b5cf6",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#8b5cf6",
-                    },
-                  },
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search size={18} color="#64748b" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-
-              {/* Add Job Button */}
-              <Tooltip
-                title="เพิ่มหน่วยงานใหม่"
-                arrow
-                placement="top"
-                componentsProps={{
-                  tooltip: {
-                    sx: {
-                      backgroundColor: "#1e293b",
-                      color: "white",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                      fontSize: "0.875rem",
-                    },
-                  },
-                  arrow: {
-                    sx: {
-                      color: "#1e293b",
-                    },
-                  },
-                }}
-              >
-                <Button
-                  onClick={handleAddJob}
-                  startIcon={<Plus size={18} />}
-                  sx={{
-                    backgroundColor: "#8b5cf6",
-                    color: "white",
-                    textTransform: "none",
-                    fontWeight: 600,
-                    px: 2,
-                    py: 1,
-                    borderRadius: "12px",
-                    "&:hover": {
-                      backgroundColor: "#7c3aed",
-                    },
-                  }}
-                >
-                  เพิ่มหน่วยงาน
-                </Button>
-              </Tooltip>
-            </Box>
-          </Box>
-
-          {/* Table Content */}
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: "#f8fafc" }}>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#475569",
-                      border: "none",
-                      py: 2,
-                    }}
-                  >
-                    ลำดับ
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#475569",
-                      border: "none",
-                      py: 2,
-                    }}
-                  >
-                    ชื่อหน่วยงาน
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#475569",
-                      border: "none",
-                      py: 2,
-                      textAlign: "center",
-                    }}
-                  >
-                    จำนวนบุคลากร
-                  </TableCell>
-
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#475569",
-                      border: "none",
-                      py: 2,
-                      textAlign: "center",
-                    }}
-                  >
-                    จัดการ
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedJobs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} sx={{ textAlign: "center", py: 4 }}>
-                      <Typography color="#64748b">
-                        {searchTerm
-                          ? "ไม่พบหน่วยงานที่ค้นหา"
-                          : "ไม่มีข้อมูลหน่วยงาน"}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedJobs.map((job, index) => {
-                    const orderNumber = page * rowsPerPage + index + 1;
-                    return (
-                      <TableRow
-                        key={job.id}
-                        sx={{
-                          "&:hover": {
-                            backgroundColor: "#f8fafc",
-                          },
-                          borderBottom: "1px solid #f1f5f9",
-                        }}
-                      >
-                        {/* Order Number Column */}
-                        <TableCell
-                          sx={{
-                            border: "none",
-                            py: 2.5,
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: "600",
-                              color: "#374151",
-                            }}
-                          >
-                            {orderNumber}
-                          </Typography>
-                        </TableCell>
-
-                        {/* Name Column */}
-                        <TableCell
-                          sx={{
-                            border: "none",
-                            py: 2.5,
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "#374151",
-                            }}
-                          >
-                            {job.name}
-                          </Typography>
-                        </TableCell>
-
-                        {/* Employee Count Column */}
-
-                        <TableCell
-                          sx={{
-                            border: "none",
-                            py: 2.5,
-                            textAlign: "center",
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "#374151",
-                              fontWeight: "500",
-                            }}
-                          >
-                            {job.employeeCount || 0} คน
-                          </Typography>
-                        </TableCell>
-
-                        {/* Manage Column */}
-                        <TableCell
-                          sx={{
-                            border: "none",
-                            py: 2.5,
-                            textAlign: "center",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: "flex",
-                              gap: 1,
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Tooltip
-                              title="แก้ไขข้อมูลหน่วยงาน"
-                              arrow
-                              placement="top"
-                              componentsProps={{
-                                tooltip: {
-                                  sx: {
-                                    backgroundColor: "#1e293b",
-                                    color: "white",
-                                    borderRadius: "8px",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                    fontSize: "0.875rem",
-                                  },
-                                },
-                                arrow: {
-                                  sx: {
-                                    color: "#1e293b",
-                                  },
-                                },
-                              }}
-                            >
-                              <IconButton
-                                onClick={() => handleEditJob(job.id)}
-                                size="small"
-                                sx={{
-                                  color: "#64748b",
-                                  "&:hover": {
-                                    color: "#8b5cf6",
-                                    backgroundColor: "#f1f5f9",
-                                  },
-                                }}
-                              >
-                                <Edit size={16} />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip
-                              title="ลบหน่วยงานออกจากระบบ"
-                              arrow
-                              placement="top"
-                              componentsProps={{
-                                tooltip: {
-                                  sx: {
-                                    backgroundColor: "#1e293b",
-                                    color: "white",
-                                    borderRadius: "8px",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                    fontSize: "0.875rem",
-                                  },
-                                },
-                                arrow: {
-                                  sx: {
-                                    color: "#1e293b",
-                                  },
-                                },
-                              }}
-                            >
-                              <IconButton
-                                onClick={() => handleDeleteJob(job.id)}
-                                size="small"
-                                sx={{
-                                  color: "#64748b",
-                                  "&:hover": {
-                                    color: "#ef4444",
-                                    backgroundColor: "#fef2f2",
-                                  },
-                                }}
-                              >
-                                <Trash2 size={16} />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {/* Pagination */}
-          {filteredJobs.length > 0 && (
-            <Box
-              sx={{
-                borderTop: "1px solid #f1f5f9",
-                px: 2,
-              }}
-            >
-              <TablePagination
-                component="div"
-                count={filteredJobs.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25, 50]}
-                labelRowsPerPage="แสดงต่อหน้า:"
-                labelDisplayedRows={({ from, to, count }) =>
-                  `${from}-${to} จาก ${count !== -1 ? count : `มากกว่า ${to}`}`
-                }
-                sx={{
-                  "& .MuiTablePagination-select": {
-                    borderRadius: "8px",
-                  },
-                  "& .MuiTablePagination-actions": {
-                    "& .MuiIconButton-root": {
-                      borderRadius: "8px",
-                      "&:hover": {
-                        backgroundColor: "#f1f5f9",
-                      },
-                    },
-                  },
-                }}
-              />
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+      <CustomTable
+        data={jobs}
+        columns={columns}
+        loading={loading}
+        error={error}
+        title="รายการหน่วยงาน"
+        icon={<Building2 size={24} color="#3b82f6" />}
+        searchPlaceholder="ค้นหาหน่วยงาน..."
+        onRefresh={onRefresh}
+        emptyMessage="ไม่มีข้อมูลหน่วยงาน"
+        searchableFields={["name"]}
+        headerAction={headerActions}
+      />
 
       {/* Add Job Modal */}
       <CustomModal
