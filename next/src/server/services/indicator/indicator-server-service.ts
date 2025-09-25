@@ -404,14 +404,12 @@ export class IndicatorServerService {
     id: string,
     data: IndicatorPayload
   ): Promise<Indicator> {
-    console.log("data=", data);
     return await prisma.$transaction(async (tx) => {
       // 1️⃣ ดึง indicator เดิมพร้อม sub-indicators
       const existingIndicator = await tx.indicator.findUnique({
         where: { indicator_id: id },
         include: { sub_indicators: true },
       });
-
       if (!existingIndicator) throw new Error("Indicator not found");
 
       // 2️⃣ อัปเดต main indicator
@@ -433,10 +431,7 @@ export class IndicatorServerService {
       });
 
       // 3️⃣ จัดการ responsible jobtitles
-      await tx.responsibleJobTitle.deleteMany({
-        where: { indicator_id: id },
-      });
-
+      await tx.responsibleJobTitle.deleteMany({ where: { indicator_id: id } });
       if (data.jobtitle_ids?.length) {
         await tx.responsibleJobTitle.createMany({
           data: data.jobtitle_ids.map((jobId) => ({
@@ -461,41 +456,47 @@ export class IndicatorServerService {
         });
       }
 
-      // เปลี่ยนค่า position ของ sub ก่อนเพื่อให้ตอนสลับ
-      for (const [idx, sub] of (data.sub_indicators || []).entries()) {
-        if (sub.id) {
-          await tx.indicator.update({
-            where: { indicator_id: sub.id },
-            data: { position: -1000 - idx },
-          });
-        }
-      }
+      // รวม sub เดิมและ sub ใหม่ เพื่อจัดลำดับ position ชั่วคราว
+      const allSubs: ((typeof data.sub_indicators)[0] & { id?: string })[] = [];
 
-      // update หรือ create sub-indicators
-      for (const sub of data.sub_indicators || []) {
+      for (const [idx, sub] of (data.sub_indicators || []).entries()) {
         if (sub.id) {
           const existingSub = await tx.indicator.findUnique({
             where: { indicator_id: sub.id },
           });
           if (existingSub) {
+            // อัปเดต position ชั่วคราว
             await tx.indicator.update({
               where: { indicator_id: sub.id },
+              data: { position: -1000 - idx },
+            });
+            allSubs.push({ ...sub, id: sub.id });
+          } else {
+            // sub มี id แต่ไม่มีอยู่จริง → treat as new
+            const newSub = await tx.indicator.create({
               data: {
                 name: sub.name.trim(),
                 target_value: parseFloat(sub.target_value),
                 unit_id: data.unit_id,
                 frequency_id: data.frequency_id,
                 category_id: data.category_id,
-                position: sub.position ?? 0,
+                user_id: existingIndicator.user_id,
+                position: -1000 - idx,
+                main_indicator_id: id,
               },
             });
-          } else {
-            console.warn(
-              `Sub-indicator with id ${sub.id} not found, skipping update`
-            );
+            if (data.jobtitle_ids?.length) {
+              await tx.responsibleJobTitle.createMany({
+                data: data.jobtitle_ids.map((jobId) => ({
+                  indicator_id: newSub.indicator_id,
+                  jobtitle_id: jobId,
+                })),
+              });
+            }
+            allSubs.push({ ...sub, id: newSub.indicator_id });
           }
         } else {
-          // สร้าง sub-indicator ใหม่
+          // sub ใหม่ → สร้าง
           const newSub = await tx.indicator.create({
             data: {
               name: sub.name.trim(),
@@ -504,11 +505,10 @@ export class IndicatorServerService {
               frequency_id: data.frequency_id,
               category_id: data.category_id,
               user_id: existingIndicator.user_id,
-              position: sub.position ?? 0,
+              position: -1000 - idx,
               main_indicator_id: id,
             },
           });
-
           if (data.jobtitle_ids?.length) {
             await tx.responsibleJobTitle.createMany({
               data: data.jobtitle_ids.map((jobId) => ({
@@ -517,10 +517,19 @@ export class IndicatorServerService {
               })),
             });
           }
+          allSubs.push({ ...sub, id: newSub.indicator_id });
         }
       }
 
-      // 5️⃣ ดึง indicator ใหม่ครบทั้งหมด
+      // 5️⃣ อัปเดต position จริงตาม front-end
+      for (const [idx, sub] of allSubs.entries()) {
+        await tx.indicator.update({
+          where: { indicator_id: sub.id! },
+          data: { position: sub.position ?? idx + 1 },
+        });
+      }
+
+      // 6️⃣ ดึง indicator ใหม่ครบทั้งหมด
       const indicator = await tx.indicator.findUnique({
         where: { indicator_id: id },
         include: {
@@ -530,10 +539,9 @@ export class IndicatorServerService {
           sub_indicators: true,
         },
       });
-
       if (!indicator) throw new Error("Indicator not found after update");
 
-      // 6️⃣ return format
+      // 7️⃣ return format
       return {
         id: indicator.indicator_id,
         name: indicator.name,
