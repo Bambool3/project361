@@ -404,6 +404,7 @@ export class IndicatorServerService {
     id: string,
     data: IndicatorPayload
   ): Promise<Indicator> {
+    console.log("data=", data);
     return await prisma.$transaction(async (tx) => {
       // 1️⃣ ดึง indicator เดิมพร้อม sub-indicators
       const existingIndicator = await tx.indicator.findUnique({
@@ -460,21 +461,41 @@ export class IndicatorServerService {
         });
       }
 
-      // update หรือ create sub-indicators
-      for (const sub of data.sub_indicators || []) {
+      // Step 1: temporary position
+      for (const [idx, sub] of (data.sub_indicators || []).entries()) {
         if (sub.id) {
           await tx.indicator.update({
             where: { indicator_id: sub.id },
-            data: {
-              name: sub.name.trim(),
-              target_value: parseFloat(sub.target_value),
-              unit_id: data.unit_id,
-              frequency_id: data.frequency_id,
-              category_id: data.category_id,
-              position: sub.position ?? 0,
-            },
+            data: { position: -1000 - idx },
           });
+        }
+      }
+
+      // update หรือ create sub-indicators
+      for (const sub of data.sub_indicators || []) {
+        if (sub.id) {
+          const existingSub = await tx.indicator.findUnique({
+            where: { indicator_id: sub.id },
+          });
+          if (existingSub) {
+            await tx.indicator.update({
+              where: { indicator_id: sub.id },
+              data: {
+                name: sub.name.trim(),
+                target_value: parseFloat(sub.target_value),
+                unit_id: data.unit_id,
+                frequency_id: data.frequency_id,
+                category_id: data.category_id,
+                position: sub.position ?? 0,
+              },
+            });
+          } else {
+            console.warn(
+              `Sub-indicator with id ${sub.id} not found, skipping update`
+            );
+          }
         } else {
+          // สร้าง sub-indicator ใหม่
           const newSub = await tx.indicator.create({
             data: {
               name: sub.name.trim(),
@@ -488,7 +509,6 @@ export class IndicatorServerService {
             },
           });
 
-          // ใส่ jobtitle เดียวกับ main indicator ให้ sub-indicator ใหม่
           if (data.jobtitle_ids?.length) {
             await tx.responsibleJobTitle.createMany({
               data: data.jobtitle_ids.map((jobId) => ({
