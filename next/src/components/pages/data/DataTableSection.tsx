@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { Indicator } from "@/types/management";
 import { FrequencyPeriod, Frequency } from "@/types/frequency";
+import { useNotification } from "@/providers/NotificationProvider";
 
 interface DataTableSectionProps {
   indicators: Indicator[];
@@ -64,7 +65,8 @@ export default function DataTableSection({
   categoryId,
   onRefresh,
 }: DataTableSectionProps) {
-  const { data: session } = useSession();
+  const { showNotification } = useNotification();
+
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [expandedFrequencyGroups, setExpandedFrequencyGroups] = useState<
@@ -78,13 +80,6 @@ export default function DataTableSection({
     "frequency"
   );
   const [showPeriodDetails, setShowPeriodDetails] = useState(false);
-
-  // Alert states
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertSeverity, setAlertSeverity] = useState<
-    "error" | "success" | "warning" | "info"
-  >("success");
 
   useEffect(() => {
     if (indicators.length > 0 && periods.length > 0) {
@@ -205,7 +200,6 @@ export default function DataTableSection({
       };
     } = {};
 
-    // Ensure we only work with main indicators (already filtered by filteredIndicators)
     filteredIndicators.forEach((indicator) => {
       const frequencyId = indicator.frequency.frequency_id;
 
@@ -303,25 +297,6 @@ export default function DataTableSection({
     } else {
       setExpandedFrequencyGroups(new Set(allFrequencyIds));
     }
-  };
-
-  const showAlert = (
-    message: string,
-    severity: "error" | "success" | "warning" | "info" = "success"
-  ) => {
-    setAlertMessage(message);
-    setAlertSeverity(severity);
-    setAlertOpen(true);
-  };
-
-  const handleCloseAlert = (
-    event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setAlertOpen(false);
   };
 
   const handleDataInput = (
@@ -497,7 +472,7 @@ export default function DataTableSection({
     indicators: Indicator[],
     relevantPeriods: FrequencyPeriod[]
   ): Indicator[] => {
-    // Ensure we only work with main indicators (filter out any sub-indicators)
+    // Filter out any sub-indicators
     const mainIndicators = indicators.filter((indicator) => {
       const isSubIndicator = indicators.some((mainIndicator) =>
         mainIndicator.sub_indicators?.some((sub) => sub.id === indicator.id)
@@ -616,7 +591,7 @@ export default function DataTableSection({
     // Validate input
     const validation = validateDataEntry(entry.actualValue);
     if (!validation.isValid) {
-      showAlert(validation.message || "ข้อมูลไม่ถูกต้อง", "warning");
+      showNotification(validation.message || "ข้อมูลไม่ถูกต้อง", "warning");
       return;
     }
 
@@ -642,7 +617,7 @@ export default function DataTableSection({
 
       const result = await response.json();
 
-      showAlert("บันทึกข้อมูลสำเร็จ", "success");
+      showNotification("บันทึกข้อมูลสำเร็จ", "success");
 
       setDataEntries((prev) => {
         const newMap = new Map(prev);
@@ -652,7 +627,7 @@ export default function DataTableSection({
       });
     } catch (error) {
       console.error("Error saving data:", error);
-      showAlert(
+      showNotification(
         error instanceof Error
           ? error.message
           : "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
@@ -669,7 +644,7 @@ export default function DataTableSection({
     );
 
     if (modifiedEntries.length === 0) {
-      showAlert("ไม่มีข้อมูลที่ต้องบันทึก", "info");
+      showNotification("ไม่มีข้อมูลที่ต้องบันทึก", "info");
       return;
     }
 
@@ -679,7 +654,10 @@ export default function DataTableSection({
       for (const entry of modifiedEntries) {
         const validation = validateDataEntry(entry.actualValue);
         if (!validation.isValid) {
-          showAlert(`ข้อมูลไม่ถูกต้อง: ${validation.message}`, "warning");
+          showNotification(
+            `ข้อมูลไม่ถูกต้อง: ${validation.message}`,
+            "warning"
+          );
           return;
         }
       }
@@ -707,7 +685,7 @@ export default function DataTableSection({
 
       const result = await response.json();
 
-      showAlert(`บันทึกข้อมูลสำเร็จ ${result.count} รายการ`, "success");
+      showNotification(`บันทึกข้อมูลสำเร็จ ${result.count} รายการ`, "success");
 
       setDataEntries((prev) => {
         const newMap = new Map(prev);
@@ -720,7 +698,7 @@ export default function DataTableSection({
       });
     } catch (error) {
       console.error("Error batch saving data:", error);
-      showAlert(
+      showNotification(
         error instanceof Error
           ? error.message
           : "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
@@ -1149,7 +1127,7 @@ export default function DataTableSection({
                   onClick={() => toggleFrequencyGroup(frequencyId)}
                   sx={{
                     p: 2.5,
-                    backgroundColor: "#f8fafc",
+                    // backgroundColor: "#f8fafc",
                     borderBottom: "1px solid #e2e8f0",
                     // borderLeft: "4px solid #8b5cf6",
                     display: "flex",
@@ -1157,7 +1135,7 @@ export default function DataTableSection({
                     gap: 2,
                     cursor: "pointer",
                     "&:hover": {
-                      backgroundColor: "#f1f5f9",
+                      // backgroundColor: "#f1f5f9",
                       // borderLeftColor: "#7c3aed",
                     },
                     transition: "all 0.2s ease",
@@ -1169,7 +1147,7 @@ export default function DataTableSection({
                     sx={{
                       p: 0.75,
                       color: "#8b5cf6",
-                      backgroundColor: "rgba(139, 92, 246, 0.1)",
+                      // backgroundColor: "rgba(139, 92, 246, 0.1)",
                       borderRadius: "8px",
                       "&:hover": {
                         backgroundColor: "rgba(139, 92, 246, 0.2)",
@@ -1884,28 +1862,6 @@ export default function DataTableSection({
           })()}
         </CardContent>
       </Card>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={alertOpen}
-        autoHideDuration={6000}
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        sx={{ zIndex: 15000 }}
-      >
-        <Alert
-          onClose={handleCloseAlert}
-          severity={alertSeverity}
-          sx={{
-            zIndex: 15000,
-            width: "100%",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
-        >
-          {alertMessage}
-        </Alert>
-      </Snackbar>
     </>
   );
 }
