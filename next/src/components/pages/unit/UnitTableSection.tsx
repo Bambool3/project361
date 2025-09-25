@@ -385,7 +385,7 @@ export default function UnitTableSection({
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f8fafc" }}>
-                  <TableCell
+                  {/* <TableCell
                     sx={{
                       fontWeight: "bold",
                       color: "#475569",
@@ -394,7 +394,7 @@ export default function UnitTableSection({
                     }}
                   >
                     ลำดับ
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell
                     sx={{
                       fontWeight: "bold",
@@ -452,7 +452,7 @@ export default function UnitTableSection({
                         }}
                       >
                         {/* Order Number Column */}
-                        <TableCell
+                        {/* <TableCell
                           sx={{
                             border: "none",
                             py: 2.5,
@@ -467,7 +467,7 @@ export default function UnitTableSection({
                           >
                             {orderNumber}
                           </Typography>
-                        </TableCell>
+                        </TableCell> */}
 
                         {/* Name Column */}
                         <TableCell
@@ -477,9 +477,9 @@ export default function UnitTableSection({
                           }}
                         >
                           <Typography
-                            variant="body2"
                             sx={{
-                              color: "#374151",
+                              fontWeight: "600",
+                              color: "#1e293b",
                             }}
                           >
                             {unit.name}
