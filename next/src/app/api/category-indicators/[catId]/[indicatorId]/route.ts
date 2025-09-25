@@ -3,10 +3,10 @@ import { IndicatorServerService } from "@/server/services/indicator/indicator-se
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { catId: string; indicatorId: string } }
+  context: { params: Promise<{ catId: string; indicatorId: string }> }
 ) {
   try {
-    const { catId, indicatorId } = params; // catId = categoryId, indicatorId = id ของ indicator
+    const { catId, indicatorId } = await context.params; // ✅ ต้อง await
     const body = await request.json();
     console.log("categoryId=", catId, "indicatorId=", indicatorId);
 

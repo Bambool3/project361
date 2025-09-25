@@ -396,20 +396,17 @@ export class IndicatorServerService {
     id: string,
     data: IndicatorPayload
   ): Promise<Indicator> {
-    try {
-      // validate input
-      if (!data.name?.trim() || !data.target_value?.toString().trim()) {
-        throw new Error("Name and target are required");
-      }
-
-      // 🔑 ดึง indicator เดิมมาก่อน
-      const existingIndicator = await prisma.indicator.findUnique({
+    return await prisma.$transaction(async (tx) => {
+      // 1️⃣ ดึง indicator เดิมพร้อม sub-indicators
+      const existingIndicator = await tx.indicator.findUnique({
         where: { indicator_id: id },
-        select: { user_id: true },
+        include: { sub_indicators: true },
       });
 
-      // create main indicator
-      const updatedIndicator = await prisma.indicator.update({
+      if (!existingIndicator) throw new Error("Indicator not found");
+
+      // 2️⃣ อัปเดต main indicator
+      const updatedIndicator = await tx.indicator.update({
         where: { indicator_id: id },
         data: {
           name: data.name.trim(),
@@ -427,58 +424,78 @@ export class IndicatorServerService {
         },
       });
 
-      await prisma.responsibleJobTitle.deleteMany({
+      // 3️⃣ จัดการ responsible jobtitles
+      await tx.responsibleJobTitle.deleteMany({
         where: { indicator_id: id },
       });
-      // insert responsible jobtitles
+
       if (data.jobtitle_ids?.length) {
-        await prisma.responsibleJobTitle.createMany({
+        await tx.responsibleJobTitle.createMany({
           data: data.jobtitle_ids.map((jobId) => ({
-            indicator_id: updatedIndicator.indicator_id,
+            indicator_id: id,
             jobtitle_id: jobId,
           })),
         });
       }
 
-      // ลบ sub-indicators เดิมทั้งหมด (รวม jobtitle ด้วย เพราะ onDelete: Cascade)
-      await prisma.indicator.deleteMany({
-        where: { main_indicator_id: id },
-      });
+      // 4️⃣ จัดการ sub-indicators
+      const existingSubs = existingIndicator.sub_indicators;
+      const incomingSubIds =
+        data.sub_indicators?.map((s) => s.id).filter(Boolean) || [];
 
-      // สร้าง sub-indicators ใหม่
-      if (data.sub_indicators?.length) {
-        const createdSubs = await prisma.$transaction(
-          data.sub_indicators.map((sub, idx) =>
-            prisma.indicator.create({
-              data: {
-                name: sub.name.trim(),
-                target_value: parseFloat(sub.target_value),
-                unit_id: data.unit_id,
-                frequency_id: data.frequency_id,
-                category_id: data.category_id,
-                user_id: existingIndicator.user_id, // ใช้ user_id เดิม
-                position: sub.position ?? idx + 1,
-                main_indicator_id: updatedIndicator.indicator_id,
-              },
-            })
-          )
-        );
+      // ลบ sub-indicator ที่ถูกเอาออก
+      const toDelete = existingSubs.filter(
+        (sub) => !incomingSubIds.includes(sub.indicator_id)
+      );
+      if (toDelete.length > 0) {
+        await tx.indicator.deleteMany({
+          where: { indicator_id: { in: toDelete.map((s) => s.indicator_id) } },
+        });
+      }
 
-        // ใส่ jobtitle_ids (ใช้ชุดเดียวกับ main) ให้ทุก sub-indicator
-        if (data.jobtitle_ids?.length) {
-          for (const sub of createdSubs) {
-            await prisma.responsibleJobTitle.createMany({
+      // update หรือ create sub-indicators
+      for (const sub of data.sub_indicators || []) {
+        if (sub.id) {
+          await tx.indicator.update({
+            where: { indicator_id: sub.id },
+            data: {
+              name: sub.name.trim(),
+              target_value: parseFloat(sub.target_value),
+              unit_id: data.unit_id,
+              frequency_id: data.frequency_id,
+              category_id: data.category_id,
+              position: sub.position ?? 0,
+            },
+          });
+        } else {
+          const newSub = await tx.indicator.create({
+            data: {
+              name: sub.name.trim(),
+              target_value: parseFloat(sub.target_value),
+              unit_id: data.unit_id,
+              frequency_id: data.frequency_id,
+              category_id: data.category_id,
+              user_id: existingIndicator.user_id,
+              position: sub.position ?? 0,
+              main_indicator_id: id,
+            },
+          });
+
+          // ใส่ jobtitle เดียวกับ main indicator ให้ sub-indicator ใหม่
+          if (data.jobtitle_ids?.length) {
+            await tx.responsibleJobTitle.createMany({
               data: data.jobtitle_ids.map((jobId) => ({
-                indicator_id: sub.indicator_id,
+                indicator_id: newSub.indicator_id,
                 jobtitle_id: jobId,
               })),
             });
           }
         }
       }
-      // fetch complete indicator
-      const indicator = await prisma.indicator.findUnique({
-        where: { indicator_id: updatedIndicator.indicator_id },
+
+      // 5️⃣ ดึง indicator ใหม่ครบทั้งหมด
+      const indicator = await tx.indicator.findUnique({
+        where: { indicator_id: id },
         include: {
           unit: true,
           frequency: true,
@@ -487,10 +504,11 @@ export class IndicatorServerService {
         },
       });
 
-      if (!indicator) throw new Error("Indicator not found after creation");
+      if (!indicator) throw new Error("Indicator not found after update");
 
+      // 6️⃣ return format
       return {
-        id: indicator.indicator_id.toString(),
+        id: indicator.indicator_id,
         name: indicator.name,
         target_value: indicator.target_value,
         unit: {
@@ -504,26 +522,21 @@ export class IndicatorServerService {
         },
         main_indicator_id: indicator.main_indicator_id,
         category_id: indicator.category_id,
-        responsible_jobtitles:
-          indicator.responsible_jobtitle.map((r) => ({
-            in_id: r.indicator_id,
-            id: r.jobtitle.jobtitle_id,
-            name: r.jobtitle.name,
-          })) || [],
-        sub_indicators:
-          indicator.sub_indicators.map((s) => ({
-            id: s.indicator_id,
-            name: s.name,
-            target_value: s.target_value,
-            position: s.position,
-          })) || [],
+        responsible_jobtitles: indicator.responsible_jobtitle.map((r) => ({
+          in_id: r.indicator_id,
+          id: r.jobtitle.jobtitle_id,
+          name: r.jobtitle.name,
+        })),
+        sub_indicators: indicator.sub_indicators.map((s) => ({
+          id: s.indicator_id,
+          name: s.name,
+          target_value: s.target_value,
+          position: s.position,
+        })),
       };
-    } catch (error) {
-      console.error("Error creating indicator in database:", error);
-      if (error instanceof Error) throw error;
-      throw new Error("Failed to create indicator in database");
-    }
+    });
   }
+
   static async reorderIndicators(indicators: ReorderPayload[], catId: string) {
     if (!indicators || indicators.length === 0) return;
 
