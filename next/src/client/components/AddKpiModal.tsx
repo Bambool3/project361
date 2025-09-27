@@ -89,9 +89,9 @@ export default function AddKpiModal({
   // ดีงข้อมูล ความถี่,แผนก
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:3000/api/frequency").then((res) => res.json()),
-      fetch("http://localhost:3000/api/jobTitle").then((res) => res.json()),
-      fetch("http://localhost:3000/api/unit").then((res) => res.json()),
+      fetch("/api/frequency").then((res) => res.json()),
+      fetch("/api/jobTitle").then((res) => res.json()),
+      fetch("/api/unit").then((res) => res.json()),
     ])
       .then(([freqData, jobData, unitData]) => {
         setFrequencies(
